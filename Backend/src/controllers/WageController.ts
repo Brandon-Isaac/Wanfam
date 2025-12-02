@@ -1,5 +1,4 @@
 import { Wage } from "../models/Wages";
-import { FarmWorker } from "../models/FarmWorker";
 import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/AsyncHandler";
 
