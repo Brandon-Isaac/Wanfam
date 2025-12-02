@@ -3,8 +3,6 @@ import { asyncHandler } from "../middleware/AsyncHandler";
 import { Request, Response } from "express";
 import { Farm } from "../models/Farm";
 import { Animal } from "../models/Animal";
-import { User } from "../models/User";
-
 
 const createFeedConsumptionSchedule = asyncHandler(async (req: Request, res: Response) => {
     const farmSlug = req.params.farmSlug;

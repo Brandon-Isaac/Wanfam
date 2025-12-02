@@ -35,7 +35,7 @@ const createHealthRecord = (asyncHandler(async(req: Request, res: Response) => {
     if (recordType.toLowerCase() === 'recovery' || recordType.toLowerCase() === 'completed') {
         animal.healthStatus = 'healthy';
     }
-    await animalHealthStatus?.save();
+    await animal.save();
     res.status(201).json({ success: true, data: newRecord });
 }));
 
