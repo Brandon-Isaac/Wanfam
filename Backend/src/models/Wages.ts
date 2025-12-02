@@ -1,5 +1,4 @@
 import {Schema, Types, model, Document} from 'mongoose';
-import { FarmWorker } from './FarmWorker';
 
 export interface IWage extends Document {
     farmId: Schema.Types.ObjectId;

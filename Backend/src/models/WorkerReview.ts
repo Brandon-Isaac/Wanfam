@@ -6,7 +6,7 @@ export interface IWorkerReview extends Document {
     slug?: string;
     reviewerId: Schema.Types.ObjectId;
     reviewPeriod?: string;
-    PerformanceMetrics?: {
+    performanceMetrics?: {
         punctuality?: number;
         taskCompletion?: number;
         teamwork?: number;
@@ -26,7 +26,7 @@ const workerReviewSchema = new Schema<IWorkerReview>({
     workerId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     reviewerId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     reviewPeriod: { type: String },
-    PerformanceMetrics: {
+    performanceMetrics: {
         punctuality: { type: Number, min: 1, max: 5 },
         taskCompletion: { type: Number, min: 1, max: 5 },
         teamwork: { type: Number, min: 1, max: 5 },

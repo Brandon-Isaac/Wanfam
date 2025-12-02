@@ -13,6 +13,7 @@ export interface ITimeOffRequest extends Document {
 
 const TimeOffRequestSchema = new Schema<ITimeOffRequest>({
     workerId: { type: Schema.Types.ObjectId, ref: "FarmWorker", required: true },
+    type: { type: String, enum: ['vacation', 'sick', 'personal', 'training', 'emergency', 'other'], required: true },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
     reason: { type: String, required: true },

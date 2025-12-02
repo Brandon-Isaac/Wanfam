@@ -2,7 +2,7 @@ import { Animal } from "../models/Animal";
 import { Farm } from "../models/Farm";
 import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/AsyncHandler";
-import {AIService} from "../services/AIService";
+import { AIService} from "../services/AIService";
 
 const getBreedsBySpecies = asyncHandler(async (req: Request, res: Response) => {
     const species = req.params.species.toLowerCase();
@@ -48,7 +48,8 @@ const generateOtherAnimalBreeds = asyncHandler(async (req: Request, res: Respons
     if (animal.species === 'other') {
         return res.status(400).json({ message: "Cannot generate breeds for species 'other'" });
     }
-    const Breeds= await AIService.generateBreeds(animal.species);
+    const aiService = new AIService();
+    const Breeds = await aiService.generateText(animal.species);
     res.json({ success: true, data: Breeds });
 });
 

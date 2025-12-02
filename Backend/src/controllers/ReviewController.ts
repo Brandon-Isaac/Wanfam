@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { User } from "../models/User";
 import { WorkerReview } from "../models/WorkerReview";
-import { Farm } from "../models/Farm";
 import { TimeOffRequest } from "../models/TimeOffRequest";
 
 
@@ -13,9 +12,8 @@ import { TimeOffRequest } from "../models/TimeOffRequest";
     }
     try {
         const { workerId, PunctualityRating, TaskCompletionRating, TeamworkRating, CommunicationRating, ProblemSolvingRating, comment, strengths, areasForImprovement, goals } = req.body;
-        const userId = req.user?.id; // Assuming user ID is available in req.user
+        const userId = req.user?.id; 
 
-        // Validate input
         if (!workerId || !PunctualityRating || !TaskCompletionRating || !TeamworkRating || !CommunicationRating || !ProblemSolvingRating || !comment) {
             return res.status(400).json({ message: "All fields are required" });
         }
@@ -24,7 +22,6 @@ import { TimeOffRequest } from "../models/TimeOffRequest";
             return res.status(400).json({ message: "Ratings must be between 1 and 5" });
         }
 
-        // Create a new review
         const review = new WorkerReview({
             worker: workerId,
             reviewerId: userId,
@@ -61,7 +58,7 @@ import { TimeOffRequest } from "../models/TimeOffRequest";
     }
     try {
         const { workerId } = req.params;
-        const reviews = await WorkerReview.find({ worker: workerId, farm: farmId });
+        const reviews = await WorkerReview.find({ workerId: workerId, farmId: farmId });
         return res.status(200).json({ reviews });
     } catch (error) {
         console.error("Error fetching reviews:", error);
@@ -84,13 +81,11 @@ import { TimeOffRequest } from "../models/TimeOffRequest";
     }
 };
 
-//update a review
  const updateReview = async (req: Request, res: Response) => {
     try {
         const { reviewId } = req.params;
         const { PunctualityRating, TaskCompletionRating, TeamworkRating, CommunicationRating, ProblemSolvingRating, comment, strengths, areasForImprovement, goals } = req.body;
 
-        // Validate input
         if (!PunctualityRating || !TaskCompletionRating || !TeamworkRating || !CommunicationRating || !ProblemSolvingRating || !comment) {
             return res.status(400).json({ message: "All fields are required" });
         }
@@ -99,7 +94,6 @@ import { TimeOffRequest } from "../models/TimeOffRequest";
             return res.status(400).json({ message: "Ratings must be between 1 and 5" });
         }
 
-        // Update the review
         const updatedReview = await WorkerReview.findByIdAndUpdate(reviewId, {
             PerformanceMetrics: {
                 punctuality: PunctualityRating,
@@ -126,7 +120,6 @@ import { TimeOffRequest } from "../models/TimeOffRequest";
     }
 };
 
-// Delete a review
  const deleteReview = async (req: Request, res: Response) => {
     if (!req.params.farmId) {
         return res.status(400).json({ message: "Farm ID is required" });
@@ -147,16 +140,16 @@ import { TimeOffRequest } from "../models/TimeOffRequest";
 const getAverageRatings = async (req: Request, res: Response) => {
     try {
         const { workerId } = req.params;
-        const reviews = await WorkerReview.find({ worker: workerId });
+        const reviews = await WorkerReview.find({ workerId: workerId });
         if (reviews.length === 0) {
             return res.status(200).json({ averageRatings: null });
         }   
         const totalRatings = reviews.reduce((acc, review) => {
-            acc.punctuality += review.PerformanceMetrics?.punctuality || 0;
-            acc.taskCompletion += review.PerformanceMetrics?.taskCompletion || 0;
-            acc.teamwork += review.PerformanceMetrics?.teamwork || 0;
-            acc.communication += review.PerformanceMetrics?.communication || 0;
-            acc.problemSolving += review.PerformanceMetrics?.problemSolving || 0;
+            acc.punctuality += review.performanceMetrics?.punctuality || 0;
+            acc.taskCompletion += review.performanceMetrics?.taskCompletion || 0;
+            acc.teamwork += review.performanceMetrics?.teamwork || 0;
+            acc.communication += review.performanceMetrics?.communication || 0;
+            acc.problemSolving += review.performanceMetrics?.problemSolving || 0;
             return acc;
         }, { punctuality: 0, taskCompletion: 0, teamwork: 0, communication: 0, problemSolving: 0 });
 
@@ -178,12 +171,11 @@ const getAverageRatings = async (req: Request, res: Response) => {
 const  createTimeOffRequests = async (req: Request, res: Response) => {
     const  workerId  = req.user?.id;
     try {
-        // Verify that the worker exists
+
         const worker = await User.findOne({ _id: workerId, role: 'worker' });
         if (!worker) {
             return res.status(404).json({ message: "Worker not found" });
         }
-        // Create a new time-off request
         const timeOffRequest = new TimeOffRequest({
             workerId: worker._id,
             type: req.body.type,
@@ -204,12 +196,11 @@ const  createTimeOffRequests = async (req: Request, res: Response) => {
 const getTimeOffRequests = async (req: Request, res: Response) => {
     const { workerId } = req.body;
     try {
-        // Verify that the worker exists
         const worker = await User.findById(workerId);
         if (!worker) {
             return res.status(404).json({ message: "Worker not found" });
         }   
-        // Fetch all time-off requests for the worker
+
         const requests = await TimeOffRequest.find({ workerId: workerId });
         return res.status(200).json({ requests });
     } catch (error) {

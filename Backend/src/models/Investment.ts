@@ -1,5 +1,4 @@
 import {Schema, model, Document} from 'mongoose';
-import { UserRole } from './UserRole';
 
 export interface IInvestment extends Document {
     farmId: Schema.Types.ObjectId;

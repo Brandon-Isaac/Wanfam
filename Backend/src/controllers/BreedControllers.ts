@@ -1,4 +1,3 @@
-import { Breed } from "../models/Breed";
 import { asyncHandler } from "../middleware/AsyncHandler";
 import { Request, Response } from "express";
 

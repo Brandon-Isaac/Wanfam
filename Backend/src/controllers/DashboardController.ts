@@ -254,7 +254,7 @@ const loanOfficerDashboard = asyncHandler(async (req: Request, res: Response) =>
 
 const adminDashboard = asyncHandler(async (req: Request, res: Response) => {
     const totalFarms = await Farm.countDocuments();
-    const activeFarms = await Farm.countDocuments({ where: { isActive: true } });
+    const activeFarms = await Farm.countDocuments( { isActive: true });
     const totalAnimals = await Animal.countDocuments();
     const totalVeterinarians = await Veterinarian.countDocuments();
     const totalFarmWorkers = await FarmWorker.countDocuments();

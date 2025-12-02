@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-export class GeminiService {
+export class AIService {
     private genAI: GoogleGenerativeAI;
     private model: any;
 
@@ -14,7 +14,7 @@ export class GeminiService {
         this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
     }
 
-    async generateText(prompt: string): Promise<string> {
+    async generateText(prompt: any): Promise<string> {
         try {
             const result = await this.model.generateContent(prompt);
             const response = await result.response;
@@ -24,7 +24,7 @@ export class GeminiService {
         }
     }
 
-    async generateTextStream(prompt: string): Promise<AsyncIterable<string>> {
+    async generateTextStream(prompt: any): Promise<AsyncIterable<string>> {
         try {
             const result = await this.model.generateContentStream(prompt);
             

@@ -3,7 +3,6 @@ import { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/AsyncHandler';
 import {AIService} from "../services/AIService";
 import { Farm } from '../models/Farm';
-import { User } from '../models/User';
 
 // Create a new report
 const createReport = asyncHandler(async (req: Request, res: Response) => {
@@ -67,7 +66,8 @@ const generateReportWithAi = asyncHandler(async (req: Request, res: Response) =>
         return res.status(404).json({ message: 'Farm not found' });
     }
 
-    const reportData = await AIService.generateReport({
+    const aiService = new AIService();
+    const reportData = await aiService.generateTextStream({
         farmId,
         reportType,
         reportDuration,
