@@ -1,0 +1,317 @@
+import {Routes, Route} from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
+import LandingPage from '../pages/LandingPage';
+import Register from '../components/Forms/Register';
+import Login from '../components/Forms/Login';
+import Dashboard from '../pages/Dashboard';
+import Navigation from '../components/Navigation';
+
+// import ProtectedRoutes from './ProtectedRoutes';
+import { AuthProvider } from '../contexts/AuthContext';
+import ProtectedRoutes from './ProtectedRoutes';
+import Farms from '../pages/Farms';
+import { FarmProvider } from '../contexts/FarmContext';
+import SelectFarm from '../components/Forms/SelectFarm';
+import Chatbot from '../components/Chatbot';
+import Profile from '../components/Profile';
+import AddFarm from '../components/Forms/AddFarm';
+import FarmDashboard from '../pages/Dashboards/FarmDashboard';
+import AddTask from '../components/Forms/AddTask';
+import FarmerDashboard from '../pages/Dashboards/FarmerDashboard';
+import UpdateProfile from '../components/Forms/UpdateProfile';
+import AddAnimal from '../components/Forms/AddAnimal';
+import AnimalList from '../components/AnimalList';
+import AnimalView from '../components/AnimalView';
+import UpdateAnimal from '../components/Forms/UpdateAnimal';
+import UpdateFarm from '../components/Forms/UpdateFarm';
+import EmployWorker from '../components/Forms/EmployWorker';
+import CreateWorker from '../components/Forms/CreateWorker';
+import FarmWorkers from '../components/FarmWorkers';
+import DismissWorker from '../components/Forms/DismissWorker';
+import ChangePassword from '../components/Forms/ChangePassword';
+import FarmTasks from '../components/FarmTasks';
+import UpdateTask from '../components/Forms/UpdateTask';
+import TaskView from '../components/TaskView';
+import MyTasks from '../components/MyTasks';
+import AssignedAnimals from '../components/AssignedAnimals';
+import MilkProduction from '../components/Forms/MilkProduction';
+import SickAnimals from '../components/SickAnimals';
+import AssignVet from '../components/Forms/AssignVet';
+import VetsList from '../pages/VetsList';
+import ScheduleTreatment from '../components/Forms/ScheduleTreatment';
+import TreatmentSchedules from '../components/TreatmentSchedules';
+import TreatAnimal from '../components/Forms/TreatAnimal';
+
+const AppRoutes = () => {
+    return (
+        <AuthProvider>
+            <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
+
+            <Route path="/dashboard" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <Dashboard />
+                    </>
+                </ProtectedRoutes>} />
+            <Route path="/dashboard/farmer" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <FarmerDashboard />
+                    </>
+                </ProtectedRoutes>} />
+            <Route path="/select/farm" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <FarmProvider>
+                            <SelectFarm />
+                        </FarmProvider>
+                    </>
+                </ProtectedRoutes>} />
+                <Route path="/farms/:farmId/livestock/:animalId/treatment/schedule" element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <ScheduleTreatment />   
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+
+                <Route path="/:farmId/animals/sick" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <SickAnimals/>
+                    </>
+                    </ProtectedRoutes>
+            } />
+            <Route path="/farms" element={
+                <ProtectedRoutes>
+                    <>                        
+                        <Navigation />
+                        <Farms />
+                    </>
+                </ProtectedRoutes>} />
+            <Route path="/farms/add" element={
+                <ProtectedRoutes>
+                    <>                        
+                    <Navigation />
+                    <AddFarm />
+                    </>
+                </ProtectedRoutes>} />
+
+            <Route path="/farms/:farmId/dashboard" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <FarmProvider>
+                            <FarmDashboard />
+                        </FarmProvider>
+                    </>
+                </ProtectedRoutes>} />
+
+            <Route path="/farms/:farmId/update" element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <UpdateFarm />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+            <Route path="/:farmId/vets" element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <VetsList />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+
+            <Route path="/farms/:farmId/assign-vet" element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <AssignVet />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+
+            <Route path="/:farmId/tasks/add" element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <AddTask />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+
+            <Route path="/:farmId/tasks" element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <FarmTasks />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+
+            <Route path="/:farmId/tasks/:taskId" element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <TaskView />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+
+            <Route path="/:farmId/tasks/:taskId/edit" element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <UpdateTask/>
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+
+            <Route path="/tasks" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                            <MyTasks />
+                    </>
+                </ProtectedRoutes>} />
+
+                <Route path="/assigned-animals" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                            <AssignedAnimals />
+                    </>
+                </ProtectedRoutes>} />
+                <Route path="/:animalId/milk-production" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <MilkProduction />
+                    </>
+                </ProtectedRoutes>} />
+                
+            <Route path="/chatbot" element={
+                <ProtectedRoutes>
+                    <>                       
+                    <Navigation />
+                   <Chatbot />
+                    </>
+                </ProtectedRoutes>} />
+            <Route path="/change-password" element={
+                <ProtectedRoutes><AuthProvider>
+                    <Navigation />
+                    <ChangePassword />
+                    </AuthProvider></ProtectedRoutes>
+            } />      
+            <Route path='/profile' element={
+                <ProtectedRoutes><AuthProvider>
+                    <Navigation />
+                    <Profile />
+                    </AuthProvider></ProtectedRoutes>
+            } />
+            <Route path='/profile/edit' element={
+                <ProtectedRoutes><AuthProvider><UpdateProfile /></AuthProvider></ProtectedRoutes>
+            } />
+            <Route path='/:farmId/livestock/add' element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <AddAnimal />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+            <Route path='/:farmId/livestock/:animalId' element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <AnimalView />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+            <Route path='/:farmId/livestock/:animalId/edit' element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <UpdateAnimal />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+            <Route path='/:farmId/livestock' element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <AnimalList />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+            <Route path="/farms/:farmId/workers/employ" element={
+                <ProtectedRoutes>
+                    <FarmProvider>                   
+                        <Navigation />
+                        <EmployWorker />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+            <Route path="/farms/:farmId/workers/create" element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <CreateWorker />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+            <Route path="/farms/:farmId/workers" element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <FarmWorkers />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+            <Route path="/farms/:farmId/workers/dismiss" element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <DismissWorker />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+
+            <Route path="/treatment-schedules" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                            <TreatmentSchedules />
+                    </>
+                </ProtectedRoutes>
+            } />
+            <Route path="/treatment-schedules/treat/:scheduleId" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <TreatAnimal />
+                    </>
+                </ProtectedRoutes>
+            } />
+
+            {/*
+            <Route path="/profile" element={<ProtectedRoutes><Profile /></ProtectedRoutes>} />
+            <Route path="/settings" element={<ProtectedRoutes><Settings /></ProtectedRoutes>} /> */}
+
+            <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+        </AuthProvider>
+    );
+};
+
+export default AppRoutes;

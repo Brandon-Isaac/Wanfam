@@ -3,7 +3,6 @@ import { Farm } from "../models/Farm";
 import { User } from "../models/User";
 import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/AsyncHandler";
-import { Animal } from "../models/Animal";
 
 const getAllTasks = asyncHandler(async (req: Request, res: Response) => {
     const farmId = req.params.farmId;
@@ -58,7 +57,7 @@ const updateTask = asyncHandler(async (req: Request, res: Response) => {
     if (!task) {
         return res.status(404).json({ message: "Task not found" });
     }
-    const { title, description, assignedTo, dueDate, taskCategory, priority, status, relatedAnimals } = req.body;
+    const { title, description, assignedTo, dueDate, taskCategory, priority, status } = req.body;
     if (title) task.title = title;
     if (description) task.description = description;
     if (assignedTo) task.assignedTo = assignedTo;
