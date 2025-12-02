@@ -1,6 +1,5 @@
 import {User} from "../models/User";
 import { UserRole } from "../models/UserRole";
-import {authenticate} from "../middleware/Auth";
 import {asyncHandler} from "../middleware/AsyncHandler";
 import {Request, Response} from "express";
 import bcrypt from "bcryptjs";
