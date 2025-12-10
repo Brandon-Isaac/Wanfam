@@ -2,6 +2,10 @@ import Express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import mongoose from "mongoose";
+
+// Load environment variables FIRST before any other imports
+dotenv.config();
+
 import authRoutes from "./routes/authRoutes";
 import livestockRoutes from "./routes/livestockRoutes";
 import feedConsumptionRoutes from "./routes/FeedConsumptionRoutes";
@@ -18,15 +22,12 @@ import timeOffRequestRoutes from "./routes/timeOffRequestRoutes";
 import auditLogRoutes from "./routes/auditLogRoutes";
 import capitalRoutes from "./routes/capitalRoutes";
 import dashboardRoutes from "./routes/dashboardRoutes";
-import diseaseOutbreakRoutes from "./routes/diseaseOutbreakRoutes";
 import inventoryRoutes from "./routes/inventoryRoutes";
-import recommendedRoutes from "./routes/recommendedRoutes";
 import reportRoutes from "./routes/reportRoutes";
 import wageRoutes from "./routes/wageRoutes";
 import vetRoutes from "./routes/VetRoutes";
 import treatmentRoutes from "./routes/treatmentRoutes";
-
-dotenv.config();
+import chatRoutes from "./routes/chatRoutes";
 
 const app = Express();
 const PORT = process.env.PORT || 5000;
@@ -61,13 +62,12 @@ app.use("/api/v1/time-off-requests", timeOffRequestRoutes);
 app.use("/api/v1/audit-logs", auditLogRoutes);
 app.use("/api/v1/capital", capitalRoutes);
 app.use("/api/v1/dashboard", dashboardRoutes);
-app.use("/api/v1/disease-outbreaks", diseaseOutbreakRoutes);
 app.use("/api/v1/inventory", inventoryRoutes);
-app.use("/api/v1/recommendations", recommendedRoutes);
 app.use("/api/v1/reports", reportRoutes);
 app.use("/api/v1/wages", wageRoutes);
 app.use("/api/v1/vets", vetRoutes);
 app.use("/api/v1/treatments", treatmentRoutes);
+app.use("/api/v1/chat", chatRoutes);
 app.use('/api/v1/breeds', require('./routes/breedRoutes').default);
 
 app.listen(PORT, () => {

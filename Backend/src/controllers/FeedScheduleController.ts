@@ -148,7 +148,6 @@ const executeFeedingSchedule = asyncHandler(async (req: Request, res: Response) 
         return res.status(404).json({ message: "Feeding schedule not found" });
     }
     const { actualQuantity, notes, completedBy } = req.body;
-    const today = new Date().toISOString().split('T')[0];
     
     // Update the schedule with execution data
     if (!schedule.executionHistory) {
