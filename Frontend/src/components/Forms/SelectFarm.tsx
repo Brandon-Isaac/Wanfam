@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import  { useFarm } from '../../contexts/FarmContext';
-import { useAuth } from '../../contexts/AuthContext'
+import { useFarm } from '../../contexts/FarmContext';
 import api from '../../utils/Api';
 
 const SelectFarm = () => {
-  const { user } = useAuth();
   const { selectFarm } = useFarm();
   const navigate = useNavigate();
   const [farms, setFarms] = useState([]);
@@ -38,7 +36,7 @@ const SelectFarm = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading your farms...</p>
+          <p className="mt-4 text-gray-600">Loading farms...</p>
         </div>
       </div>
     );
@@ -49,10 +47,10 @@ const SelectFarm = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <i className="fas fa-exclamation-triangle text-red-500 text-4xl mb-4"></i>
-          <p className="text-gray-600">{error}</p>
+          <p className="text-gray-600 mb-4">{error}</p>
           <button 
             onClick={fetchFarms}
-            className="mt-4 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+            className="px-6 py-3 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
           >
             Try Again
           </button>
@@ -90,37 +88,65 @@ const SelectFarm = () => {
               <div
                 key={farm._id}
                 onClick={() => handleFarmSelection(farm)}
-                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer border border-gray-200 overflow-hidden"
+                className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-200 overflow-hidden transform hover:-translate-y-1"
               >
-                <div className="h-48 bg-green-100 flex items-center justify-center">
+                <div className="h-48 bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center relative">
                   {farm.image ? (
                     <img src={farm.image} alt={farm.name} className="w-full h-full object-cover" />
                   ) : (
-                    <i className="fas fa-barn text-4xl text-green-500"></i>
+                    <i className="fas fa-barn text-6xl text-white opacity-90"></i>
                   )}
+                  <span className={`absolute top-3 right-3 px-3 py-1 text-xs font-semibold rounded-full shadow-md ${
+                    farm.isActive ? 'bg-white text-green-600' : 'bg-gray-800 text-white'
+                  }`}>
+                    <i className={`fas ${farm.isActive ? 'fa-check-circle' : 'fa-pause-circle'} mr-1`}></i>
+                    {farm.isActive ? 'Active' : 'Inactive'}
+                  </span>
                 </div>
                 <div className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{farm.name}</h3>
-                  <p className="text-gray-600 text-sm mb-3">{farm.location.county}, {farm.location.subCounty}</p>
-                  <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
-                    <span><i className="fas fa-cow mr-1"></i>{farm.livestockTypes.length || 0} Livestock Types</span>
-                    <span><i className="fas fa-chart-line mr-1"></i>{farm.size.value || 'N/A'} Acres</span>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">{farm.name}</h3>
+                  
+                  {/* Location */}
+                  <div className="flex items-start mb-4 text-sm text-gray-600">
+                    <i className="fas fa-map-marker-alt text-red-500 mt-1 mr-2"></i>
+                    <div>
+                      <div className="font-medium text-gray-900">{farm.location.county}</div>
+                      <div className="text-xs">{farm.location.subCounty}</div>
+                    </div>
                   </div>
-                  {farm.statistics && (
-                    <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-                      <div className="text-center p-2 bg-gray-50 rounded">
-                        <div className="font-semibold text-gray-900">{farm.statistics.totalLivestock}</div>
-                        <div className="text-gray-600">Animals</div>
-                </div>
-                <div className="text-center p-2 bg-gray-50 rounded">
-                  <div className="font-semibold text-gray-900">{farm.statistics.totalWorkers}</div>
-                  <div className="text-gray-600">Workers</div>
-                </div>
-              </div>
-            )}
 
-                  <button className="w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors">
-                    Manage Farm
+                  {/* Farm Size */}
+                  <div className="flex items-center mb-4 text-sm">
+                    <div className="flex-1 bg-blue-50 rounded-lg p-3 flex items-center">
+                      <i className="fas fa-ruler-combined text-blue-600 text-lg mr-3"></i>
+                      <div>
+                        <div className="font-semibold text-gray-900">{farm.size.value || 'N/A'} {farm.size.unit || 'Acres'}</div>
+                        <div className="text-xs text-gray-600">Farm Size</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Livestock Types */}
+                  <div className="mb-4">
+                    <div className="flex items-center text-sm text-gray-600 mb-2">
+                      <i className="fas fa-paw text-amber-600 mr-2"></i>
+                      <span className="font-medium">Livestock Types:</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {farm.livestockTypes.map((type: string, index: number) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 bg-amber-50 text-amber-700 text-xs rounded-full border border-amber-200"
+                        >
+                          {type}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-md hover:shadow-lg">
+                    <i className="fas fa-hand-pointer mr-2"></i>
+                    Select & Manage Farm
                   </button>
                 </div>
               </div>

@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import ServerError from './ServerError';
 import OfflineMode from './OfflineMode';
+import SessionExpiredModal from './SessionExpiredModal';
 
 interface NetworkHandlerProps {
   children: React.ReactNode;
 }
 
 const NetworkHandler: React.FC<NetworkHandlerProps> = ({ children }) => {
-  const { isOnline, serverError, retryConnection } = useAuth();
+  const { isOnline, serverError, sessionExpired, retryConnection, dismissSessionExpired, handleSessionExpiredRedirect } = useAuth();
   const [showOffline, setShowOffline] = useState(false);
   const [showServerError, setShowServerError] = useState(false);
 
@@ -52,7 +53,16 @@ const NetworkHandler: React.FC<NetworkHandlerProps> = ({ children }) => {
     return <ServerError onRetry={handleRetry} />;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <SessionExpiredModal 
+        isOpen={sessionExpired} 
+        onClose={dismissSessionExpired}
+        redirectDelay={10}
+      />
+    </>
+  );
 };
 
 export default NetworkHandler;

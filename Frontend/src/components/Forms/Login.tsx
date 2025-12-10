@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Login = () => {
@@ -10,8 +10,25 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [sessionExpiredMessage, setSessionExpiredMessage] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Check if redirected due to session expiration
+  useEffect(() => {
+    const state = location.state as any;
+    if (state?.sessionExpired) {
+      setSessionExpiredMessage(true);
+      // Clear the state
+      window.history.replaceState({}, document.title);
+      
+      // Auto-dismiss after 10 seconds
+      setTimeout(() => {
+        setSessionExpiredMessage(false);
+      }, 10000);
+    }
+  }, [location]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCredentials({
@@ -53,6 +70,33 @@ const Login = () => {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          {sessionExpiredMessage && (
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <i className="fas fa-clock text-yellow-400"></i>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-yellow-700 font-medium">
+                    Your session has expired
+                  </p>
+                  <p className="text-xs text-yellow-600 mt-1">
+                    Please log in again to continue working.
+                  </p>
+                </div>
+                <div className="ml-auto pl-3">
+                  <button
+                    type="button"
+                    onClick={() => setSessionExpiredMessage(false)}
+                    className="text-yellow-400 hover:text-yellow-600"
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
               {error}

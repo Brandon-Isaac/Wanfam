@@ -3,6 +3,9 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api/v1';
 const TOKEN_KEY = process.env.REACT_APP_TOKEN_KEY || 'wanfam_token';
 
+// Session expiration event
+export const SESSION_EXPIRED_EVENT = 'session-expired';
+
 // Request queue for retry mechanism
 let isRefreshing = false;
 let failedQueue: any[] = [];
@@ -69,8 +72,13 @@ api.interceptors.response.use(
         // This prevents logout on invalid credentials during login
         if (originalRequest.url?.includes('/profile') || 
             originalRequest.url?.includes('/logout')) {
-          localStorage.removeItem(TOKEN_KEY);
-          window.location.href = '/login';
+          
+          // Emit session expired event for graceful handling
+          const event = new CustomEvent(SESSION_EXPIRED_EVENT, {
+            detail: { message: 'Your session has expired. Please log in again.' }
+          });
+          window.dispatchEvent(event);
+          
           return Promise.reject(error);
         }
         
@@ -90,10 +98,13 @@ api.interceptors.response.use(
         originalRequest._retry = true;
         isRefreshing = true;
 
-        // Clear token and redirect to login after a delay
+        // Emit session expired event instead of immediate redirect
         setTimeout(() => {
-          localStorage.removeItem(TOKEN_KEY);
-          window.location.href = '/login';
+          const event = new CustomEvent(SESSION_EXPIRED_EVENT, {
+            detail: { message: 'Your session has expired. Please log in again.' }
+          });
+          window.dispatchEvent(event);
+          
           processQueue(error);
           isRefreshing = false;
         }, 1000);

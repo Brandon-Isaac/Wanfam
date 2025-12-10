@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import api from '../utils/Api';
+import api, { SESSION_EXPIRED_EVENT } from '../utils/Api';
 import { AxiosError } from 'axios';
 
 interface AuthContextType {
@@ -8,6 +8,7 @@ interface AuthContextType {
   loading: boolean;
   isOnline: boolean;
   serverError: boolean;
+  sessionExpired: boolean;
   login: (credentials: { email: string; password: string }) => Promise<{ success: boolean; message?: string }>;
   register: (userData: { firstName: string; lastName: string; email: string; password: string }) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
@@ -15,6 +16,8 @@ interface AuthContextType {
   resetPassword: (token: string, newPassword: string) => Promise<{ success: boolean; message?: string }>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; message?: string }>;
   retryConnection: () => Promise<void>;
+  dismissSessionExpired: () => void;
+  handleSessionExpiredRedirect: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,7 +35,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [serverError, setServerError] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
   const [token, setToken] = useState(localStorage.getItem(process.env.REACT_APP_TOKEN_KEY || 'wanfam_token'));
+
+  // Monitor session expiration events
+  useEffect(() => {
+    const handleSessionExpired = (event: any) => {
+      console.log('Session expired event received:', event.detail);
+      setSessionExpired(true);
+    };
+
+    window.addEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
+
+    return () => {
+      window.removeEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
+    };
+  }, []);
+
+  const dismissSessionExpired = () => {
+    setSessionExpired(false);
+  };
+
+  const handleSessionExpiredRedirect = () => {
+    setSessionExpired(false);
+    logout();
+  };
 
   // Monitor online/offline status
   useEffect(() => {
@@ -253,6 +280,7 @@ const login = async (credentials: { email: string; password: string }) => {
     loading,
     isOnline,
     serverError,
+    sessionExpired,
     login,
     register,
     logout,
@@ -260,6 +288,8 @@ const login = async (credentials: { email: string; password: string }) => {
     resetPassword,
     changePassword,
     retryConnection,
+    dismissSessionExpired,
+    handleSessionExpiredRedirect,
   };
 
   return (
