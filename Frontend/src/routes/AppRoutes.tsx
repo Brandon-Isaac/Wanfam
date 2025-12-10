@@ -42,62 +42,64 @@ import VetsList from '../pages/VetsList';
 import ScheduleTreatment from '../components/Forms/ScheduleTreatment';
 import TreatmentSchedules from '../components/TreatmentSchedules';
 import TreatAnimal from '../components/Forms/TreatAnimal';
+import NetworkHandler from '../components/NetworkHandler';
 
 const AppRoutes = () => {
     return (
         <AuthProvider>
-            <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/login" element={<Login />} />
+            <NetworkHandler>
+                <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/login" element={<Login />} />
 
-            <Route path="/dashboard" element={
-                <ProtectedRoutes>
-                    <>
-                        <Navigation />
-                        <Dashboard />
-                    </>
-                </ProtectedRoutes>} />
-            <Route path="/dashboard/farmer" element={
-                <ProtectedRoutes>
-                    <>
-                        <Navigation />
-                        <FarmerDashboard />
-                    </>
-                </ProtectedRoutes>} />
-            <Route path="/select/farm" element={
-                <ProtectedRoutes>
-                    <>
-                        <Navigation />
+                <Route path="/dashboard" element={
+                    <ProtectedRoutes>
+                        <>
+                            <Navigation />
+                            <Dashboard />
+                        </>
+                    </ProtectedRoutes>} />
+                <Route path="/dashboard/farmer" element={
+                    <ProtectedRoutes>
+                        <>
+                            <Navigation />
+                            <FarmerDashboard />
+                        </>
+                    </ProtectedRoutes>} />
+                <Route path="/select/farm" element={
+                    <ProtectedRoutes>
+                        <>
+                            <Navigation />
+                            <FarmProvider>
+                                <SelectFarm />
+                            </FarmProvider>
+                        </>
+                    </ProtectedRoutes>} />
+                    <Route path="/farms/:farmId/livestock/:animalId/treatment/schedule" element={
+                    <ProtectedRoutes>
                         <FarmProvider>
-                            <SelectFarm />
+                            <Navigation />
+                            <ScheduleTreatment />   
                         </FarmProvider>
-                    </>
-                </ProtectedRoutes>} />
-                <Route path="/farms/:farmId/livestock/:animalId/treatment/schedule" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <ScheduleTreatment />   
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
-                <Route path="/:farmId/animals/sick" element={
-                <ProtectedRoutes>
-                    <>
-                        <Navigation />
-                        <SickAnimals/>
-                    </>
                     </ProtectedRoutes>
-            } />
-            <Route path="/farms" element={
-                <ProtectedRoutes>
-                    <>                        
-                        <Navigation />
-                        <Farms />
-                    </>
-                </ProtectedRoutes>} />
+                } />
+
+                    <Route path="/:farmId/animals/sick" element={
+                    <ProtectedRoutes>
+                        <>
+                            <Navigation />
+                            <SickAnimals/>
+                        </>
+                        </ProtectedRoutes>
+                } />
+                <Route path="/farms" element={
+                    <ProtectedRoutes>
+                        <>                        
+                            <Navigation />
+                            <Farms />
+                        </>
+                    </ProtectedRoutes>} />
             <Route path="/farms/add" element={
                 <ProtectedRoutes>
                     <>                        
@@ -312,6 +314,7 @@ const AppRoutes = () => {
             {/* Catch all invalid routes */}
             <Route path="*" element={<NotFound />} />
         </Routes>
+        </NetworkHandler>
         </AuthProvider>
     );
 };

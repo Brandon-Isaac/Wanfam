@@ -8,6 +8,7 @@ const router = Router();
 
 router.post("/", authenticate, roleHandler([UserRole.FARMER]), ReportController.createReport);
 router.get("/:farmId/reports", authenticate, roleHandler([UserRole.FARMER, UserRole.ADMIN, UserRole.LOAN_OFFICER]), ReportController.getReportsByFarm);
+router.get("/:farmId/generate-animal-report", authenticate, roleHandler([UserRole.FARMER, UserRole.ADMIN, UserRole.VETERINARY]), ReportController.generateAnimalReport);
 router.put("/:id", authenticate, roleHandler([UserRole.FARMER]), ReportController.updateReport);
 
 export default router;

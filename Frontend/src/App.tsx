@@ -2,12 +2,15 @@ import React from 'react';
 import './App.css';
 import {BrowserRouter as Router } from 'react-router-dom';
 import AppRoutes from './routes/AppRoutes';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
   return (
-    <Router>
-      <AppRoutes />
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <AppRoutes />
+      </Router>
+    </ErrorBoundary>
   );
 }
 
