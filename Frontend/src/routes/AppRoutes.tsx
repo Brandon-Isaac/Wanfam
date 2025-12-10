@@ -5,6 +5,7 @@ import Register from '../components/Forms/Register';
 import Login from '../components/Forms/Login';
 import Dashboard from '../pages/Dashboard';
 import Navigation from '../components/Navigation';
+import NotFound from '../components/NotFound';
 
 // import ProtectedRoutes from './ProtectedRoutes';
 import { AuthProvider } from '../contexts/AuthContext';
@@ -308,7 +309,8 @@ const AppRoutes = () => {
             <Route path="/profile" element={<ProtectedRoutes><Profile /></ProtectedRoutes>} />
             <Route path="/settings" element={<ProtectedRoutes><Settings /></ProtectedRoutes>} /> */}
 
-            <Route path="*" element={<Navigate to="/" />} />
+            {/* Catch all invalid routes */}
+            <Route path="*" element={<NotFound />} />
         </Routes>
         </AuthProvider>
     );

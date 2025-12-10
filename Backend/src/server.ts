@@ -2,6 +2,10 @@ import Express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import mongoose from "mongoose";
+
+// Load environment variables FIRST before any other imports
+dotenv.config();
+
 import authRoutes from "./routes/authRoutes";
 import livestockRoutes from "./routes/livestockRoutes";
 import feedConsumptionRoutes from "./routes/FeedConsumptionRoutes";
@@ -23,8 +27,7 @@ import reportRoutes from "./routes/reportRoutes";
 import wageRoutes from "./routes/wageRoutes";
 import vetRoutes from "./routes/VetRoutes";
 import treatmentRoutes from "./routes/treatmentRoutes";
-
-dotenv.config();
+import chatRoutes from "./routes/chatRoutes";
 
 const app = Express();
 const PORT = process.env.PORT || 5000;
@@ -64,6 +67,7 @@ app.use("/api/v1/reports", reportRoutes);
 app.use("/api/v1/wages", wageRoutes);
 app.use("/api/v1/vets", vetRoutes);
 app.use("/api/v1/treatments", treatmentRoutes);
+app.use("/api/v1/chat", chatRoutes);
 app.use('/api/v1/breeds', require('./routes/breedRoutes').default);
 
 app.listen(PORT, () => {

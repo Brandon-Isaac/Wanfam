@@ -7,8 +7,7 @@ import { roleHandler } from "../middleware/roleHandler";
 const router = Router();
 
 router.post("/", authenticate, roleHandler([UserRole.FARMER]), ReportController.createReport);
-router.get("/:farmSlug/reports", authenticate, roleHandler([UserRole.FARMER, UserRole.ADMIN, UserRole.LOAN_OFFICER]), ReportController.getReportsByFarm);
-router.post("/:farmSlug/reports/generate", authenticate, roleHandler([UserRole.FARMER]), ReportController.generateReportWithAi);
+router.get("/:farmId/reports", authenticate, roleHandler([UserRole.FARMER, UserRole.ADMIN, UserRole.LOAN_OFFICER]), ReportController.getReportsByFarm);
 router.put("/:id", authenticate, roleHandler([UserRole.FARMER]), ReportController.updateReport);
 
 export default router;

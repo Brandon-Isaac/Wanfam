@@ -29,8 +29,8 @@ const createReport = asyncHandler(async (req: Request, res: Response) => {
 
 // Get reports for a specific farm with optional filters
 const getReportsByFarm = asyncHandler(async (req: Request, res: Response) => {
-    const farmSlug = req.params.farmSlug;
-    const farm = await Farm.findOne({slug: farmSlug});
+    const farmId = req.params.farmId;
+    const farm = await Farm.findById(farmId);
     if (!farm) {
         return res.status(404).json({ message: 'Farm not found' });
     }
@@ -56,29 +56,6 @@ const getReportsByFarm = asyncHandler(async (req: Request, res: Response) => {
     return res.status(200).json(reports);
 });
 
-const generateReportWithAi = asyncHandler(async (req: Request, res: Response) => {
-    const { farmId, reportType, reportDuration, generatedBy, contentSummary, notes } = req.body;
-    if (!farmId || !reportType || !generatedBy || !contentSummary) {
-        return res.status(400).json({ message: 'Missing required fields' });
-    }
-    const farm = await Farm.findById(farmId);
-    if (!farm) {
-        return res.status(404).json({ message: 'Farm not found' });
-    }
-
-    const aiService = new AIService();
-    const reportData = await aiService.generateTextStream({
-        farmId,
-        reportType,
-        reportDuration,
-        generatedBy,
-        contentSummary,
-        notes
-    });
-
-    return res.status(200).json(reportData);
-});
-
 const updateReport = asyncHandler(async (req: Request, res: Response) => {
     const reportId = req.params.id;
     const { reportType, reportDuration, contentSummary, fileUrl, notes } = req.body;
@@ -102,6 +79,5 @@ const updateReport = asyncHandler(async (req: Request, res: Response) => {
 export const ReportController = {
     createReport,
     getReportsByFarm,
-    generateReportWithAi,
     updateReport
 };
