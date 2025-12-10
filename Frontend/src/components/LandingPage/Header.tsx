@@ -29,20 +29,6 @@ const Header = () => {
                   Get Started
                 </Link>
                 </button>
-                <button 
-                  className="ml-4 p-2 text-gray-600 hover:text-green-700 focus:outline-none"
-                  title ="Translate"
-                  onClick={() => {/* Add translation logic here */}}
-                >
-                  <i className="fas fa-language text-lg"></i>
-                </button>
-                <button 
-                  className="ml-4 p-2 text-gray-600 hover:text-green-700 focus:outline-none"
-                  title ="Toggle Dark Mode"
-                  onClick={() => {/* Add dark mode toggle logic here */}}
-                >
-                  <i className="fas fa-moon text-lg"></i>
-                </button>
               </div>
               <div className="md:hidden flex items-center">
                 <button

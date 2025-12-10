@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { validatePassword, getPasswordStrengthMessage, getPasswordStrengthColor } from '../../utils/passwordValidation';
 
 const Register = () => {
   const [userData, setUserData] = useState({
@@ -22,14 +23,30 @@ const Register = () => {
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [passwordValidation, setPasswordValidation] = useState<{ isValid: boolean; errors: string[]; strength: 'weak' | 'medium' | 'strong' }>({ 
+    isValid: false, 
+    errors: [], 
+    strength: 'weak' 
+  });
+  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    
     setUserData({
       ...userData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
+
+    // Validate password on change
+    if (name === 'password') {
+      const validation = validatePassword(value);
+      setPasswordValidation(validation);
+    }
   };
 
   const handleRoleChange = (role: string) => {
@@ -51,6 +68,14 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    // Validate password strength
+    const validation = validatePassword(userData.password);
+    if (!validation.isValid) {
+      setError(validation.errors.join('. '));
+      setLoading(false);
+      return;
+    }
 
     if (userData.password !== userData.confirmPassword) {
       setError('Passwords do not match');
@@ -356,32 +381,103 @@ const Register = () => {
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                 Password *
               </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                minLength={6}
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                placeholder="Minimum 6 characters"
-                value={userData.password}
-                onChange={handleChange}
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  className="appearance-none rounded relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                  placeholder="Strong password required"
+                  value={userData.password}
+                  onChange={handleChange}
+                  onFocus={() => setShowPasswordRequirements(true)}
+                  onBlur={() => setShowPasswordRequirements(false)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 hover:text-gray-800"
+                >
+                  <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                </button>
+              </div>
+              
+              {/* Password Strength Indicator */}
+              {userData.password && (
+                <div className="mt-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className={`text-xs font-medium ${getPasswordStrengthColor(passwordValidation.strength)}`}>
+                      {getPasswordStrengthMessage(passwordValidation.strength)}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                    <div
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        passwordValidation.strength === 'strong'
+                          ? 'bg-green-600 w-full'
+                          : passwordValidation.strength === 'medium'
+                          ? 'bg-yellow-600 w-2/3'
+                          : 'bg-red-600 w-1/3'
+                      }`}
+                    />
+                  </div>
+                </div>
+              )}
+              
+              {/* Password Requirements */}
+              {(showPasswordRequirements || passwordValidation.errors.length > 0) && userData.password && (
+                <div className="mt-2 text-xs space-y-1">
+                  <p className="font-medium text-gray-700">Password must contain:</p>
+                  <ul className="space-y-1">
+                    <li className={userData.password.length >= 8 ? 'text-green-600' : 'text-gray-500'}>
+                      {userData.password.length >= 8 ? '✓' : '○'} At least 8 characters
+                    </li>
+                    <li className={/[A-Z]/.test(userData.password) ? 'text-green-600' : 'text-gray-500'}>
+                      {/[A-Z]/.test(userData.password) ? '✓' : '○'} One uppercase letter
+                    </li>
+                    <li className={/[a-z]/.test(userData.password) ? 'text-green-600' : 'text-gray-500'}>
+                      {/[a-z]/.test(userData.password) ? '✓' : '○'} One lowercase letter
+                    </li>
+                    <li className={/[0-9]/.test(userData.password) ? 'text-green-600' : 'text-gray-500'}>
+                      {/[0-9]/.test(userData.password) ? '✓' : '○'} One number
+                    </li>
+                    <li className={/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(userData.password) ? 'text-green-600' : 'text-gray-500'}>
+                      {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(userData.password) ? '✓' : '○'} One special character
+                    </li>
+                  </ul>
+                </div>
+              )}
             </div>
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
                 Confirm Password *
               </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                placeholder="Confirm your password"
-                value={userData.confirmPassword}
-                onChange={handleChange}
-              />
+              <div className="relative">
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  required
+                  className="appearance-none rounded relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                  placeholder="Confirm your password"
+                  value={userData.confirmPassword}
+                  onChange={handleChange}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 hover:text-gray-800"
+                >
+                  <i className={`fas ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                </button>
+              </div>
+              {userData.confirmPassword && userData.password !== userData.confirmPassword && (
+                <p className="mt-1 text-xs text-red-600">Passwords do not match</p>
+              )}
+              {userData.confirmPassword && userData.password === userData.confirmPassword && userData.confirmPassword.length > 0 && (
+                <p className="mt-1 text-xs text-green-600">✓ Passwords match</p>
+              )}
             </div>
           </div>
 
