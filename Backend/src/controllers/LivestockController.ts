@@ -36,7 +36,7 @@ const getSickAnimalsByFarm = asyncHandler(async (req: Request, res: Response) =>
     if (!farm) {
         return res.status(404).json({ message: "Farm not found" });
     }
-    const animals = await Animal.find({ farmId: farm._id, healthStatus: "sick" });
+    const animals = await Animal.find({ farmId: farm._id, healthStatus: { $in: ['sick', 'treatment', 'recovery', 'quarantined'] } });
     res.json({ success: true, data: animals });
 });
 

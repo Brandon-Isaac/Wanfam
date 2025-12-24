@@ -15,8 +15,7 @@ const getAIService = () => {
 // Chat with AI assistant
 const chat = asyncHandler(async (req: Request, res: Response) => {
     const { messages } = req.body;
-    const userId = req.user?.id;
-
+    
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
         return res.status(400).json({ 
             success: false,

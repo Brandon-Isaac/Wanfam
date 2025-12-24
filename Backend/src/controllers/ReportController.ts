@@ -7,7 +7,6 @@ import { Animal } from '../models/Animal';
 import { HealthRecord } from '../models/HealthRecord';
 import { TreatmentRecord } from '../models/TreatmentRecord';
 import { VaccinationRecord } from '../models/VaccinationRecord';
-import { User } from '../models/User';
 
 // Create a new report
 const createReport = asyncHandler(async (req: Request, res: Response) => {

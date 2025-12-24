@@ -9,7 +9,7 @@ interface NetworkHandlerProps {
 }
 
 const NetworkHandler: React.FC<NetworkHandlerProps> = ({ children }) => {
-  const { isOnline, serverError, sessionExpired, retryConnection, dismissSessionExpired, handleSessionExpiredRedirect } = useAuth();
+  const { isOnline, serverError, sessionExpired, retryConnection, dismissSessionExpired} = useAuth();
   const [showOffline, setShowOffline] = useState(false);
   const [showServerError, setShowServerError] = useState(false);
 
