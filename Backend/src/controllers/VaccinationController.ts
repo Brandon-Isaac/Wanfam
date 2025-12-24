@@ -6,38 +6,25 @@ import { Farm } from "../models/Farm";
 
 const createVaccinationSchedule = async (req: Request, res: Response) => {
     try {
-        const { farmSlug } = req.params;
-        const farmId = await Farm.findOne({ slug: farmSlug }).then(farm => farm?._id);
-        if (!farmId) {
-            return res.status(404).json({ message: "Farm not found" });
-        }
-        const { animalSlug } = req.params;
-        const animalId = await Animal.find({ slug: { $in: animalSlug }, farmId }).then(animals => animals.map(a => a._id));
-        if (animalId.length === 0) {
-            return res.status(400).json({ message: "One or more animals not found in the specified farm" });
-        }
-        const {  scheduleName, vaccineName, dose, unit, frequency, startDate, endDate, vaccinationTime, notes, reminders } = req.body;
-        const farm = await Farm.findOne({ slug: farmSlug });
+        const { farmId, animalId } = req.params;
+        const { scheduleName, veterinarianId, veterinarianName, vaccinationTime, notes, status } = req.body;
+        const farm = await Farm.findById(farmId);
         if (!farm) {
             return res.status(404).json({ message: "Farm not found" });
         }
-        const animals = await Animal.find({ slug: { $in: animalSlug }, farmId: farm._id });
-        if (animals.length !== animalSlug.length) {
-            return res.status(400).json({ message: "One or more animals not found in the specified farm" });
+        const animal = await Animal.findOne({ _id: animalId, farmId });
+        if (!animal) {
+            return res.status(400).json({ message: "Animal not found in the specified farm" });
         }
         const newSchedule = new VaccinationSchedule({
             farmId,
             animalId,
             scheduleName,
-            vaccineName,
-            dose,
-            unit,
-            frequency,
-            startDate,
-            endDate,
+            veterinarianId,
+            veterinarianName,
             vaccinationTime,
-            notes,
-            reminders
+            notes, 
+            status,
         });
         await newSchedule.save();
         return res.status(201).json({ message: "Vaccination schedule created successfully", schedule: newSchedule });
@@ -58,6 +45,19 @@ const getVaccinationSchedules = async (req: Request, res: Response) => {
     }
 };
 
+const getVaccinationSchedulesByVeterinarian = async (req: Request, res: Response) => {
+    try {
+        const veterinarianId =req.user?.id;
+        const schedules = await VaccinationSchedule.find({ veterinarianId }).populate('animalId');
+        return res.status(200).json({ schedules });
+    }
+    catch (error){
+        console.error("Error fetching vaccination schedules by veterinarian:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+
 const updateVaccinationSchedule = async (req: Request, res: Response) => {
     try {
         const { scheduleId } = req.params;
@@ -75,41 +75,14 @@ const updateVaccinationSchedule = async (req: Request, res: Response) => {
 
 const deleteVaccinationSchedule = async (req: Request, res: Response) => {
     try {
-        const { scheduleSlug } = req.params;
-        const schedule = await VaccinationSchedule.findOneAndDelete({ slug: scheduleSlug });
+        const { scheduleId } = req.params;
+        const schedule = await VaccinationSchedule.findByIdAndDelete(scheduleId);
         if (!schedule) {
             return res.status(404).json({ message: "Vaccination schedule not found" });
         }
         return res.status(200).json({ message: "Vaccination schedule deleted successfully" });
     } catch (error) {
         console.error("Error deleting vaccination schedule:", error);
-        return res.status(500).json({ message: "Internal server error" });
-    }
-};
-
-const executeVaccinationSchedule = async (req: Request, res: Response) => {
-    try {
-        const { scheduleSlug } = req.params;
-        const schedule = await VaccinationSchedule.findOne({ slug: scheduleSlug });
-        if (!schedule) {
-            return res.status(404).json({ message: "Vaccination schedule not found" });
-        }
-        const records = await Promise.all(schedule.animalId.map(async (animalId) => {
-            const record = new VaccinationRecord({
-                farmId: schedule.farmId,
-                animalId,
-                vaccineName: schedule.vaccineName,
-                dose: schedule.dose,
-                unit: schedule.unit,
-                vaccinationTime: schedule.vaccinationTime,
-                notes: schedule.notes
-            });
-            await record.save();
-            return record;
-        }));
-        return res.status(200).json({ message: "Vaccination schedule executed successfully", records });
-    } catch (error) {
-        console.error("Error executing vaccination schedule:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 };
@@ -127,7 +100,9 @@ const getVaccinationRecords = async (req: Request, res: Response) => {
 
 const createVaccinationRecord = async (req: Request, res: Response) => {
     try {
-        const { farmId, animalId, vaccineName, dose, unit, vaccinationTime, notes } = req.body;
+        const administeredBy = req.user?.id;
+        const {animalId} = req.params;
+        const { farmId, vaccineName, vaccinationDate, administrationSite, notes, sideEffects } = req.body;
         const farm = await Farm.findById(farmId);
         if (!farm) {
             return res.status(404).json({ message: "Farm not found" });
@@ -140,10 +115,11 @@ const createVaccinationRecord = async (req: Request, res: Response) => {
             farmId,
             animalId,
             vaccineName,
-            dose,
-            unit,
-            vaccinationTime,
-            notes
+            vaccinationDate,
+            administrationSite,
+            notes,
+            administeredBy,
+            sideEffects
         });
         await newRecord.save();
         return res.status(201).json({ message: "Vaccination record created successfully", record: newRecord });
@@ -185,9 +161,9 @@ const deleteVaccinationRecord = async (req: Request, res: Response) => {
 export const VaccinationController = {
     createVaccinationSchedule,
     getVaccinationSchedules,
+    getVaccinationSchedulesByVeterinarian,
     updateVaccinationSchedule,
     deleteVaccinationSchedule,
-    executeVaccinationSchedule,
     getVaccinationRecords,
     createVaccinationRecord,
     updateVaccinationRecord,

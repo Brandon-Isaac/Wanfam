@@ -44,6 +44,7 @@ import TreatmentSchedules from '../components/TreatmentSchedules';
 import TreatAnimal from '../components/Forms/TreatAnimal';
 import NetworkHandler from '../components/NetworkHandler';
 import Vaccinate from '../components/Forms/Vaccinate';
+import VaccinationCases from '../components/VaccinationCases';
 
 const AppRoutes = () => {
     return (
@@ -298,6 +299,15 @@ const AppRoutes = () => {
                     </FarmProvider>
                 </ProtectedRoutes>
             } />
+
+            <Route path='/vaccinations' element={
+                <ProtectedRoutes>
+                    <>
+                    <Navigation/>
+                    <VaccinationCases/>
+                    </>
+                </ProtectedRoutes>
+            }/>           
 
             <Route path="/treatment-schedules" element={
                 <ProtectedRoutes>
