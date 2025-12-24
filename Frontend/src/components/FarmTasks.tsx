@@ -5,7 +5,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 const FarmTasks = () => {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [error] = useState<string | null>(null);
     const [selectedTask, setSelectedTask] = useState<string | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const { farmId } = useParams();

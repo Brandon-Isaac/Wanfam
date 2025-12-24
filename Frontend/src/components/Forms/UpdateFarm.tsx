@@ -130,6 +130,7 @@ const UpdateFarm = () => {
       };
 
       const response = await api.put(`/farms/${farmId}`, submitData);
+      alert('Farm information updated successfully!');
           // Redirect after a short delay
       setTimeout(() => {
       navigate(`/farms/${farmId}/dashboard`);
@@ -415,7 +416,6 @@ const UpdateFarm = () => {
             <button
                 type="submit"
                 disabled={loading}
-                onClick={()=>navigate(`/farms/${farmId}/dashboard`)}
   className="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 {loading ? 'Updating...' : 'Update Farm'}
