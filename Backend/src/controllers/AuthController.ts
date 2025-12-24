@@ -4,6 +4,7 @@ import {asyncHandler} from "../middleware/AsyncHandler";
 import {Request, Response} from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { validatePassword } from "../utils/passwordValidation";
 
 const register= asyncHandler(async(req:Request, res:Response)=>{
     const {
@@ -24,6 +25,15 @@ const register= asyncHandler(async(req:Request, res:Response)=>{
     if(!firstName || !lastName || !email || !password || !role) {
         return res.status(400).json({ message: 'First name, last name, email, password, and role are required' });
     } 
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+        return res.status(400).json({ 
+            message: 'Password does not meet security requirements',
+            errors: passwordValidation.errors 
+        });
+    }
 
     if (role === UserRole.VETERINARY && !licenseNumber) {
         return res.status(400).json({ message: 'License number is required for veterinary officers' });
@@ -133,6 +143,15 @@ const updateDetails = asyncHandler(async(req:Request, res:Response)=>{
 const changePassword = asyncHandler(async(req:Request, res:Response)=>{
     const userId = req.user?.id;
     const { currentPassword, newPassword } = req.body;
+
+    // Validate new password strength
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.isValid) {
+        return res.status(400).json({ 
+            message: 'New password does not meet security requirements',
+            errors: passwordValidation.errors 
+        });
+    }
 
     const user = await User.findById(userId);
     if (!user) {
