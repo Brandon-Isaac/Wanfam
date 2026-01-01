@@ -28,7 +28,7 @@ import wageRoutes from "./routes/wageRoutes";
 import vetRoutes from "./routes/VetRoutes";
 import treatmentRoutes from "./routes/treatmentRoutes";
 import chatRoutes from "./routes/chatRoutes";
-import vaccinationRoutes from "./routes/vaccinationRoutes"
+import vaccinationRoutes from "./routes/vaccinationRoutes";
 
 const app = Express();
 const PORT = process.env.PORT || 5000;

@@ -8,6 +8,20 @@ const createVaccinationSchedule = async (req: Request, res: Response) => {
     try {
         const { farmId, animalId } = req.params;
         const { scheduleName, veterinarianId, veterinarianName, vaccinationTime, notes, status } = req.body;
+        
+        if (!veterinarianId && !veterinarianName) {
+            return res.status(400).json({ message: "Either veterinarianId or veterinarianName must be provided" });
+        }
+        
+        if (!scheduleName || !vaccinationTime) {
+            return res.status(400).json({ message: "scheduleName and vaccinationTime are required fields" });
+        }
+        
+        const vaccinationDate = new Date(vaccinationTime);
+        if (isNaN(vaccinationDate.getTime())) {
+            return res.status(400).json({ message: "vaccinationTime must be a valid date" });
+        }
+        
         const farm = await Farm.findById(farmId);
         if (!farm) {
             return res.status(404).json({ message: "Farm not found" });
@@ -47,11 +61,11 @@ const getVaccinationSchedules = async (req: Request, res: Response) => {
 
 const getVaccinationSchedulesByVeterinarian = async (req: Request, res: Response) => {
     try {
-        const veterinarianId =req.user?.id;
+        const veterinarianId = req.user?.id;
         const schedules = await VaccinationSchedule.find({ veterinarianId }).populate('animalId');
         return res.status(200).json({ schedules });
     }
-    catch (error){
+    catch (error) {
         console.error("Error fetching vaccination schedules by veterinarian:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
@@ -89,8 +103,8 @@ const deleteVaccinationSchedule = async (req: Request, res: Response) => {
 
 const getVaccinationRecords = async (req: Request, res: Response) => {
     try {
-        const { farmSlug } = req.params;
-        const records = await VaccinationRecord.find({ farmSlug }).populate('animalId');
+        const { farmId } = req.params;
+        const records = await VaccinationRecord.find({ farmId }).populate('animalId');
         return res.status(200).json({ records });
     } catch (error) {
         console.error("Error fetching vaccination records:", error);

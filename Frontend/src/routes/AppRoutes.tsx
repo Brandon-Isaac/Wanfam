@@ -307,8 +307,7 @@ const AppRoutes = () => {
                     <VaccinationCases/>
                     </>
                 </ProtectedRoutes>
-            }/>           
-
+            }/>
             <Route path="/treatment-schedules" element={
                 <ProtectedRoutes>
                     <>

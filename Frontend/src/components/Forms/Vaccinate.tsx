@@ -55,7 +55,7 @@ const Vaccinate = () => {
                 const response = await api.get(`/vaccination/schedules/${farmId}`);
                 const allSchedules = response.data.schedules || [];
                 // Filter schedules for this specific animal
-                const animalSchedules = allSchedules.filter((schedule: any) => {
+                const animalSchedules = allSchedules.filter((schedule : VaccinationSchedule) => {
                     const scheduleAnimalId = typeof schedule.animalId === 'object' 
                         ? schedule.animalId?._id 
                         : schedule.animalId;
@@ -108,6 +108,10 @@ const Vaccinate = () => {
             <div className="max-w-4xl mx-auto">
                 {/* Scheduled Vaccinations Section */}
                 {fetchingSchedules ? (
+                    <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+                        <p className="text-gray-600">Loading schedules...</p>
+                    </div>
+                ) : scheduledVaccinations.length === 0 ? (
                     <div className="bg-white p-6 rounded-lg shadow-md mb-6">
                         <p className="text-gray-600">No scheduled vaccinations</p>
                     </div>
@@ -216,6 +220,7 @@ const Vaccinate = () => {
                                 className="w-full mt-1 p-2 border border-gray-300 rounded-md"
                                 placeholder="Enter your vet's name"
                                 required
+                                minLength={2}
                             />
                         </div>
                     )}

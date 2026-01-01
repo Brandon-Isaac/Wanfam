@@ -1,10 +1,11 @@
 import api from "../utils/Api";
 import { useEffect, useState } from "react";
+import VaccinationSchedule from "../types/VaccinationTypes";
 
 const VaccinationCases = () => {
-    const [vaccinationCases, setVaccinationCases] = useState<any[]>([]);
+    const [vaccinationCases, setVaccinationCases] = useState<VaccinationSchedule[]>([]);
     const [updateStatusModalOpen, setUpdateStatusModalOpen] = useState<boolean>(false);
-    const [selectedSchedule, setSelectedSchedule] = useState<any>(null);
+    const [selectedSchedule, setSelectedSchedule] = useState<VaccinationSchedule | null>(null);
     const [recordData, setRecordData] = useState({
         vaccineName: "",
         vaccinationDate: "",
@@ -14,6 +15,7 @@ const VaccinationCases = () => {
     });
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [formError, setFormError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState<boolean>(false);
     const [showSuccess, setShowSuccess] = useState<boolean>(false);
     const [successMessage, setSuccessMessage] = useState<string>("");
@@ -34,7 +36,7 @@ const VaccinationCases = () => {
 
     const vaccinations = [...vaccinationCases];
     
-    const handleOpenModal = (schedule: any) => {
+    const handleOpenModal = (schedule: VaccinationSchedule) => {
         setSelectedSchedule(schedule);
         setRecordData({
             vaccineName: schedule.scheduleName || "",
@@ -54,7 +56,7 @@ const VaccinationCases = () => {
     const handleSubmit = async () => {
         if (!selectedSchedule) return;
         setSubmitting(true);
-        setError(null);
+        setFormError(null);
         try {
             const animalId = typeof selectedSchedule.animalId === 'object' 
                 ? selectedSchedule.animalId._id 
@@ -102,10 +104,10 @@ const VaccinationCases = () => {
 
         } catch (err) {
             console.error("Failed to record vaccination:", err);
-            setError("Failed to record vaccination details. Please try again.");
+            setFormError("Failed to record vaccination details. Please try again.");
         } finally {
             setSubmitting(false);
-        }
+        };
     }
     if (loading) {
           return (
@@ -354,12 +356,12 @@ const VaccinationCases = () => {
                                     </div>
                                 </div>
 
-                                {error && (
+                                {formError && (
                                     <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded flex items-start gap-2">
                                         <svg className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
-                                        <p className="text-sm text-red-600">{error}</p>
+                                        <p className="text-sm text-red-600">{formError}</p>
                                     </div>
                                 )}
 
@@ -382,7 +384,7 @@ const VaccinationCases = () => {
                                         onClick={() => {
                                             setUpdateStatusModalOpen(false);
                                             setSelectedSchedule(null);
-                                            setError(null);
+                                            setFormError(null);
                                         }}
                                         disabled={submitting}
                                     >
