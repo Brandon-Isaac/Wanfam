@@ -113,13 +113,6 @@ const VeterinaryDashboard = () => {
                 <span className="text-sm font-medium text-blue-800">Vaccinations</span>
               </Link>
               <Link
-                to="/chatbot"
-                className="flex flex-col items-center justify-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
-              >
-                <i className="fas fa-comments text-purple-600 text-2xl mb-2"></i>
-                <span className="text-sm font-medium text-purple-800">Chatbot</span>
-              </Link>
-              <Link
                 to="/profile"
                 className="flex flex-col items-center justify-center p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
               >

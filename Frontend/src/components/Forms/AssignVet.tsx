@@ -67,6 +67,11 @@ const AssignVet = () => {
                     {successMessage}
                 </div>
             )}
+            {vets.length === 0 && (
+                <div className="mb-4 p-4 bg-yellow-100 text-yellow-700 rounded">
+                    No available vets to assign.
+                </div>
+            )}
             <form onSubmit={(e)=>{
                 handleAssignVet(e, selectedVet, farmId);
             }}
@@ -80,6 +85,7 @@ const AssignVet = () => {
                         value={selectedVet}
                         onChange={(e) => setSelectedVet(e.target.value)}
                         className="w-full p-2 border border-gray-300 rounded"
+                        disabled={vets.length === 0}
                     >
                         <option value="">Select a vet</option>
                         {vets.map((vet: any) => (
@@ -92,7 +98,8 @@ const AssignVet = () => {
                 </div>
                 <button
                     type="submit"
-                    className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600"
+                    disabled={vets.length === 0 || !selectedVet}
+                    className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:bg-gray-300"
                 >
                     Assign Vet
                 </button>

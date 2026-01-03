@@ -13,7 +13,7 @@ import ProtectedRoutes from './ProtectedRoutes';
 import Farms from '../pages/Farms';
 import { FarmProvider } from '../contexts/FarmContext';
 import SelectFarm from '../components/Forms/SelectFarm';
-import Chatbot from '../components/Chatbot';
+import ChatbotButton from '../components/ChatbotButton';
 import Profile from '../components/Profile';
 import AddFarm from '../components/Forms/AddFarm';
 import FarmDashboard from '../pages/Dashboards/FarmDashboard';
@@ -205,13 +205,6 @@ const AppRoutes = () => {
                     </>
                 </ProtectedRoutes>} />
                 
-            <Route path="/chatbot" element={
-                <ProtectedRoutes>
-                    <>                       
-                    <Navigation />
-                   <Chatbot />
-                    </>
-                </ProtectedRoutes>} />
             <Route path="/change-password" element={
                 <ProtectedRoutes><AuthProvider>
                     <Navigation />
@@ -332,6 +325,7 @@ const AppRoutes = () => {
             {/* Catch all invalid routes */}
             <Route path="*" element={<NotFound />} />
         </Routes>
+        <ChatbotButton />
         </NetworkHandler>
         </AuthProvider>
     );
