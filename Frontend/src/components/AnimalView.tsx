@@ -421,7 +421,7 @@ const closeReport = () => {
                                         </div>
                                         <p className="text-sm mt-2 text-gray-700">
                                             <i className="fas fa-info-circle mr-1"></i>
-                                            Note: Costs are calculated using estimated values for feed ($2/kg), treatments ($50 each), and vaccinations ($30 each). Revenue assumes $0.50 per liter of milk.
+                                            Note: Costs and revenue are calculated using estimated values for feed, treatments, vaccinations, and milk production based on current pricing assumptions.
                                         </p>
                                     </div>
                                 </section>
