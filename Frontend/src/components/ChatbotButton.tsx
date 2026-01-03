@@ -14,8 +14,10 @@ const ChatbotButton: React.FC = () => {
             >
                 <i className="fas fa-robot text-xl"></i>
                 
-                {/* Pulse animation */}
-                <span className="absolute inset-0 rounded-full bg-purple-400 opacity-75 animate-ping"></span>
+                {/* Pulse animation (only when modal is closed) */}
+                {!isModalOpen && (
+                    <span className="absolute inset-0 rounded-full bg-purple-400 opacity-75 animate-ping"></span>
+                )}
             </button>
 
             {/* Chatbot Modal */}
