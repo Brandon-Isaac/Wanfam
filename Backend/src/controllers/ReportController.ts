@@ -231,9 +231,13 @@ const generateAnimalReport = asyncHandler(async (req: Request, res: Response) =>
 
             // Calculate costs (using estimated values where actual costs aren't available)
             const feedCost = animalFeeding.reduce((sum, fr) => {
-                // Estimate: $2 per kg of feed
-                const costPerUnit = fr.unit === 'kg' ? 2 : 1;
-                return sum + (fr.quantity * costPerUnit);
+                // Estimate: $2 per kg of feed. We only estimate cost for solid feed measured in kg;
+                // records with other units (e.g. liters, generic "units") are excluded from this estimate.
+                if (fr.unit !== 'kg') {
+                    return sum;
+                }
+                const costPerKg = 2;
+                return sum + (fr.quantity * costPerKg);
             }, 0);
 
             const treatmentCost = animalTreatments.length * 50; // Estimate: $50 per treatment
