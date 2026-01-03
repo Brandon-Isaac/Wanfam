@@ -7,6 +7,8 @@ import { Animal } from '../models/Animal';
 import { HealthRecord } from '../models/HealthRecord';
 import { TreatmentRecord } from '../models/TreatmentRecord';
 import { VaccinationRecord } from '../models/VaccinationRecord';
+import { ProductivityRecord } from '../models/ProductivityRecord';
+import { FeedingRecord } from '../models/FeedingRecord';
 
 // Create a new report
 const createReport = asyncHandler(async (req: Request, res: Response) => {
@@ -155,7 +157,7 @@ const generateAnimalReport = asyncHandler(async (req: Request, res: Response) =>
     // Fetch related records for all animals with error handling
     const animalIds = animals.map(animal => animal._id);
     
-    const [healthRecords, treatmentRecords, vaccinationRecords] = await Promise.all([
+    const [healthRecords, treatmentRecords, vaccinationRecords, productivityRecords, feedingRecords] = await Promise.all([
         HealthRecord.find({ animalId: { $in: animalIds } })
             .populate({
                 path: 'treatedBy',
@@ -188,6 +190,18 @@ const generateAnimalReport = asyncHandler(async (req: Request, res: Response) =>
             .catch(err => {
                 console.error('Error fetching vaccination records:', err);
                 return []; // Return empty array on error
+            }),
+        ProductivityRecord.find({ animalId: { $in: animalIds } })
+            .lean()
+            .catch(err => {
+                console.error('Error fetching productivity records:', err);
+                return []; // Return empty array on error
+            }),
+        FeedingRecord.find({ animalId: { $in: animalIds } })
+            .lean()
+            .catch(err => {
+                console.error('Error fetching feeding records:', err);
+                return []; // Return empty array on error
             })
     ]);
 
@@ -203,6 +217,36 @@ const generateAnimalReport = asyncHandler(async (req: Request, res: Response) =>
             const animalVaccinations = vaccinationRecords.filter(vr => 
                 vr.animalId && vr.animalId.toString() === animal._id.toString()
             );
+            const animalProductivity = productivityRecords.filter(pr => 
+                pr.animalId && pr.animalId.toString() === animal._id.toString()
+            );
+            const animalFeeding = feedingRecords.filter(fr => 
+                fr.animalId && fr.animalId.toString() === animal._id.toString()
+            );
+
+            // Calculate production metrics
+            const totalMilkProduced = animalProductivity.reduce((sum, pr) => {
+                return sum + (pr.milkYield?.amount || 0);
+            }, 0);
+
+            // Calculate costs (using estimated values where actual costs aren't available)
+            const feedCost = animalFeeding.reduce((sum, fr) => {
+                // Estimate: $2 per kg of feed
+                const costPerUnit = fr.unit === 'kg' ? 2 : 1;
+                return sum + (fr.quantity * costPerUnit);
+            }, 0);
+
+            const treatmentCost = animalTreatments.length * 50; // Estimate: $50 per treatment
+            const vaccinationCost = animalVaccinations.length * 30; // Estimate: $30 per vaccination
+            const purchasePrice = animal.purchasePrice || 0;
+
+            // Calculate revenue (using estimated values)
+            const milkRevenue = totalMilkProduced * 0.5; // Estimate: $0.5 per liter
+            
+            // Calculate profit/loss
+            const totalCosts = purchasePrice + feedCost + treatmentCost + vaccinationCost;
+            const totalRevenue = milkRevenue;
+            const profitLoss = totalRevenue - totalCosts;
 
             return {
                 // Basic Information
@@ -268,12 +312,50 @@ const generateAnimalReport = asyncHandler(async (req: Request, res: Response) =>
                     total: animalVaccinations.length,
                     records: animalVaccinations.map(vr => ({
                         vaccineName: vr.vaccineName || 'Unknown',
+                        vaccinationDate: vr.vaccinationDate || null,
                         administeredBy: vr.administeredBy && typeof vr.administeredBy === 'object' ? 
                             `${(vr.administeredBy as any).firstName || ''} ${(vr.administeredBy as any).lastName || ''}`.trim() || 'Unknown' : 'N/A',
                         administrationSite: vr.administrationSite || [],
                         sideEffects: vr.sideEffects || 'None reported',
                         notes: vr.notes || ''
                     }))
+                },
+                
+                // Production Records Summary
+                productionRecords: {
+                    total: animalProductivity.length,
+                    totalMilkProduced: totalMilkProduced,
+                    records: animalProductivity.map(pr => ({
+                        date: pr.date || null,
+                        milkYield: pr.milkYield ? {
+                            amount: pr.milkYield.amount || 0,
+                            unit: pr.milkYield.unit || 'liters',
+                            timeOfDay: pr.milkYield.timeOfDay || 'N/A'
+                        } : null,
+                        feedConsumption: pr.feedConsumption ? {
+                            amount: pr.feedConsumption.amount || 0,
+                            unit: pr.feedConsumption.unit || 'kg'
+                        } : null,
+                        healthStatus: pr.healthStatus || 'Unknown',
+                        notes: pr.notes || ''
+                    }))
+                },
+                
+                // Financial Summary
+                financialSummary: {
+                    costs: {
+                        purchasePrice: purchasePrice,
+                        feedCost: Math.round(feedCost * 100) / 100,
+                        treatmentCost: treatmentCost,
+                        vaccinationCost: vaccinationCost,
+                        totalCosts: Math.round(totalCosts * 100) / 100
+                    },
+                    revenue: {
+                        milkRevenue: Math.round(milkRevenue * 100) / 100,
+                        totalRevenue: Math.round(totalRevenue * 100) / 100
+                    },
+                    profitLoss: Math.round(profitLoss * 100) / 100,
+                    isProfitable: profitLoss > 0
                 },
                 
                 // Timeline Information
@@ -289,7 +371,14 @@ const generateAnimalReport = asyncHandler(async (req: Request, res: Response) =>
                 error: 'Failed to process complete animal data',
                 healthRecords: { total: 0, records: [] },
                 treatmentRecords: { total: 0, records: [] },
-                vaccinationRecords: { total: 0, records: [] }
+                vaccinationRecords: { total: 0, records: [] },
+                productionRecords: { total: 0, totalMilkProduced: 0, records: [] },
+                financialSummary: { 
+                    costs: { purchasePrice: 0, feedCost: 0, treatmentCost: 0, vaccinationCost: 0, totalCosts: 0 },
+                    revenue: { milkRevenue: 0, totalRevenue: 0 },
+                    profitLoss: 0,
+                    isProfitable: false
+                }
             };
         }
     });
