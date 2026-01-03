@@ -283,8 +283,7 @@ const closeReport = () => {
                                                 <div key={index} className="bg-blue-50 p-4 rounded border border-blue-200">
                                                     <div className="grid grid-cols-2 gap-2 text-sm">
                                                         <div><strong>Vaccine:</strong> {record.vaccineName}</div>
-                                                        <div><strong>Next Due:</strong> {record.nextDueDate ? new Date(record.nextDueDate).toLocaleDateString() : 'N/A'}</div>
-                                                        <div><strong>Dates Given:</strong> {record.vaccinationDates.map((date: string) => new Date(date).toLocaleDateString()).join(', ')}</div>
+                                                        <div><strong>Date:</strong> {record.vaccinationDate ? new Date(record.vaccinationDate).toLocaleDateString() : 'N/A'}</div>
                                                         <div><strong>Administered By:</strong> {record.administeredBy}</div>
                                                         <div><strong>Site:</strong> {record.administrationSite.join(', ') || 'N/A'}</div>
                                                         <div><strong>Side Effects:</strong> {record.sideEffects}</div>
@@ -296,6 +295,135 @@ const closeReport = () => {
                                     ) : (
                                         <p className="text-gray-500 italic">No vaccination records available</p>
                                     )}
+                                </section>
+
+                                {/* Production Records */}
+                                <section className="mb-6">
+                                    <h4 className="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">
+                                        <i className="fas fa-chart-line text-teal-500 mr-2"></i>
+                                        Production History ({reportData.productionRecords.total} records)
+                                    </h4>
+                                    {reportData.productionRecords.total > 0 ? (
+                                        <div>
+                                            <div className="bg-teal-100 p-4 rounded mb-4 border border-teal-300">
+                                                <div className="text-lg font-bold text-teal-800">
+                                                    <i className="fas fa-tint mr-2"></i>
+                                                    Total Milk Produced: {reportData.productionRecords.totalMilkProduced.toFixed(2)} liters
+                                                </div>
+                                            </div>
+                                            <div className="space-y-3 max-h-60 overflow-y-auto">
+                                                {reportData.productionRecords.records.map((record: any, index: number) => (
+                                                    <div key={index} className="bg-teal-50 p-3 rounded border border-teal-200">
+                                                        <div className="grid grid-cols-2 gap-2 text-sm">
+                                                            <div><strong>Date:</strong> {record.date ? new Date(record.date).toLocaleDateString() : 'N/A'}</div>
+                                                            {record.milkYield && (
+                                                                <>
+                                                                    <div><strong>Milk Yield:</strong> {record.milkYield.amount} {record.milkYield.unit}</div>
+                                                                    <div><strong>Time:</strong> {record.milkYield.timeOfDay}</div>
+                                                                </>
+                                                            )}
+                                                            {record.feedConsumption && (
+                                                                <div><strong>Feed Consumed:</strong> {record.feedConsumption.amount} {record.feedConsumption.unit}</div>
+                                                            )}
+                                                            {record.notes && <div className="col-span-2"><strong>Notes:</strong> {record.notes}</div>}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <p className="text-gray-500 italic">No production records available</p>
+                                    )}
+                                </section>
+
+                                {/* Financial Summary */}
+                                <section className="mb-6">
+                                    <h4 className="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">
+                                        <i className="fas fa-money-bill-wave text-green-600 mr-2"></i>
+                                        Financial Summary
+                                    </h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {/* Costs */}
+                                        <div className="bg-red-50 p-4 rounded border border-red-200">
+                                            <h5 className="font-semibold text-red-800 mb-3 flex items-center">
+                                                <i className="fas fa-arrow-down mr-2"></i>
+                                                Total Costs
+                                            </h5>
+                                            <div className="space-y-2 text-sm">
+                                                <div className="flex justify-between">
+                                                    <span>Purchase Price:</span>
+                                                    <span className="font-semibold">${reportData.financialSummary.costs.purchasePrice.toFixed(2)}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span>Feed Cost:</span>
+                                                    <span className="font-semibold">${reportData.financialSummary.costs.feedCost.toFixed(2)}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span>Treatment Cost:</span>
+                                                    <span className="font-semibold">${reportData.financialSummary.costs.treatmentCost.toFixed(2)}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span>Vaccination Cost:</span>
+                                                    <span className="font-semibold">${reportData.financialSummary.costs.vaccinationCost.toFixed(2)}</span>
+                                                </div>
+                                                <div className="flex justify-between border-t pt-2 font-bold text-base">
+                                                    <span>Total:</span>
+                                                    <span className="text-red-700">${reportData.financialSummary.costs.totalCosts.toFixed(2)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Revenue */}
+                                        <div className="bg-green-50 p-4 rounded border border-green-200">
+                                            <h5 className="font-semibold text-green-800 mb-3 flex items-center">
+                                                <i className="fas fa-arrow-up mr-2"></i>
+                                                Total Revenue
+                                            </h5>
+                                            <div className="space-y-2 text-sm">
+                                                <div className="flex justify-between">
+                                                    <span>Milk Sales:</span>
+                                                    <span className="font-semibold">${reportData.financialSummary.revenue.milkRevenue.toFixed(2)}</span>
+                                                </div>
+                                                <div className="flex justify-between border-t pt-2 font-bold text-base">
+                                                    <span>Total:</span>
+                                                    <span className="text-green-700">${reportData.financialSummary.revenue.totalRevenue.toFixed(2)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Profit/Loss */}
+                                    <div className={`mt-4 p-6 rounded-lg border-2 ${
+                                        reportData.financialSummary.isProfitable 
+                                            ? 'bg-green-100 border-green-500' 
+                                            : 'bg-red-100 border-red-500'
+                                    }`}>
+                                        <div className="flex items-center justify-between">
+                                            <h5 className={`text-xl font-bold ${
+                                                reportData.financialSummary.isProfitable 
+                                                    ? 'text-green-800' 
+                                                    : 'text-red-800'
+                                            }`}>
+                                                <i className={`fas ${
+                                                    reportData.financialSummary.isProfitable 
+                                                        ? 'fa-chart-line' 
+                                                        : 'fa-exclamation-triangle'
+                                                } mr-2`}></i>
+                                                {reportData.financialSummary.isProfitable ? 'Profit' : 'Loss'}
+                                            </h5>
+                                            <span className={`text-3xl font-bold ${
+                                                reportData.financialSummary.isProfitable 
+                                                    ? 'text-green-700' 
+                                                    : 'text-red-700'
+                                            }`}>
+                                                ${Math.abs(reportData.financialSummary.profitLoss).toFixed(2)}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm mt-2 text-gray-700">
+                                            <i className="fas fa-info-circle mr-1"></i>
+                                            Note: Costs and revenue are calculated using estimated values for feed, treatments, vaccinations, and milk production based on current pricing assumptions.
+                                        </p>
+                                    </div>
                                 </section>
 
                                 {/* Timeline */}
