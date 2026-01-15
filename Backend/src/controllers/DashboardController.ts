@@ -46,7 +46,7 @@ const farmerDashboardForFarm = asyncHandler(async (req: Request, res: Response) 
     const pendingTasks = await Task.countDocuments({ farmId, status: { $ne: 'Complete' } });
     const upcomingCheckups = await VaccinationSchedule.find({ farmId, scheduledDate: { $gte: new Date() } }).limit(5).sort({ scheduledDate: 1 }) && await TreatmentSchedule.find({ farmId, scheduledDate: { $gte: new Date() } }).limit(5).sort({ scheduledDate: 1 });
     const upcomingCheckupsCount = (await VaccinationSchedule.countDocuments({ farmId, scheduledDate: { $gte: new Date() } })) + (await TreatmentSchedule.countDocuments({ farmId, scheduledDate: { $gte: new Date() } }));
-    const recentActivity = await AuditLog.find({ farmId }).sort({ createdAt: -1 }).limit(10);
+    const recentActivity = await AuditLog.find({ entityId: farmId, entityType: "Farm" }).sort({ createdAt: -1 }).limit(10).populate('userId', 'firstName lastName username');
     const livestockSpeciesCount = await Animal.aggregate([
         { $match: { farmId } },
         { $group: { _id: "$species", count: { $sum: 1 } } }
@@ -85,7 +85,7 @@ const farmerDashboard= asyncHandler(async (req: Request, res: Response) => {
     const totalAnimals = await Animal.countDocuments( { farmId: { $in: farmIds } });
     const sickAnimals = await Animal.countDocuments({ farmId: { $in: farmIds }, healthStatus: { $ne: 'healthy' } });
     const healthyAnimals = await Animal.countDocuments({ farmId: { $in: farmIds }, healthStatus: 'healthy' });
-    const recentActivity = await AuditLog.find({ userId: farmerId }).sort({ createdAt: -1 }).limit(10);
+    const recentActivity = await AuditLog.find({ userId: farmerId }).sort({ createdAt: -1 }).limit(10).populate('userId', 'firstName lastName username');
     const upcomingCheckups = await VaccinationSchedule.find({ 
        farmId: { $in: farmIds }, scheduledDate: { $gte: new Date()  } 
     });

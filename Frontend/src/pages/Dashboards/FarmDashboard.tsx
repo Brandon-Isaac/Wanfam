@@ -89,15 +89,56 @@ const FarmDashboard = () => {
             <div className="p-6">
                         {/* Activity list */}
               <div className="space-y-4">
-                {stats.recentActivities?.length > 0 ? ( 
-                 stats.map((recentActivity: { action: string; timestamp: string }, index: number) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div>
-                            <p className="text-sm text-gray-900">{recentActivity.action}</p>
-                            <p className="text-xs text-gray-400">{recentActivity.timestamp}</p>
+                {stats.recentActivity?.length > 0 ? ( 
+                  stats.recentActivity.map((recentActivity: { action: string; entityType: string; timestamp: string; userId: { firstName: string; lastName: string; username: string }; details: { path: string; body: any } }, index: number) => {
+                    // Format the path to be more readable
+                    const formatPath = (path: string, entityType: string) => {
+                      if (!path) return 'Unknown location';
+                      
+                      // Extract the meaningful parts from the path
+                      const segments = path.split('/').filter(seg => seg);
+                      
+                      // Common patterns to make readable
+                      const readableSegments = segments.map(seg => {
+                        // If it looks like a MongoDB ID (24 hex chars), replace with entity type
+                        if (/^[a-f0-9]{24}$/i.test(seg)) {
+                          return entityType || 'record';
+                        }
+                        // Replace dashes/underscores with spaces and capitalize
+                        return seg.replace(/[-_]/g, ' ')
+                                 .split(' ')
+                                 .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                                 .join(' ');
+                      });
+                      
+                      return readableSegments.join(' > ');
+                    };
+
+                    const userName = recentActivity.userId?.firstName 
+                      ? `${recentActivity.userId.firstName} ${recentActivity.userId.lastName || ''}`.trim()
+                      : recentActivity.userId?.username || 'Unknown user';
+
+                    return (
+                      <div key={index} className="flex items-start p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                              {recentActivity.action}
+                            </span>
+                            <span className="text-sm text-gray-700 font-medium">
+                              {formatPath(recentActivity.details?.path, recentActivity.entityType)}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1" title={userName}>
+                            by {userName}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {new Date(recentActivity.timestamp).toLocaleString()}
+                          </p>
                         </div>
-                    </div>
-                    ))
+                      </div>
+                    );
+                  })
                 ) : (
                   <p className="text-gray-500">No recent activity</p>
                 )}

@@ -83,15 +83,55 @@ const FarmerDashboard = () => {
                         {/* Activity list */}
               <div className="space-y-4">
                 {stats.recentActivity?.length > 0 ? (
-                  stats.recentActivity.map((recentActivity: { action: string; timestamp: Date, details: { path: string ,body: { firstName: string, lastName: string ,name: string} } }, index: number) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div title={`by ${recentActivity.details.body.firstName || recentActivity.details.body.name || ''} ${recentActivity.details.body.lastName || ''}`} >
-                            <h2 className="text-sm text-gray-900">{recentActivity.action}</h2>
-                            <p className="text-sm text-gray-600">At {recentActivity.details.path}</p>
-                            <p className="text-xs text-gray-400">{new Date(recentActivity.timestamp).toLocaleString()}</p>
+                  stats.recentActivity.map((recentActivity: { action: string; entityType: string; timestamp: Date; userId: { firstName: string; lastName: string; username: string }; details: { path: string; body: any } }, index: number) => {
+                    // Format the path to be more readable
+                    const formatPath = (path: string, entityType: string) => {
+                      if (!path) return 'Unknown location';
+                      
+                      // Extract the meaningful parts from the path
+                      const segments = path.split('/').filter(seg => seg);
+                      
+                      // Common patterns to make readable
+                      const readableSegments = segments.map(seg => {
+                        // If it looks like a MongoDB ID (24 hex chars), replace with entity type
+                        if (/^[a-f0-9]{24}$/i.test(seg)) {
+                          return entityType || 'record';
+                        }
+                        // Replace dashes/underscores with spaces and capitalize
+                        return seg.replace(/[-_]/g, ' ')
+                                 .split(' ')
+                                 .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                                 .join(' ');
+                      });
+                      
+                      return readableSegments.join(' > ');
+                    };
+
+                    const userName = recentActivity.userId?.firstName 
+                      ? `${recentActivity.userId.firstName} ${recentActivity.userId.lastName || ''}`.trim()
+                      : recentActivity.userId?.username || 'Unknown user';
+
+                    return (
+                      <div key={index} className="flex items-start p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                              {recentActivity.action}
+                            </span>
+                            <span className="text-sm text-gray-700 font-medium">
+                              {formatPath(recentActivity.details?.path, recentActivity.entityType)}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1" title={userName}>
+                            by {userName}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {new Date(recentActivity.timestamp).toLocaleString()}
+                          </p>
                         </div>
-                    </div>
-                    ))
+                      </div>
+                    );
+                  })
                 ) : (
                   <p className="text-gray-500">No recent activity</p>
                 )}
