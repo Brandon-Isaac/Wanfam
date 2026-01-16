@@ -46,6 +46,13 @@ import NetworkHandler from '../components/NetworkHandler';
 import Vaccinate from '../components/Forms/Vaccinate';
 import VaccinationCases from '../components/VaccinationCases';
 
+// Financial Management
+import FinancialOverview from '../pages/Financial/FinancialOverview';
+import RevenueList from '../pages/Financial/RevenueList';
+import RevenueForm from '../pages/Financial/RevenueForm';
+import ExpenseList from '../pages/Financial/ExpenseList';
+import ExpenseForm from '../pages/Financial/ExpenseForm';
+
 const AppRoutes = () => {
     return (
         <AuthProvider>
@@ -321,6 +328,70 @@ const AppRoutes = () => {
             {/*
             <Route path="/profile" element={<ProtectedRoutes><Profile /></ProtectedRoutes>} />
             <Route path="/settings" element={<ProtectedRoutes><Settings /></ProtectedRoutes>} /> */}
+
+            {/* Financial Management Routes */}
+            <Route path="/farms/:farmId/financial" element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <FinancialOverview />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+
+            <Route path="/farms/:farmId/revenues" element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <RevenueList />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+
+            <Route path="/farms/:farmId/revenues/new" element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <RevenueForm />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+
+            <Route path="/farms/:farmId/revenues/:revenueId/edit" element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <RevenueForm isEdit={true} />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+
+            <Route path="/farms/:farmId/expenses" element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <ExpenseList />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+
+            <Route path="/farms/:farmId/expenses/new" element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <ExpenseForm />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+
+            <Route path="/farms/:farmId/expenses/:expenseId/edit" element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <ExpenseForm isEdit={true} />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
 
             {/* Catch all invalid routes */}
             <Route path="*" element={<NotFound />} />
