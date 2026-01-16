@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../utils/Api';
 import { Revenue } from '../../types/financial';
@@ -15,7 +15,7 @@ const RevenueList: React.FC = () => {
         endDate: ''
     });
 
-    const fetchRevenues = async () => {
+    const fetchRevenues = useCallback(async () => {
         try {
             setLoading(true);
             const params = new URLSearchParams();
@@ -32,11 +32,11 @@ const RevenueList: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [farmId, filters]);
 
     useEffect(() => {
         fetchRevenues();
-    }, [farmId, filters]);
+    }, [fetchRevenues]);
 
     const handleDelete = async (id: string) => {
         if (window.confirm('Are you sure you want to delete this revenue record?')) {

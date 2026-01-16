@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../utils/Api';
 import { FinancialOverview } from '../../types/financial';
@@ -12,7 +12,7 @@ const FinancialOverviewPage: React.FC = () => {
         endDate: new Date().toISOString().split('T')[0]
     });
 
-    const fetchOverview = async () => {
+    const fetchOverview = useCallback(async () => {
         try {
             setLoading(true);
             const params = new URLSearchParams();
@@ -26,11 +26,11 @@ const FinancialOverviewPage: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [farmId, dateRange]);
 
     useEffect(() => {
         fetchOverview();
-    }, [farmId, dateRange]);
+    }, [fetchOverview]);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'KES' }).format(amount);
