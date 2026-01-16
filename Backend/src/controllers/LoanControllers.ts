@@ -4,6 +4,7 @@ import { LoanRequest } from "../models/LoanRequest";
 import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/AsyncHandler";
 import { User } from "../models/User";
+import { notifyLoanApproval, notifyLoanRejection, notifyLoanRequest } from "../utils/notificationService";
 
 // Update Loan Officer Details
 const updateLoanOfficerDetails = asyncHandler(async (req: Request, res: Response) => {
@@ -40,6 +41,17 @@ const createLoanRequest = asyncHandler(async (req: Request, res: Response) => {
         repaymentPeriod
     });
     await loanRequest.save();
+    
+    // Notify assigned loan officer about new request
+    if (loanRequest.loanOfficerId) {
+        await notifyLoanRequest(
+            loanRequest.loanOfficerId,
+            `${user.firstName} ${user.lastName}`,
+            amountRequested,
+            loanRequest._id
+        );
+    }
+    
     res.status(201).json({ message: "Loan request created successfully", loanRequest });
 });
 
@@ -70,12 +82,21 @@ const approveLoanRequest = asyncHandler(async (req: Request, res: Response) => {
     await loanApproval.save();
     loanRequest.status = 'approved';
     await loanRequest.save();
+    
     // Assign the approved loan to the loan officer
     const officerRecord = await LoanOfficer.findOne({ userId: approvedBy });
     if (officerRecord) {
         officerRecord.approvedLoans.push(loanApproval.loanRequestId);
         await officerRecord.save();
     }
+    
+    // Notify farmer about loan approval
+    await notifyLoanApproval(
+        loanRequest.farmerId,
+        approvedAmount,
+        loanApproval._id
+    );
+    
     res.status(201).json({ message: "Loan request approved successfully", loanApproval });
 });
 
@@ -115,12 +136,44 @@ const getApprovedLoansByFarmer = asyncHandler(async (req: Request, res: Response
     res.status(200).json({ approvedLoans: loanRequests });
 });
 
+// Reject Loan Request
+const rejectLoanRequest = asyncHandler(async (req: Request, res: Response) => {
+    const { loanRequestId, rejectedBy, reason } = req.body;
+    if (!loanRequestId || !rejectedBy) {
+        return res.status(400).json({ message: "Loan request ID and rejector ID are required" });
+    }
+    const loanRequest = await LoanRequest.findById(loanRequestId);
+    if (!loanRequest) {
+        return res.status(404).json({ message: "Loan request not found" });
+    }
+    if (loanRequest.status !== 'pending') {
+        return res.status(400).json({ message: "Only pending loan requests can be rejected" });
+    }
+    const loanOfficer = await User.findById(rejectedBy);
+    if (!loanOfficer || loanOfficer.role !== 'loan_officer') {
+        return res.status(400).json({ message: "Rejector must be a valid loan officer" });
+    }
+    
+    loanRequest.status = 'rejected';
+    await loanRequest.save();
+    
+    // Notify farmer about loan rejection
+    await notifyLoanRejection(
+        loanRequest.farmerId,
+        loanRequest._id,
+        reason
+    );
+    
+    res.status(200).json({ message: "Loan request rejected successfully", loanRequest });
+});
+
 
 
 export const LoanController = {
     updateLoanOfficerDetails,
     createLoanRequest,
     approveLoanRequest,
+    rejectLoanRequest,
     getLoanRequests,
     getLoanOfficers,
     getApprovedLoansByOfficer,

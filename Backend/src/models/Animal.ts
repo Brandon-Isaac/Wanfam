@@ -11,6 +11,7 @@ export interface IAnimal extends Document {
     dateOfBirth?: Date;
     dateOfPurchase?: Date;
     purchasePrice?: number;
+    nextCheckupDate?: Date;
     weight?: number;
     healthStatus?: ('healthy' | 'sick' | 'treatment' | 'recovery' | 'quarantined' | 'deceased' | string);
     notes?: string;
@@ -28,6 +29,7 @@ const animalSchema = new Schema<IAnimal>({
     dateOfBirth: { type: Date },
     dateOfPurchase: { type: Date },
     purchasePrice: { type: Number },
+    nextCheckupDate: { type: Date, required: false },
     weight: { type: Number },
     healthStatus: { type: String, enum: ['healthy', 'sick','treatment', 'recovery', 'quarantined', 'deceased'], default: 'healthy' },
     notes: { type: String },

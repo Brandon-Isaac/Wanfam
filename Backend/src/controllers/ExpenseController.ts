@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/AsyncHandler';
 import { Expense } from '../models/Expense';
 import { Farm } from '../models/Farm';
+import { notifyLargeExpense } from '../utils/notificationService';
 
 // Create new expense record
 export const createExpense = asyncHandler(async (req: Request, res: Response) => {
@@ -34,6 +35,16 @@ export const createExpense = asyncHandler(async (req: Request, res: Response) =>
         notes,
         recordedBy: req.user.id
     });
+    
+    // Notify farmer about large expenses (over 50,000)
+    if (amount > 50000) {
+        await notifyLargeExpense(
+            req.user.id,
+            amount,
+            category,
+            expense._id.toString()
+        );
+    }
 
     res.status(201).json(expense);
 });

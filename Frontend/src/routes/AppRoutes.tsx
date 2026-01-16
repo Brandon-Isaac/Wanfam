@@ -45,6 +45,7 @@ import TreatAnimal from '../components/Forms/TreatAnimal';
 import NetworkHandler from '../components/NetworkHandler';
 import Vaccinate from '../components/Forms/Vaccinate';
 import VaccinationCases from '../components/VaccinationCases';
+import NotificationList from '../pages/NotificationList';
 
 // Financial Management
 import FinancialOverview from '../pages/Financial/FinancialOverview';
@@ -67,6 +68,13 @@ const AppRoutes = () => {
                         <>
                             <Navigation />
                             <Dashboard />
+                        </>
+                    </ProtectedRoutes>} />
+                <Route path="/notifications" element={
+                    <ProtectedRoutes>
+                        <>
+                            <Navigation />
+                            <NotificationList />
                         </>
                     </ProtectedRoutes>} />
                 <Route path="/dashboard/farmer" element={
