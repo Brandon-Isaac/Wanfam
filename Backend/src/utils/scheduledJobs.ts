@@ -5,14 +5,7 @@ import { Animal } from '../models/Animal';
 import { Farm } from '../models/Farm';
 import { notifyVaccinationDue, notifyCheckupReminder, notifyUpcomingTask } from './notificationService';
 
-/**
- * Scheduled Jobs for Automatic Notifications
- * Runs periodic checks and sends notifications for upcoming events
- */
 
-/**
- * Check for upcoming vaccinations (run daily at 8:00 AM)
- */
 export const checkUpcomingVaccinations = cron.schedule('0 8 * * *', async () => {
     try {
         console.log('Running vaccination reminder check...');
@@ -52,9 +45,7 @@ export const checkUpcomingVaccinations = cron.schedule('0 8 * * *', async () => 
     }
 });
 
-/**
- * Check for upcoming checkups (run daily at 8:00 AM)
- */
+//Check for upcoming checkups (run daily at 8:00 AM)
 export const checkUpcomingCheckups = cron.schedule('0 8 * * *', async () => {
     try {
         console.log('Running checkup reminder check...');
@@ -89,9 +80,7 @@ export const checkUpcomingCheckups = cron.schedule('0 8 * * *', async () => {
     }
 });
 
-/**
- * Check for upcoming tasks (run daily at 7:00 AM)
- */
+//Check for upcoming tasks (run daily at 7:00 AM)
 export const checkUpcomingTasks = cron.schedule('0 7 * * *', async () => {
     try {
         console.log('Running task reminder check...');
@@ -130,9 +119,7 @@ export const checkUpcomingTasks = cron.schedule('0 7 * * *', async () => {
     }
 });
 
-/**
- * Check for overdue tasks (run daily at 9:00 AM)
- */
+//Check for overdue tasks (run daily at 9:00 AM)
 export const checkOverdueTasks = cron.schedule('0 9 * * *', async () => {
     try {
         console.log('Running overdue task check...');
@@ -180,9 +167,7 @@ export const checkOverdueTasks = cron.schedule('0 9 * * *', async () => {
     }
 });
 
-/**
- * Start all scheduled jobs
- */
+//Start all scheduled jobs
 export const startScheduledJobs = () => {
     checkUpcomingVaccinations.start();
     checkUpcomingCheckups.start();
@@ -192,9 +177,7 @@ export const startScheduledJobs = () => {
     console.log('✅ All scheduled notification jobs started');
 };
 
-/**
- * Stop all scheduled jobs
- */
+//Stop all scheduled jobs
 export const stopScheduledJobs = () => {
     checkUpcomingVaccinations.stop();
     checkUpcomingCheckups.stop();

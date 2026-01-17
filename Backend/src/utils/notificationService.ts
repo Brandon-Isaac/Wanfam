@@ -1,11 +1,8 @@
 import { Notification } from "../models/Notification";
 import { Schema } from "mongoose";
 
-/**
- * Centralized Notification Service
- * Handles automatic notification creation for various system events
- */
-
+//  Centralized Notification Service
+//  Handles automatic notification creation for various system events
 interface NotificationData {
     userId: Schema.Types.ObjectId | string;
     message: string;
@@ -14,9 +11,7 @@ interface NotificationData {
     relatedEntityType?: string;
 }
 
-/**
- * Create a notification
- */
+//  Create a notification
 export const createNotification = async (data: NotificationData) => {
     try {
         const notification = new Notification({
@@ -34,9 +29,7 @@ export const createNotification = async (data: NotificationData) => {
     }
 };
 
-/**
- * Create bulk notifications for multiple users
- */
+//  Create bulk notifications for multiple users
 export const createBulkNotifications = async (notifications: NotificationData[]) => {
     try {
         const notificationDocs = notifications.map(data => ({
@@ -54,9 +47,7 @@ export const createBulkNotifications = async (notifications: NotificationData[])
     }
 };
 
-/**
- * Notify when a task is assigned
- */
+// Notify when a task is assigned
 export const notifyTaskAssignment = async (
     workerId: Schema.Types.ObjectId | string,
     taskTitle: string,
@@ -71,9 +62,7 @@ export const notifyTaskAssignment = async (
     });
 };
 
-/**
- * Notify when a task is completed
- */
+// Notify when a task is completed
 export const notifyTaskCompletion = async (
     farmerId: Schema.Types.ObjectId | string,
     taskTitle: string,
@@ -89,9 +78,8 @@ export const notifyTaskCompletion = async (
     });
 };
 
-/**
- * Notify when an animal is registered
- */
+
+// Notify when an animal is registered
 export const notifyAnimalRegistration = async (
     farmerId: Schema.Types.ObjectId | string,
     animalTag: string,
@@ -107,9 +95,8 @@ export const notifyAnimalRegistration = async (
     });
 };
 
-/**
- * Notify when an animal's health status changes
- */
+
+// Notify when an animal's health status changes
 export const notifyHealthStatusChange = async (
     farmerId: Schema.Types.ObjectId | string,
     animalTag: string,
@@ -130,9 +117,7 @@ export const notifyHealthStatusChange = async (
     });
 };
 
-/**
- * Notify when a treatment is scheduled
- */
+// Notify when a treatment is scheduled
 export const notifyTreatmentSchedule = async (
     vetId: Schema.Types.ObjectId | string,
     animalTag: string,
@@ -148,9 +133,7 @@ export const notifyTreatmentSchedule = async (
     });
 };
 
-/**
- * Notify when a vaccination is due
- */
+// Notify when a vaccination is due
 export const notifyVaccinationDue = async (
     farmerId: Schema.Types.ObjectId | string,
     animalTag: string,
@@ -161,15 +144,13 @@ export const notifyVaccinationDue = async (
     return createNotification({
         userId: farmerId,
         message: `Vaccination due for animal ${animalTag}: ${vaccineName} on ${dueDate.toLocaleDateString()}`,
-        type: 'warning',
+        type: 'vaccination',
         relatedEntityId: scheduleId,
         relatedEntityType: 'vaccination_schedule'
     });
 };
 
-/**
- * Notify when a checkup is approaching
- */
+ // Notify when a checkup is approaching
 export const notifyCheckupReminder = async (
     farmerId: Schema.Types.ObjectId | string,
     animalTag: string,
@@ -185,9 +166,7 @@ export const notifyCheckupReminder = async (
     });
 };
 
-/**
- * Notify farmer when loan is approved
- */
+// Notify farmer when loan is approved
 export const notifyLoanApproval = async (
     farmerId: Schema.Types.ObjectId | string,
     approvedAmount: number,
@@ -201,10 +180,7 @@ export const notifyLoanApproval = async (
         relatedEntityType: 'loan_approval'
     });
 };
-
-/**
- * Notify farmer when loan is rejected
- */
+// Notify farmer when loan is rejected
 export const notifyLoanRejection = async (
     farmerId: Schema.Types.ObjectId | string,
     loanRequestId: Schema.Types.ObjectId | string,
@@ -223,9 +199,7 @@ export const notifyLoanRejection = async (
     });
 };
 
-/**
- * Notify loan officer when new loan request is submitted
- */
+// Notify loan officer about new loan request
 export const notifyLoanRequest = async (
     loanOfficerId: Schema.Types.ObjectId | string,
     farmerName: string,
@@ -241,9 +215,7 @@ export const notifyLoanRequest = async (
     });
 };
 
-/**
- * Notify when revenue is recorded
- */
+// Notify when revenue is recorded
 export const notifyRevenueRecorded = async (
     farmerId: Schema.Types.ObjectId | string,
     amount: number,
@@ -259,9 +231,7 @@ export const notifyRevenueRecorded = async (
     });
 };
 
-/**
- * Notify when large expense is recorded
- */
+// Notify when a large expense is recorded
 export const notifyLargeExpense = async (
     farmerId: Schema.Types.ObjectId | string,
     amount: number,
@@ -277,9 +247,7 @@ export const notifyLargeExpense = async (
     });
 };
 
-/**
- * Notify farmer about low inventory
- */
+// Notify when inventory is low
 export const notifyLowInventory = async (
     farmerId: Schema.Types.ObjectId | string,
     itemName: string,
@@ -295,9 +263,7 @@ export const notifyLowInventory = async (
     });
 };
 
-/**
- * Notify when feed consumption exceeds expected levels
- */
+// Notify when feed consumption is unusually high
 export const notifyHighFeedConsumption = async (
     farmerId: Schema.Types.ObjectId | string,
     consumptionAmount: number,
@@ -312,9 +278,7 @@ export const notifyHighFeedConsumption = async (
     });
 };
 
-/**
- * Notify workers about wage payment
- */
+// Notify when wage payment is processed
 export const notifyWagePayment = async (
     workerId: Schema.Types.ObjectId | string,
     amount: number,
@@ -330,9 +294,7 @@ export const notifyWagePayment = async (
     });
 };
 
-/**
- * Notify about upcoming scheduled tasks
- */
+// Notify about upcoming task
 export const notifyUpcomingTask = async (
     workerId: Schema.Types.ObjectId | string,
     taskTitle: string,
@@ -348,9 +310,7 @@ export const notifyUpcomingTask = async (
     });
 };
 
-/**
- * Notify farmer about animal death
- */
+// Notify about animal death
 export const notifyAnimalDeath = async (
     farmerId: Schema.Types.ObjectId | string,
     animalTag: string,
@@ -366,9 +326,7 @@ export const notifyAnimalDeath = async (
     });
 };
 
-/**
- * Notify all farm workers about important farm updates
- */
+// Notify all farm workers about a general event
 export const notifyAllFarmWorkers = async (
     workerIds: (Schema.Types.ObjectId | string)[],
     message: string,

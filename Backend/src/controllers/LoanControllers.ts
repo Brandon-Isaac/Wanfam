@@ -34,11 +34,16 @@ const createLoanRequest = asyncHandler(async (req: Request, res: Response) => {
     if (!user || user.role !== 'farmer') {
         return res.status(400).json({ message: "Loan requests can only be made by farmers" });
     }
+    // Find an available loan officer to assign
+    const loanOfficers = await LoanOfficer.find();
+    const assignedOfficer = loanOfficers.length > 0 ? loanOfficers[0].userId : null;
+    
     const loanRequest = new LoanRequest({
         userId,
         amountRequested,
         purpose,
-        repaymentPeriod
+        repaymentPeriod,
+        loanOfficerId: assignedOfficer
     });
     await loanRequest.save();
     
@@ -48,7 +53,7 @@ const createLoanRequest = asyncHandler(async (req: Request, res: Response) => {
             loanRequest.loanOfficerId,
             `${user.firstName} ${user.lastName}`,
             amountRequested,
-            loanRequest._id
+            loanRequest._id.toString()
         );
     }
     
@@ -94,7 +99,7 @@ const approveLoanRequest = asyncHandler(async (req: Request, res: Response) => {
     await notifyLoanApproval(
         loanRequest.farmerId,
         approvedAmount,
-        loanApproval._id
+        loanApproval._id.toString()
     );
     
     res.status(201).json({ message: "Loan request approved successfully", loanApproval });
@@ -160,7 +165,7 @@ const rejectLoanRequest = asyncHandler(async (req: Request, res: Response) => {
     // Notify farmer about loan rejection
     await notifyLoanRejection(
         loanRequest.farmerId,
-        loanRequest._id,
+        loanRequest._id.toString(),
         reason
     );
     

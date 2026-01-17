@@ -27,7 +27,7 @@ const createTreatmentSchedule = asyncHandler(async (req: Request, res: Response)
                 (farm.owner as any)._id,
                 animal.tagId || animal.name || 'Unknown',
                 scheduleName,
-                scheduleDate
+                newSchedule._id.toString()
             );
         }
     } catch (notifError) {

@@ -58,8 +58,8 @@ const updateInventoryItem = async (req: Request, res: Response) => {
             return res.status(404).json({ message: "Item not found" });
         }
         
-        // Check if inventory is low (below 20% or quantity < 10)
-        const isLow = item.quantity < 10 || (item.quantity < (item.quantity * 0.2));
+        // Check if inventory is low (quantity < 10)
+        const isLow = item.quantity < 10;
         if (isLow) {
             const farm = await Farm.findById(farmId).populate('owner');
             if (farm && farm.owner) {
