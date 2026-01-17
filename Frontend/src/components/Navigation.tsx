@@ -104,44 +104,46 @@ const Navigation = () => {
             path: `/farms/${farmId}/health`,
             icon: 'fas fa-heartbeat',
             subItems: [
-              { name: 'Health Records', path: `/health/records` },
-              { name: 'Vaccinations', path: `/health/vaccinations` },
-              { name: 'Treatments', path: `/health/treatments` },
-              { name: 'Disease Surveillance', path: `/health/surveillance` }
+              { name: 'Health Records', path: `/farms/${farmId}/health/records` },
+              { name: 'Vaccinations', path: `/vaccinations` },
+              { name: 'Treatments', path: `/treatment-schedules` },
+              { name: 'Sick Animals', path: `/farms/${farmId}/animals/sick` },
+              { name: 'Disease Surveillance', path: `/farms/${farmId}/health/surveillance` }
             ]
           },
           {
             name: 'Feeding',
-            path: `/feeding`,
+            path: `/farms/${farmId}/feeding`,
             icon: 'fas fa-utensils',
             subItems: [
-              { name: 'Feeding Schedule', path: `/feeding/schedule` },
-              { name: 'Feed Inventory', path: `/feeding/inventory` },
-              { name: 'Nutrition Calculator', path: `/feeding/calculator` },
-              { name: 'Cost Tracker', path: `/feeding/costs` }
+              { name: 'Feeding Schedule', path: `/farms/${farmId}/feeding/schedule` },
+              { name: 'Feed Inventory', path: `/farms/${farmId}/feeding/inventory` },
+              { name: 'Nutrition Calculator', path: `/farms/${farmId}/feeding/calculator` },
+              { name: 'Cost Tracker', path: `/farms/${farmId}/feeding/costs` }
             ]
           },
           {
             name: 'Financial',
-            path: `/financial`,
+            path: `/farms/${farmId}/financial`,
             icon: 'fas fa-money-bill-wave',
             subItems: [
-              { name: 'Expense Tracker', path: `/financial/expenses` },
-              { name: 'Revenue Calculator', path: `/financial/revenue` },
-              { name: 'ROI Analysis', path: `/financial/roi` },
-              { name: 'Loan Management', path: `/financial/loans` },
-              { name: 'Recommendations', path: `/financial/recommendations` }
+              { name: 'Overview', path: `/farms/${farmId}/financial` },
+              { name: 'Revenues', path: `/farms/${farmId}/revenues` },
+              { name: 'Expenses', path: `/farms/${farmId}/expenses` },
+              { name: 'ROI Analysis', path: `/farms/${farmId}/financial/roi` },
+              { name: 'Loan Management', path: `/farms/${farmId}/financial/loans` },
+              { name: 'Recommendations', path: `/farms/${farmId}/financial/recommendations` }
             ]
           },
           {
             name: 'Reports',
-            path: `/reports`,
+            path: `/farms/${farmId}/reports`,
             icon: 'fas fa-chart-bar',
             subItems: [
-              { name: 'Dashboard Analytics', path: `/reports/analytics` },
-              { name: 'Export Tools', path: `/reports/export` },
-              { name: 'Trend Analysis', path: `/reports/trends` },
-              { name: 'Report Generator', path: `/reports/generator` }
+              { name: 'Dashboard Analytics', path: `/farms/${farmId}/reports/analytics` },
+              { name: 'Export Tools', path: `/farms/${farmId}/reports/export` },
+              { name: 'Trend Analysis', path: `/farms/${farmId}/reports/trends` },
+              { name: 'Report Generator', path: `/farms/${farmId}/reports/generator` }
             ]
           }        
         ] : [])

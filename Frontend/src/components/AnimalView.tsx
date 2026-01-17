@@ -66,7 +66,7 @@ const closeReport = () => {
                 <div className="flex flex-row justify-between">
                 <h2 className="text-2xl font-bold mb-6 text-center">Animal Details</h2>
              <button
-              onClick={() => navigate(`/${farmId}/livestock`)}
+              onClick={() => navigate(`/farms/${farmId}/livestock`)}
               className="text-gray-500 hover:text-red-100 transition-colors duration-200"
             >
               <i className="fas fa-times text-xl"></i>
@@ -109,12 +109,12 @@ const closeReport = () => {
                             <strong>Assigned Worker:</strong> {animal?.assignedWorker ? `${animal.assignedWorker.firstName} ${animal.assignedWorker.lastName}` : 'Unassigned'}
                         </div>
                         <hr />
-                        <button onClick={()=>navigate(`/${farmId}/livestock/${animalId}/edit`)}
+                        <button onClick={()=>navigate(`/farms/${farmId}/livestock/${animalId}/edit`)}
                          className="text-blue-500 hover:text-blue-900 transition-colors duration-200">
                             <i className="fas fa-user-edit"></i> Update Animal
                         </button>
                         <br/>
-                        <button onClick={()=>navigate(`/${farmId}/livestock/${animalId}/vaccinate`)}
+                        <button onClick={()=>navigate(`/farms/${farmId}/livestock/${animalId}/vaccinate`)}
                          className="text-purple-500 hover:text-purple-900 transition-colors duration-200">
                             <i className="fas fa-plus-circle"></i> Vaccinate
                         </button>
