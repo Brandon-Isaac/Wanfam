@@ -3,6 +3,7 @@ import { VaccinationSchedule } from "../models/VaccinationSchedule";
 import { Request, Response } from "express";
 import { Animal } from "../models/Animal";
 import { Farm } from "../models/Farm";
+import notificationService from "../utils/notificationService";
 
 const createVaccinationSchedule = async (req: Request, res: Response) => {
     try {
@@ -136,6 +137,23 @@ const createVaccinationRecord = async (req: Request, res: Response) => {
             sideEffects
         });
         await newRecord.save();
+        
+        // Notify farm owner about vaccination completion
+        try {
+            const farmPopulated = await Farm.findById(farmId).populate('owner');
+            if (farmPopulated && farmPopulated.owner) {
+                await notificationService.createNotification({
+                    userId: (farmPopulated.owner as any)._id,
+                    message: `Vaccination "${vaccineName}" has been administered to ${animal.tagId || animal.name || 'an animal'}.`,
+                    type: 'vaccination',
+                    relatedEntityId: newRecord._id.toString(),
+                    relatedEntityType: 'vaccination_record'
+                });
+            }
+        } catch (notifError) {
+            console.error('Error sending vaccination notification:', notifError);
+        }
+        
         return res.status(201).json({ message: "Vaccination record created successfully", record: newRecord });
     } catch (error) {
         console.error("Error creating vaccination record:", error);

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/AsyncHandler';
 import { Revenue } from '../models/Revenue';
 import { Farm } from '../models/Farm';
+import { notifyRevenueRecorded } from '../utils/notificationService';
 
 // Create new revenue record
 export const createRevenue = asyncHandler(async (req: Request, res: Response) => {
@@ -34,6 +35,14 @@ export const createRevenue = asyncHandler(async (req: Request, res: Response) =>
         notes,
         recordedBy: req.user.id
     });
+    
+    // Notify farmer about revenue recorded
+    await notifyRevenueRecorded(
+        req.user.id,
+        amount,
+        source,
+        revenue._id.toString()
+    );
 
     res.status(201).json(revenue);
 });
