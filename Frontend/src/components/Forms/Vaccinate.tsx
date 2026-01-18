@@ -96,7 +96,7 @@ const Vaccinate = () => {
         setError(null);
         try {
             await api.post(`/vaccination/schedules/${farmId}/${animalId}`, formData);
-            navigate(`/${farmId}/livestock/${animalId}`);
+            navigate(`/farms/${farmId}/livestock/${animalId}`);
         } catch (error) {
             setError(error instanceof Error ? error.message : "An unexpected error occurred");
         } finally {

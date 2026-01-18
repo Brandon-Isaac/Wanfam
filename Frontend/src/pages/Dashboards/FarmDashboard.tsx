@@ -264,35 +264,35 @@ const FarmDashboard = () => {
               </div>
               <div className="p-4 grid grid-cols-2 gap-3">
                 <Link
-                  to={`/${farmId}/livestock`}
+                  to={`/farms/${farmId}/livestock`}
                   className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg hover:shadow-md transition-all border border-green-200"
                 >
                   <i className="fas fa-paw text-green-600 text-xl mb-2"></i>
                   <span className="text-xs font-semibold text-green-800 text-center">Animals</span>
                 </Link>
                 <Link
-                  to={`/${farmId}/tasks`}
+                  to={`/farms/${farmId}/tasks`}
                   className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg hover:shadow-md transition-all border border-blue-200"
                 >
                   <i className="fas fa-tasks text-blue-600 text-xl mb-2"></i>
                   <span className="text-xs font-semibold text-blue-800 text-center">Tasks</span>
                 </Link>
                 <Link
-                  to={`/${farmId}/animals/sick`}
+                  to={`/farms/${farmId}/animals/sick`}
                   className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg hover:shadow-md transition-all border border-yellow-200"
                 >
                   <i className="fas fa-notes-medical text-yellow-600 text-xl mb-2"></i>
                   <span className="text-xs font-semibold text-yellow-800 text-center">Sick Animals</span>
                 </Link>
                 <Link
-                  to={`/${farmId}/vets`}
+                  to={`/farms/${farmId}/vets`}
                   className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg hover:shadow-md transition-all border border-indigo-200"
                 >
                   <i className="fas fa-user-md text-indigo-600 text-xl mb-2"></i>
                   <span className="text-xs font-semibold text-indigo-800 text-center">Vets</span>
                 </Link>
                 <Link
-                  to={`/${farmId}/production/record`}
+                  to={`/farms/${farmId}/production/record`}
                   className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg hover:shadow-md transition-all border border-purple-200"
                 >
                   <i className="fas fa-water text-purple-600 text-xl mb-2"></i>

@@ -63,7 +63,7 @@ const UpdateTask = () => {
                 status,
             });
             setSuccess("Task updated successfully!");
-            navigate(`/${farmId}/tasks/${taskId}`);
+            navigate(`/farms/${farmId}/tasks/${taskId}`);
         }
         catch (err) {
             setError("Failed to update task. Please try again.");

@@ -92,7 +92,7 @@ if (error) {
                         <p className="text-2xl font-bold">{tasks.filter((task: Task) => task.status === "In Progress").length}</p>
                     </div>
                 </div>
-                <Link to={`/${farmId}/tasks/add`} className="text-green-600 hover:text-green-700 mt-2 flex mr-2">+ Add Tasks</Link>
+                <Link to={`/farms/${farmId}/tasks/add`} className="text-green-600 hover:text-green-700 mt-2 flex mr-2">+ Add Tasks</Link>
             <div className="max-w-7xl mx-auto p-4">
                 <h2 className="text-2xl font-semibold mb-4">Farm Tasks</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -133,13 +133,13 @@ if (error) {
                             <div className="flex flex-wrap gap-2 pt-4 border-t">
                                 <button 
                                     className="flex-1 bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 text-sm"
-                                    onClick={() => { navigate(`/${farmId}/tasks/${task._id}`); }}
+                                    onClick={() => { navigate(`/farms/${farmId}/tasks/${task._id}`); }}
                                 >
                                     <i className="fas fa-eye mr-1"></i> View
                                 </button>
                                 <button 
                                     className="flex-1 bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm"
-                                    onClick={() => { navigate(`/${farmId}/tasks/${task._id}/edit`) }}
+                                    onClick={() => { navigate(`/farms/${farmId}/tasks/${task._id}/edit`) }}
                                 >
                                     <i className="fas fa-edit mr-1"></i> Edit
                                 </button>
