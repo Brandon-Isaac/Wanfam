@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 const LoanManagement: React.FC = () => {
   const { farmId } = useParams<{ farmId: string }>();
