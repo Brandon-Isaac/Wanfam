@@ -1,9 +1,6 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
 
 const ROIAnalysis: React.FC = () => {
-  const { farmId } = useParams<{ farmId: string }>();
-
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="bg-white shadow-md rounded-lg p-6">
