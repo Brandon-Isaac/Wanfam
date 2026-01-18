@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
 
 const ExportTools: React.FC = () => {
-  const { farmId } = useParams<{ farmId: string }>();
   const [selectedFormat, setSelectedFormat] = useState('pdf');
   const [selectedData, setSelectedData] = useState<string[]>([]);
 
