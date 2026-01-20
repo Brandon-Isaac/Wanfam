@@ -34,7 +34,7 @@ const AssignVet = () => {
         try {
             await api.post(`/vets/add-farm`, { vetId: selectedVet, farmId });
             setSuccessMessage("Vet assigned successfully!");
-            navigate(`/${farmId}/vets`);
+            navigate(`/Farms/${farmId}/vets`);
         } catch (err: any) {
             setError(err.message || "Error assigning vet");
         }
@@ -105,7 +105,7 @@ const AssignVet = () => {
                 </button>
             </form>
             <button
-                onClick={() => navigate(`/${farmId}/vets`)}
+                onClick={() => navigate(`/Farms/${farmId}/vets`)}
                 className="w-full mt-4 bg-gray-500 text-white p-2 rounded hover:bg-gray-600"
             >
                 Cancel
