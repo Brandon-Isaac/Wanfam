@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { } from 'react-router-dom';
 
 const ReportGenerator: React.FC = () => {
-  const { farmId } = useParams<{ farmId: string }>();
   const [reportType, setReportType] = useState('');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
 

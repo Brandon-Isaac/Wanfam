@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
 
 const NutritionCalculator: React.FC = () => {
-  const { farmId } = useParams<{ farmId: string }>();
   const [animalType, setAnimalType] = useState('');
   const [weight, setWeight] = useState('');
 
