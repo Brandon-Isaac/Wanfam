@@ -5,7 +5,7 @@ export interface INotification extends Document {
     message: string;
     isRead: boolean;
     createdAt: Date;
-    type?: ('info' | 'warning' | 'alert' | 'success' | 'task' | 'treatment' | 'health_record' | 'animal_registration' | 'loan_approval' | 'loan_request' | 'loan_rejection' | 'revenue' | 'expense' | 'vaccination' | 'checkup_reminder' | string);
+    type?: ('info' | 'warning' | 'alert' | string);
     relatedEntityId?: Schema.Types.ObjectId;
     relatedEntityType?: string;
 }
@@ -15,16 +15,9 @@ const notificationSchema = new Schema<INotification>({
     message: { type: String, required: true },
     isRead: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now },
-    type: { 
-        type: String, 
-        enum: ['info', 'warning', 'alert', 'success', 'task', 'treatment', 'health_record', 'animal_registration', 'loan_approval', 'loan_request', 'loan_rejection', 'revenue', 'expense', 'vaccination', 'checkup_reminder'], 
-        default: 'info' 
-    },
+    type: { type: String, enum: ['info', 'warning', 'alert'], default: 'info' },
     relatedEntityId: { type: Schema.Types.ObjectId },
     relatedEntityType: { type: String }
 }, { timestamps: true });
-
-// Index for faster queries
-notificationSchema.index({ userId: 1, isRead: 1, createdAt: -1 });
 
 export const Notification = model<INotification>('Notification', notificationSchema);

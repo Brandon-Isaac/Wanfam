@@ -13,7 +13,7 @@ import ProtectedRoutes from './ProtectedRoutes';
 import Farms from '../pages/Farms';
 import { FarmProvider } from '../contexts/FarmContext';
 import SelectFarm from '../components/Forms/SelectFarm';
-import ChatbotButton from '../components/ChatbotButton';
+import Chatbot from '../components/Chatbot';
 import Profile from '../components/Profile';
 import AddFarm from '../components/Forms/AddFarm';
 import FarmDashboard from '../pages/Dashboards/FarmDashboard';
@@ -43,38 +43,6 @@ import ScheduleTreatment from '../components/Forms/ScheduleTreatment';
 import TreatmentSchedules from '../components/TreatmentSchedules';
 import TreatAnimal from '../components/Forms/TreatAnimal';
 import NetworkHandler from '../components/NetworkHandler';
-import Vaccinate from '../components/Forms/Vaccinate';
-import VaccinationCases from '../components/VaccinationCases';
-import NotificationList from '../pages/NotificationList';
-
-// Financial Management
-import FinancialOverview from '../pages/Financial/FinancialOverview';
-import RevenueList from '../pages/Financial/RevenueList';
-import RevenueForm from '../pages/Financial/RevenueForm';
-import ExpenseList from '../pages/Financial/ExpenseList';
-import ExpenseForm from '../pages/Financial/ExpenseForm';
-import ROIAnalysis from '../pages/Financial/ROIAnalysis';
-import LoanManagement from '../pages/Financial/LoanManagement';
-import FinancialRecommendations from '../pages/Financial/FinancialRecommendations';
-
-// Health Management
-import HealthRecords from '../components/HealthRecords';
-import DiseaseSurveillance from '../components/DiseaseSurveillance';
-
-// Feeding Management
-import FeedingSchedule from '../components/FeedingSchedule';
-import FeedInventory from '../components/FeedInventory';
-import NutritionCalculator from '../components/NutritionCalculator';
-import FeedingCosts from '../components/FeedingCosts';
-
-// Reports
-import ReportAnalytics from '../pages/Reports/ReportAnalytics';
-import ExportTools from '../pages/Reports/ExportTools';
-import TrendAnalysis from '../pages/Reports/TrendAnalysis';
-import ReportGenerator from '../pages/Reports/ReportGenerator';
-
-// Livestock
-import BreedingRecords from '../components/BreedingRecords';
 
 const AppRoutes = () => {
     return (
@@ -90,13 +58,6 @@ const AppRoutes = () => {
                         <>
                             <Navigation />
                             <Dashboard />
-                        </>
-                    </ProtectedRoutes>} />
-                <Route path="/notifications" element={
-                    <ProtectedRoutes>
-                        <>
-                            <Navigation />
-                            <NotificationList />
                         </>
                     </ProtectedRoutes>} />
                 <Route path="/dashboard/farmer" element={
@@ -124,7 +85,7 @@ const AppRoutes = () => {
                     </ProtectedRoutes>
                 } />
 
-                    <Route path="/farms/:farmId/animals/sick" element={
+                    <Route path="/:farmId/animals/sick" element={
                     <ProtectedRoutes>
                         <>
                             <Navigation />
@@ -165,7 +126,7 @@ const AppRoutes = () => {
                     </FarmProvider>
                 </ProtectedRoutes>
             } />
-            <Route path="/farms/:farmId/vets" element={
+            <Route path="/:farmId/vets" element={
                 <ProtectedRoutes>
                     <FarmProvider>
                         <Navigation />
@@ -183,7 +144,7 @@ const AppRoutes = () => {
                 </ProtectedRoutes>
             } />
 
-            <Route path="/farms/:farmId/tasks/add" element={
+            <Route path="/:farmId/tasks/add" element={
                 <ProtectedRoutes>
                     <FarmProvider>
                         <Navigation />
@@ -192,7 +153,7 @@ const AppRoutes = () => {
                 </ProtectedRoutes>
             } />
 
-            <Route path="/farms/:farmId/tasks" element={
+            <Route path="/:farmId/tasks" element={
                 <ProtectedRoutes>
                     <FarmProvider>
                         <Navigation />
@@ -201,7 +162,7 @@ const AppRoutes = () => {
                 </ProtectedRoutes>
             } />
 
-            <Route path="/farms/:farmId/tasks/:taskId" element={
+            <Route path="/:farmId/tasks/:taskId" element={
                 <ProtectedRoutes>
                     <FarmProvider>
                         <Navigation />
@@ -210,7 +171,7 @@ const AppRoutes = () => {
                 </ProtectedRoutes>
             } />
 
-            <Route path="/farms/:farmId/tasks/:taskId/edit" element={
+            <Route path="/:farmId/tasks/:taskId/edit" element={
                 <ProtectedRoutes>
                     <FarmProvider>
                         <Navigation />
@@ -234,7 +195,7 @@ const AppRoutes = () => {
                             <AssignedAnimals />
                     </>
                 </ProtectedRoutes>} />
-                <Route path="/farms/:farmId/animals/:animalId/milk-production" element={
+                <Route path="/:animalId/milk-production" element={
                 <ProtectedRoutes>
                     <>
                         <Navigation />
@@ -242,6 +203,13 @@ const AppRoutes = () => {
                     </>
                 </ProtectedRoutes>} />
                 
+            <Route path="/chatbot" element={
+                <ProtectedRoutes>
+                    <>                       
+                    <Navigation />
+                   <Chatbot />
+                    </>
+                </ProtectedRoutes>} />
             <Route path="/change-password" element={
                 <ProtectedRoutes><AuthProvider>
                     <Navigation />
@@ -257,7 +225,7 @@ const AppRoutes = () => {
             <Route path='/profile/edit' element={
                 <ProtectedRoutes><AuthProvider><UpdateProfile /></AuthProvider></ProtectedRoutes>
             } />
-            <Route path='/farms/:farmId/livestock/add' element={
+            <Route path='/:farmId/livestock/add' element={
                 <ProtectedRoutes>
                     <FarmProvider>
                         <Navigation />
@@ -265,31 +233,7 @@ const AppRoutes = () => {
                     </FarmProvider>
                 </ProtectedRoutes>
             } />
-            <Route path='/farms/:farmId/livestock/breeding' element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <BreedingRecords />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-            <Route path='/farms/:farmId/livestock/:animalId/edit' element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <UpdateAnimal />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-            <Route path='/farms/:farmId/livestock/:animalId/vaccinate' element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <Vaccinate/>
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-            <Route path='/farms/:farmId/livestock/:animalId' element={
+            <Route path='/:farmId/livestock/:animalId' element={
                 <ProtectedRoutes>
                     <FarmProvider>
                         <Navigation />
@@ -297,7 +241,15 @@ const AppRoutes = () => {
                     </FarmProvider>
                 </ProtectedRoutes>
             } />
-            <Route path='/farms/:farmId/livestock' element={
+            <Route path='/:farmId/livestock/:animalId/edit' element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <UpdateAnimal />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+            <Route path='/:farmId/livestock' element={
                 <ProtectedRoutes>
                     <FarmProvider>
                         <Navigation />
@@ -338,67 +290,6 @@ const AppRoutes = () => {
                 </ProtectedRoutes>
             } />
 
-            <Route path='/vaccinations' element={
-                <ProtectedRoutes>
-                    <>
-                    <Navigation/>
-                    <VaccinationCases/>
-                    </>
-                </ProtectedRoutes>
-            }/>
-            
-            {/* Health Routes */}
-            <Route path="/farms/:farmId/health/records" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <HealthRecords />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-            <Route path="/farms/:farmId/health/surveillance" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <DiseaseSurveillance />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
-            {/* Feeding Routes */}
-            <Route path="/farms/:farmId/feeding/schedule" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <FeedingSchedule />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-            <Route path="/farms/:farmId/feeding/inventory" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <FeedInventory />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-            <Route path="/farms/:farmId/feeding/calculator" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <NutritionCalculator />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-            <Route path="/farms/:farmId/feeding/costs" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <FeedingCosts />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
             <Route path="/treatment-schedules" element={
                 <ProtectedRoutes>
                     <>
@@ -420,138 +311,9 @@ const AppRoutes = () => {
             <Route path="/profile" element={<ProtectedRoutes><Profile /></ProtectedRoutes>} />
             <Route path="/settings" element={<ProtectedRoutes><Settings /></ProtectedRoutes>} /> */}
 
-            {/* Financial Management Routes */}
-            <Route path="/farms/:farmId/financial" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <FinancialOverview />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
-            <Route path="/farms/:farmId/revenues" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <RevenueList />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
-            <Route path="/farms/:farmId/revenues/new" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <RevenueForm />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
-            <Route path="/farms/:farmId/revenues/:revenueId/edit" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <RevenueForm isEdit={true} />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
-            <Route path="/farms/:farmId/expenses" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <ExpenseList />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
-            <Route path="/farms/:farmId/expenses/new" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <ExpenseForm />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
-            <Route path="/farms/:farmId/expenses/:expenseId/edit" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <ExpenseForm isEdit={true} />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
-            <Route path="/farms/:farmId/financial/roi" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <ROIAnalysis />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
-            <Route path="/farms/:farmId/financial/loans" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <LoanManagement />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
-            <Route path="/farms/:farmId/financial/recommendations" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <FinancialRecommendations />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
-            {/* Reports Routes */}
-            <Route path="/farms/:farmId/reports/analytics" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <ReportAnalytics />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
-            <Route path="/farms/:farmId/reports/export" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <ExportTools />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
-            <Route path="/farms/:farmId/reports/trends" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <TrendAnalysis />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
-            <Route path="/farms/:farmId/reports/generator" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <ReportGenerator />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
             {/* Catch all invalid routes */}
             <Route path="*" element={<NotFound />} />
         </Routes>
-        <ChatbotButton />
         </NetworkHandler>
         </AuthProvider>
     );

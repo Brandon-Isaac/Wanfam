@@ -1,9 +1,12 @@
 import React, {useState, useEffect} from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useFarm } from '../../contexts/FarmContext';
+import { useAuth } from '../../contexts/AuthContext';
 import api from '../../utils/Api';
 
 const CreateWorker = () => {
     const { farmId } = useParams<{ farmId: string }>();
+    const { user } = useAuth();
     const navigate = useNavigate();
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');

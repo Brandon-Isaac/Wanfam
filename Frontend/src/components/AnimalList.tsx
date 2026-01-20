@@ -234,7 +234,7 @@ const params = useParams();
                 ← Back to Farm
               </Link>
               <Link
-                to={`/farms/${farmId}/livestock/add`}
+                to={`/${farmId}/livestock/add`}
                 className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
               >
                 <i className="fas fa-plus mr-2"></i>Add Animal
@@ -491,14 +491,14 @@ const params = useParams();
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
                         <Link
-                          to={`/farms/${farmId}/livestock/${animal.id}`}
+                          to={`/${farmId}/livestock/${animal.id}`}
                           className="text-blue-600 hover:text-blue-900"
                           title="View Details"
                         >
                           <i className="fas fa-eye"></i>
                         </Link>
                         <Link
-                          to={`/farms/${farmId}/livestock/${animal.id}/edit`}
+                          to={`/${farmId}/livestock/${animal.id}/edit`}
                           className="text-green-600 hover:text-green-900"
                           title="Edit"
                         >
