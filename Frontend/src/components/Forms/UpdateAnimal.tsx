@@ -57,7 +57,7 @@ const UpdateAnimal = () => {
         try {
             await api.put(`/livestock/${farmId}/animals/${animalId}`, formData);
             alert('Animal updated successfully!');
-            navigate(`/farms/${farmId}/livestock/${animalId}`);
+            navigate(`/${farmId}/livestock/${animalId}`);
         } catch (error) {
             console.error('Failed to update animal:', error);
             alert('Failed to update animal. Please try again.');
@@ -206,7 +206,7 @@ const UpdateAnimal = () => {
                 >
                     Update Animal
                 </button>
-                  <Link to ={`/farms/${farmId}/livestock/${animalId}`}
+                  <Link to ={`/${farmId}/livestock/${animalId}`}
                    className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
                     Cancel
                 </Link>

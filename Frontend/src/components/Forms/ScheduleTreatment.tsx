@@ -46,7 +46,7 @@ const ScheduleTreatment = () => {
             setHealthStatus("treatment")
             await api.post(`/treatments/${farmId}/schedule`, treatmentDetails);
             await api.put(`/livestock/${animalId}/health-status`, { healthStatus });
-            navigate(`/farms/${farmId}/animals/sick`);
+            navigate(`/${farmId}/animals/sick`);
         } catch (error) {
             console.error("Failed to schedule treatment:", error);
             setError(error instanceof Error ? error.message : "An unexpected error occurred");

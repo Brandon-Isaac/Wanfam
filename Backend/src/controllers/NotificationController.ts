@@ -120,7 +120,7 @@ const createAnimalRegistrationNotification = asyncHandler(async (req: Request, r
 
 // Get notifications for a user
 const getUserNotifications = asyncHandler(async (req: Request, res: Response) => {
-    const userId = req.user?.id;
+    const userId = req.user?._id;
     if (!userId) {
         return res.status(400).json({ message: "User ID is required" });
     }

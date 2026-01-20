@@ -109,7 +109,7 @@ const AddLivestock = () => {
       
       // Redirect to farm livestock list after success
       setTimeout(() => {
-        navigate(`/farms/${farmId}/livestock`);
+        navigate(`/${farmId}/livestock`);
       }, 2000);
 
     } catch (error: any) {
@@ -149,7 +149,7 @@ const AddLivestock = () => {
               </p>
             </div>
             <Link
-              to={`/farms/${farmId}/livestock`}
+              to={`/${farmId}/livestock`}
               className="text-gray-600 hover:text-gray-800"
             >
               ← Back to Farm Livestock
