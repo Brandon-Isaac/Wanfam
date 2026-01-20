@@ -41,8 +41,8 @@ const TaskView = () => {
                 </div>
             )}
             <div className="flex space-x-4">
-            <button className="mt-4 bg-yellow-500 text-white py-2 px-4 rounded mr-2" onClick={() => navigate(`/farms/${farmId}/tasks/${taskId}/edit`)}>Edit Task</button>
-            <button className="mt-4 bg-blue-500 text-white py-2 px-4 rounded" onClick={() => navigate(`/farms/${farmId}/tasks`)}>Go Back</button>
+            <button className="mt-4 bg-yellow-500 text-white py-2 px-4 rounded mr-2" onClick={() => navigate(`/${farmId}/tasks/${taskId}/edit`)}>Edit Task</button>
+            <button className="mt-4 bg-blue-500 text-white py-2 px-4 rounded" onClick={() => navigate(`/${farmId}/tasks`)}>Go Back</button>
             </div>
         </div>
     );

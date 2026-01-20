@@ -163,7 +163,7 @@ const AddTask= () => {
                     <button
                         type="submit"
                         className="w-full bg-blue-500 text-white p-2 rounded"
-                        onClick={() => navigate(`/farms/${farmId}/tasks`)}
+                        onClick={() => navigate(`/${farmId}/tasks`)}
                     >
                         Add Task
                     </button>
