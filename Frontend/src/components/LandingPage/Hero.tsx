@@ -16,7 +16,7 @@
             </p>
             <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">          
                 <Link to= './register'>
-                <button className="bg-green-600 text-white px-8 py-3 rounded-md text-base font-medium hover:bg-green-700 shadow-md">Start Free Trial</button>
+                <button className="bg-green-600 text-white px-8 py-3 rounded-md text-base font-medium hover:bg-green-700 shadow-md">Start Now</button>
                 </Link>             
                 <Link to="./login">
                 <button className="bg-white text-green-700 border border-green-600 px-8 py-3 rounded-md text-base font-medium hover:bg-green-50">Login</button>

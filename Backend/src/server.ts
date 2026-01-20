@@ -41,8 +41,8 @@ mongoose.connect(MONGO_URI).then(() => {
 
 app.use(Express.json());
 app.use(cors({
-    origin: ['http://localhost:3000', 'https://wanfam-inky.vercel.app'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    origin: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
