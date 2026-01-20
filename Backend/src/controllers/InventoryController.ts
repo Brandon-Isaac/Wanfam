@@ -1,5 +1,7 @@
 import { FeedingInventory } from "../models/FeedingInventory";
+import { Farm } from "../models/Farm";
 import { Request, Response } from "express";
+import { notifyLowInventory } from "../utils/notificationService";
 
 const getAllInventoryItems = async (req: Request, res: Response) => {
     const farmId = req.params.farmId;
@@ -55,6 +57,21 @@ const updateInventoryItem = async (req: Request, res: Response) => {
         if (!item) {
             return res.status(404).json({ message: "Item not found" });
         }
+        
+        // Check if inventory is low (quantity < 10)
+        const isLow = item.quantity < 10;
+        if (isLow) {
+            const farm = await Farm.findById(farmId).populate('owner');
+            if (farm && farm.owner) {
+                await notifyLowInventory(
+                    farm.owner as any,
+                    item.itemName,
+                    item.quantity,
+                    item._id.toString()
+                );
+            }
+        }
+        
         res.status(200).json(item);
     } catch (error) {
         res.status(500).json({ message: "Server Error", error });

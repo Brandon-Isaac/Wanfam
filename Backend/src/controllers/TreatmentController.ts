@@ -2,6 +2,9 @@ import { TreatmentSchedule } from "../models/TreatmentSchedule";
 import { TreatmentRecord } from "../models/TreatmentRecord";
 import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/AsyncHandler";
+import { Farm } from "../models/Farm";
+import { Animal } from "../models/Animal";
+import notificationService from "../utils/notificationService";
 
 const createTreatmentSchedule = asyncHandler(async (req: Request, res: Response) => {
     const farmId = req.params.farmId;
@@ -11,6 +14,26 @@ const createTreatmentSchedule = asyncHandler(async (req: Request, res: Response)
     const { animalId, scheduleName, scheduleDate, veterinarianId, notes } = req.body;
     const newSchedule = new TreatmentSchedule({ farmId, animalId, scheduleName, scheduledDate: scheduleDate, administeredBy:veterinarianId, notes });
     await newSchedule.save();
+    
+    // Notify farm owner about new treatment schedule
+    try {
+        const [farm, animal] = await Promise.all([
+            Farm.findById(farmId).populate('owner'),
+            Animal.findById(animalId)
+        ]);
+        
+        if (farm && farm.owner && animal) {
+            await notificationService.notifyTreatmentSchedule(
+                (farm.owner as any)._id,
+                animal.tagId || animal.name || 'Unknown',
+                scheduleName,
+                newSchedule._id.toString()
+            );
+        }
+    } catch (notifError) {
+        console.error('Error sending treatment schedule notification:', notifError);
+    }
+    
     res.status(201).json({ success: true, data: newSchedule });
 });
 
@@ -38,6 +61,26 @@ const recordTreatment = asyncHandler(async (req: Request, res: Response) => {
     if (scheduleId && status === 'treated') {
         await TreatmentSchedule.findByIdAndUpdate(scheduleId, { status: 'treated' });
     }
+    
+    // Notify farm owner about completed treatment
+    try {
+        const animal = await Animal.findById(animalId);
+        if (animal) {
+            const farm = await Farm.findById(animal.farmId).populate('owner');
+            if (farm && farm.owner) {
+                await notificationService.createNotification({
+                    userId: (farm.owner as any)._id,
+                    message: `Treatment "${treatmentGiven || 'treatment'}" has been administered to ${animal.tagId || animal.name || 'an animal'}.`,
+                    type: 'treatment',
+                    relatedEntityId: newRecord._id.toString(),
+                    relatedEntityType: 'treatment_record'
+                });
+            }
+        }
+    } catch (notifError) {
+        console.error('Error sending treatment completion notification:', notifError);
+    }
+    
     res.status(201).json({ success: true, data: newRecord });
 });
 

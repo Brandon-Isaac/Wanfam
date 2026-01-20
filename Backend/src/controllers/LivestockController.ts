@@ -3,6 +3,7 @@ import { Farm } from "../models/Farm";
 import { Request, Response } from "express";
 import { User } from "../models/User";
 import { asyncHandler } from "../middleware/AsyncHandler";
+import { notifyAnimalRegistration, notifyHealthStatusChange, notifyAnimalDeath } from "../utils/notificationService";
     
 const getAnimalsByFarm = asyncHandler(async (req: Request, res: Response) => {
     const farmId = req.params.farmId;
@@ -43,25 +44,51 @@ const getSickAnimalsByFarm = asyncHandler(async (req: Request, res: Response) =>
 const updateHealthStatus = asyncHandler(async (req: Request, res: Response) => {
     const animalId = req.params.animalId;
     const { healthStatus } = req.body;
-    const animal = await Animal.findById(animalId);
+    const animal = await Animal.findById(animalId).populate('farmId');
     if (!animal) {
         return res.status(404).json({ message: "Animal not found" });
     }
+    const previousStatus = animal.healthStatus;
     animal.healthStatus = healthStatus;
     await animal.save();
+    
+    // Notify farmer if health status changes significantly
+    if (previousStatus !== healthStatus && animal.farmId) {
+        const farm = await Farm.findById(animal.farmId).populate('owner');
+        if (farm && farm.owner) {
+            await notifyHealthStatusChange(
+                farm.owner as any,
+                animal.tagId || animal.name || 'Unknown',
+                healthStatus,
+                animal._id.toString()
+            );
+        }
+    }
+    
     res.json({ success: true, data: animal });
 });
 
 const addAnimalToFarm = asyncHandler(async (req: Request, res: Response) => {
     const farmId = req.params.farmId;
     const { name, species, dateOfBirth, dateOfPurchase,breed,gender } = req.body;
-    const farm = await Farm.findById(farmId);
+    const farm = await Farm.findById(farmId).populate('owner');
     if (!farm) {
         return res.status(404).json({ message: "Farm not found" });
     }
     const age = dateOfBirth ? Math.floor((Date.now() - new Date(dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365.25)) : undefined;
     const newAnimal = new Animal({ name, species, farmId: farm.id, dateOfBirth, dateOfPurchase, age, breed, gender });
     await newAnimal.save();
+    
+    // Notify farmer about new animal registration
+    if (farm.owner) {
+        await notifyAnimalRegistration(
+            farm.owner as any,
+            newAnimal.tagId || newAnimal.name || 'New Animal',
+            species,
+            newAnimal._id.toString()
+        );
+    }
+    
     res.status(201).json({ success: true, data: newAnimal });
 });
 
@@ -127,6 +154,18 @@ const deleteAnimal = asyncHandler(async (req: Request, res: Response) => {
     if (!animal) {
         return res.status(404).json({ message: "Animal not found" });
     }
+    
+    // Notify farmer about animal removal/death (if marked as deceased)
+    const farm = await Farm.findById(animal.farmId).populate('owner');
+    if (farm && farm.owner && animal.healthStatus === 'deceased') {
+        await notifyAnimalDeath(
+            farm.owner as any,
+            animal.tagId || animal.name || 'Unknown',
+            animal.species,
+            animal._id.toString()
+        );
+    }
+    
     await animal.deleteOne();
     res.json({ success: true, message: "Animal deleted successfully" });
 });
