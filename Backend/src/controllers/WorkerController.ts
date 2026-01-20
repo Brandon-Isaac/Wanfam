@@ -44,12 +44,14 @@ const getWorkerById = asyncHandler(async (req: Request, res: Response) => {
 
 const createWorker = asyncHandler(async (req: Request, res: Response) => {
     const farmId = req.params.farmId;
-    const { firstName, lastName, email, phone, wages } = req.body;
+    const { firstName, lastName, email, phone, wages, password } = req.body;
     const farm = await Farm.findById(farmId);
     if (!farm) {
         return res.status(404).json({ message: "Farm not found" });
     }
-    const password = 'defaultPassword123';
+    if (!password || password.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters long" });
+    }
     const hashedPassword = await bcrypt.hash(password, 10);
     const newWorker = new User({ firstName, lastName, email, phone, farmId: farm._id, role: 'worker', password: hashedPassword, wages });
     await newWorker.save();

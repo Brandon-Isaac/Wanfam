@@ -2,7 +2,7 @@ import {Schema,model,Document} from 'mongoose';
 
 export interface IVaccinationSchedule extends Document {
     farmId: Schema.Types.ObjectId;
-    animalId: { type: Schema.Types.ObjectId, ref: 'Animal' };
+    animalId: [{ type: Schema.Types.ObjectId, ref: 'Animal' }];
     veterinarianId: Schema.Types.ObjectId;
     slug?: string;
     scheduleName: string;
@@ -20,7 +20,7 @@ export interface IVaccinationSchedule extends Document {
 
 const vaccinationScheduleSchema = new Schema<IVaccinationSchedule>({
     farmId: { type: Schema.Types.ObjectId, ref: 'Farm', required: true },
-    animalId: { type: Schema.Types.ObjectId, ref: 'Animal', required: true },
+    animalId: [{ type: Schema.Types.ObjectId, ref: 'Animal', required: true }],
     veterinarianId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     scheduleName: { type: String, required: true },
     vaccineName: { type: String, required: true },
