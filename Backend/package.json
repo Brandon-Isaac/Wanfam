@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node dist/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "npx rimraf dist && tsc",
+    "build": "npx rimraf dist && tsc --outDir dist",
     "start:dev": "nodemon src/server.ts",
     "test:db": "ts-node src/test-db.ts",
     "migrate": "ts-node src/utils/migrations.ts"
