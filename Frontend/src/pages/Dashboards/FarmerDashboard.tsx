@@ -4,13 +4,35 @@ import api from '../../utils/Api';
 
 const FarmerDashboard = () => {
   const [stats, setStats] = useState<any>({});
+  const [farmWorkers, setFarmWorkers] = useState<any[]>([]);
   
   const fetchStats = async () => {
     try {
       const response = await api.get(`/dashboard/farmer-dashboard`);
       setStats(response.data);
+      
+      // Fetch workers for the first farm if available
+      if (response.data.totalFarms > 0) {
+        fetchFarmWorkers();
+      }
     } catch (error) {
       console.error('Error fetching stats:', error);
+    }
+  };
+
+  const fetchFarmWorkers = async () => {
+    try {
+      // Get all farms first
+      const farmsResponse = await api.get('/farms');
+      const farms = farmsResponse.data.data || farmsResponse.data;
+      
+      if (farms.length > 0) {
+        // Fetch workers from the first farm
+        const workersResponse = await api.get(`/workers/${farms[0]._id}`);
+        setFarmWorkers(workersResponse.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching farm workers:', error);
     }
   };
 
@@ -270,62 +292,46 @@ const FarmerDashboard = () => {
                   <span className="text-xs font-semibold text-green-800 text-center">Manage Farm</span>
                 </Link>
                 <Link
-                  to="/farms"
-                  className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg hover:shadow-md transition-all border border-blue-200"
-                >
-                  <i className="fas fa-eye text-blue-600 text-xl mb-2"></i>
-                  <span className="text-xs font-semibold text-blue-800 text-center">View Farms</span>
-                </Link>
-                <Link
                   to="/profile"
                   className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-lg hover:shadow-md transition-all border border-red-200"
                 >
                   <i className="fas fa-user text-red-600 text-xl mb-2"></i>
                   <span className="text-xs font-semibold text-red-800 text-center">Profile</span>
                 </Link>
-                <Link
-                  to="/notifications"
-                  className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg hover:shadow-md transition-all border border-purple-200"
-                >
-                  <i className="fas fa-bell text-purple-600 text-xl mb-2"></i>
-                  <span className="text-xs font-semibold text-purple-800 text-center">Notifications</span>
-                </Link>
               </div>
             </div>
 
-            {/* Upcoming Checkups */}
+            {/* Farm Workers */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200">
               <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Upcoming Checkups</h2>
+                <h2 className="text-lg font-semibold text-gray-900">Farm Workers</h2>
               </div>
               <div className="p-4">
-                {stats.upcomingCheckups?.length > 0 ? (
+                {farmWorkers?.length > 0 ? (
                   <div className="space-y-3">
-                    {stats.upcomingCheckups.slice(0, 5).map((checkup: { animalId: number; species: string; scheduledDate: string; scheduleName: string }, index: number) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900">
-                            {checkup.species || `Animal #${checkup.animalId}`}
-                          </p>
-                          {checkup.scheduleName && (
-                            <p className="text-xs text-gray-600">{checkup.scheduleName}</p>
-                          )}
+                    {farmWorkers.slice(0, 5).map((worker: { _id: string; firstName: string; lastName: string; role: string; email: string }, index: number) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+                            {worker.firstName?.charAt(0)}{worker.lastName?.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900">
+                              {worker.firstName} {worker.lastName}
+                            </p>
+                            <p className="text-xs text-gray-600 capitalize">{worker.role || 'Worker'}</p>
+                          </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-xs font-medium text-yellow-700">
-                            {new Date(checkup.scheduledDate).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric'
-                            })}
-                          </p>
+                          <i className="fas fa-user-check text-blue-600"></i>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <i className="fas fa-calendar-check text-gray-300 text-3xl mb-2"></i>
-                    <p className="text-sm text-gray-500">No upcoming checkups</p>
+                    <i className="fas fa-users text-gray-300 text-3xl mb-2"></i>
+                    <p className="text-sm text-gray-500">No farm workers</p>
                   </div>
                 )}
               </div>

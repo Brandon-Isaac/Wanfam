@@ -2,8 +2,10 @@ import api from "../../utils/Api";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import worker from "../../types/Worker";
+import { useToast } from "../../contexts/ToastContext";
 
 const UpdateAnimal = () => {
+    const { showToast } = useToast();
     const [workers, setWorkers] = useState<worker[]>([]);
     const [animal, setAnimal] = useState<any>({});
         const { farmId, animalId } = useParams();
@@ -37,7 +39,7 @@ const UpdateAnimal = () => {
             });
         } catch (error) {
             console.error('Failed to fetch animal:', error);
-            alert('Failed to fetch animal. Please try again.');
+            showToast('Failed to fetch animal. Please try again.', 'error');
         }
     };
         useEffect(() => {
@@ -56,11 +58,11 @@ const UpdateAnimal = () => {
         e.preventDefault();
         try {
             await api.put(`/livestock/${farmId}/animals/${animalId}`, formData);
-            alert('Animal updated successfully!');
+            showToast('Animal updated successfully!', 'success');
             navigate(`/${farmId}/livestock/${animalId}`);
         } catch (error) {
             console.error('Failed to update animal:', error);
-            alert('Failed to update animal. Please try again.');
+            showToast('Failed to update animal. Please try again.', 'error');
         }
     };
     const navigate = useNavigate();
@@ -71,7 +73,7 @@ const UpdateAnimal = () => {
             setWorkers(response.data.data);
         } catch (error) {
             console.error('Failed to fetch workers:', error);
-            alert('Failed to fetch workers. Please try again.');
+            showToast('Failed to fetch workers. Please try again.', 'error');
         }
     };
 
@@ -120,14 +122,21 @@ const UpdateAnimal = () => {
                 </div>
                 <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700" htmlFor="healthStatus">Health Status</label>
-                    <input
-                        type="text"
+                    <select
                         id="healthStatus"
                         name="healthStatus"
                         value={formData.healthStatus}
                         onChange={handleChange}
                          className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                    />
+                    >
+                        <option value="">Select Health Status</option>
+                        <option value="healthy">Healthy</option>
+                        <option value="sick">Sick</option>
+                        <option value="treatment">Treatment</option>
+                        <option value="recovery">Recovery</option>
+                        <option value="quarantined">Quarantined</option>
+                        <option value="deceased">Deceased</option>
+                    </select>
                 </div>
                 <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700" htmlFor="notes">Notes</label>
@@ -140,22 +149,22 @@ const UpdateAnimal = () => {
                     />
                 </div>
                 <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700" htmlFor="birthDate">Birth Date</label>
+                    <label className="block text-sm font-medium text-gray-700" htmlFor="dateOfBirth">Birth Date</label>
                     <input
                         type="date"
-                        id="birthDate"
-                        name="birthDate"
+                        id="dateOfBirth"
+                        name="dateOfBirth"
                         value={formData.dateOfBirth}
                         onChange={handleChange}
                          className="mt-1 block w-full border border-gray-300 rounded-md p-2"
                     />
                 </div>
                 <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700" htmlFor="purchaseDate">Purchase Date</label>
+                    <label className="block text-sm font-medium text-gray-700" htmlFor="dateOfPurchase">Purchase Date</label>
                     <input
                         type="date"
-                        id="purchaseDate"
-                        name="purchaseDate"
+                        id="dateOfPurchase"
+                        name="dateOfPurchase"
                         value={formData.dateOfPurchase}
                         onChange={handleChange}
                          className="mt-1 block w-full border border-gray-300 rounded-md p-2"

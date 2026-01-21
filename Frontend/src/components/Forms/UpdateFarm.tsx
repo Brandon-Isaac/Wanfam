@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import api from '../../utils/Api';
 import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../contexts/ToastContext';
 
 const UpdateFarm = () => {
     const { farmId } = useParams();
+    const { showToast } = useToast();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
@@ -56,7 +58,7 @@ const UpdateFarm = () => {
             setFormData(response.data.data);
         } catch (error) {
             console.error('Failed to fetch farm data:', error);
-            alert('Failed to fetch farm data. Please try again.');
+            showToast('Failed to fetch farm data. Please try again.', 'error');
         }
     };
     useEffect(() => {
@@ -130,7 +132,7 @@ const UpdateFarm = () => {
       };
 
       const response = await api.put(`/farms/${farmId}`, submitData);
-      alert('Farm information updated successfully!');
+      showToast('Farm information updated successfully!', 'success');
           // Redirect after a short delay
       setTimeout(() => {
       navigate(`/farms/${farmId}/dashboard`);

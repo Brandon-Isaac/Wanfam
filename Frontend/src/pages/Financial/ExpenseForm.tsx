@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../utils/Api';
 import { Expense } from '../../types/financial';
+import { useToast } from '../../contexts/ToastContext';
 
 interface ExpenseFormProps {
     isEdit?: boolean;
@@ -10,6 +11,7 @@ interface ExpenseFormProps {
 const ExpenseForm: React.FC<ExpenseFormProps> = ({ isEdit = false }) => {
     const { farmId, expenseId } = useParams<{ farmId: string; expenseId?: string }>();
     const navigate = useNavigate();
+    const { showToast } = useToast();
     const [loading, setLoading] = useState(false);
     const [animals, setAnimals] = useState<any[]>([]);
     const [workers, setWorkers] = useState<any[]>([]);
@@ -73,7 +75,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ isEdit = false }) => {
             navigate(`/farms/${farmId}/expenses`);
         } catch (error) {
             console.error('Error saving expense:', error);
-            alert('Failed to save expense record');
+            showToast('Failed to save expense record', 'error');
         } finally {
             setLoading(false);
         }

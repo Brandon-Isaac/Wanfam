@@ -1,9 +1,11 @@
 import api from "../../utils/Api";
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { useToast } from "../../contexts/ToastContext";
 
 const MilkProduction = () => {
     const { animalId } = useParams();
+    const { showToast } = useToast();
     const [animal, setAnimal] = useState<any>(null);
     const [milkData, setMilkData] = useState<{ animalId: string; date: string; amount:number; unit:'litres'| 'gallons'; timeOfDay: 'morning' | 'afternoon' | 'evening' }[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -46,7 +48,7 @@ const MilkProduction = () => {
                 timeOfDay: 'morning',
             };
             await api.post(`/products/${animalId}/milk`, milkEntry);
-            alert("Milk production data submitted successfully.");
+            showToast("Milk production data submitted successfully.", "success");
             setFormData((prevData) => ({
                 ...prevData,
                 [animalId]: 0,
@@ -54,7 +56,7 @@ const MilkProduction = () => {
         }
         catch (error) {
             console.error("Failed to submit milk production data:", error);
-            alert("Failed to submit milk production data. Please try again.");
+            showToast("Failed to submit milk production data. Please try again.", "error");
         }
     };
     if (loading) {

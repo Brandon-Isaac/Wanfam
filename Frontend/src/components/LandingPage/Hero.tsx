@@ -1,9 +1,6 @@
-  import React from "react";
   import { Link } from "react-router-dom";
-  // import { useLanguage } from "../contexts/LanguageContext";
 
   const Hero = () => {
-    // const { language } = useLanguage();
   return (
   <div className="pt-16 bg-gradient-to-b from-green-50 to-white" id="hero">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-24">
@@ -16,7 +13,7 @@
             </p>
             <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">          
                 <Link to= './register'>
-                <button className="bg-green-600 text-white px-8 py-3 rounded-md text-base font-medium hover:bg-green-700 shadow-md">Start Free Trial</button>
+                <button className="bg-green-600 text-white px-8 py-3 rounded-md text-base font-medium hover:bg-green-700 shadow-md">Start Now</button>
                 </Link>             
                 <Link to="./login">
                 <button className="bg-white text-green-700 border border-green-600 px-8 py-3 rounded-md text-base font-medium hover:bg-green-50">Login</button>

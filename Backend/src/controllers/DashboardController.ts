@@ -117,8 +117,8 @@ const farmerDashboardForFarm = asyncHandler(async (req: Request, res: Response) 
 
 const farmerDashboard= asyncHandler(async (req: Request, res: Response) => {
     const farmerId = req.user.id;
-    const farmIds = await Farm.find({ owner: farmerId }).select('_id');
-    const totalFarms = await Farm.countDocuments({ owner: farmerId });
+    const farmIds = await Farm.find({ owner: farmerId, isActive: true }).select('_id');
+    const totalFarms = await Farm.countDocuments({ owner: farmerId, isActive: true });
     const totalLoanRequests = await LoanRequest.countDocuments({ farmerId });
     const activity = await User.findById(farmerId).select('isActive createdAt updatedAt');
     const totalAnimals = await Animal.countDocuments( { farmId: { $in: farmIds } });
@@ -149,6 +149,13 @@ const farmerDashboard= asyncHandler(async (req: Request, res: Response) => {
 
     const netProfit = (totalRevenue[0]?.total || 0) - (totalExpenses[0]?.total || 0);
 
+    // Get livestock by species
+    const livestockSpeciesCount = await Animal.aggregate([
+        { $match: { farmId: { $in: farmIds.map(f => f._id) } } },
+        { $group: { _id: "$species", count: { $sum: 1 } } },
+        { $project: { species: "$_id", count: 1, _id: 0 } }
+    ]);
+
     res.json({
         totalFarms,
         totalLoanRequests,
@@ -160,13 +167,13 @@ const farmerDashboard= asyncHandler(async (req: Request, res: Response) => {
         upcomingCheckups,
         upcomingCheckupsCount,
         pendingTasks,
+        livestockSpeciesCount,
         // Financial data
         totalRevenue: totalRevenue[0]?.total || 0,
         totalExpenses: totalExpenses[0]?.total || 0,
         netProfit
     });
-        pendingTasks
-    });
+});
 
 const vetDashboard = asyncHandler(async (req: Request, res: Response) => {
     const vetId = req.user?.id;

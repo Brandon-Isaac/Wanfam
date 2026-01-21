@@ -7,12 +7,23 @@ import FarmBanner from '../../components/FarmBanner';
 const FarmDashboard = () => {
   const { farmId } = useParams();
   const [stats, setStats] = useState({} as any);
+  const [farmWorkers, setFarmWorkers] = useState<any[]>([]);
+
+  const fetchFarmWorkers = async () => {
+    try {
+      const workersResponse = await api.get(`/workers/${farmId}`);
+      setFarmWorkers(workersResponse.data.data || []);
+    } catch (error) {
+      console.error('Error fetching farm workers:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchFarmStats = async () => {
       try {
         const response = await api.get(`/dashboard/farmer-dashboard/${farmId}`);
         setStats(response.data);
+        fetchFarmWorkers();
       } catch (error) {
         console.error('Error fetching farm stats:', error);
       }
@@ -140,86 +151,6 @@ const FarmDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - 2/3 width */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Recent Activity Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-              <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
-                <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                  View All
-                </button>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {stats.recentActivity?.length > 0 ? (
-                      stats.recentActivity.slice(0, 8).map((activity: any, index: number) => {
-                        const formatPath = (path: string, entityType: string) => {
-                          if (!path) return 'Unknown location';
-                          const segments = path.split('/').filter(seg => seg);
-                          const readableSegments = segments.map(seg => {
-                            if (/^[a-f0-9]{24}$/i.test(seg)) {
-                              return entityType || 'record';
-                            }
-                            return seg.replace(/[-_]/g, ' ')
-                              .split(' ')
-                              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                              .join(' ');
-                          });
-                          return readableSegments.join(' > ');
-                        };
-
-                        const userName = activity.userId?.firstName
-                          ? `${activity.userId.firstName} ${activity.userId.lastName || ''}`.trim()
-                          : activity.userId?.username || 'Unknown';
-
-                        return (
-                          <tr key={index} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                {activity.action}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className="text-sm text-gray-900">
-                                {formatPath(activity.details?.path, activity.entityType)}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="text-sm text-gray-700">{userName}</span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="text-sm text-gray-500">
-                                {new Date(activity.timestamp).toLocaleString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
-                              </span>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
-                          No recent activity
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
             {/* Livestock Overview */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200">
               <div className="px-6 py-4 border-b border-gray-200">
@@ -322,37 +253,37 @@ const FarmDashboard = () => {
               </div>
             </div>
 
-            {/* Upcoming Checkups */}
+            {/* Farm Workers */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200">
               <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Upcoming Checkups</h2>
+                <h2 className="text-lg font-semibold text-gray-900">Farm Workers</h2>
               </div>
               <div className="p-4">
-                {stats.upcomingCheckups?.length > 0 ? (
+                {farmWorkers?.length > 0 ? (
                   <div className="space-y-3">
-                    {stats.upcomingCheckups.map((checkup: any, index: number) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900">
-                            {checkup.animalName || `Animal #${checkup.animalId}`}
-                          </p>
-                          <p className="text-xs text-gray-600">{checkup.type || 'Regular Checkup'}</p>
+                    {farmWorkers.slice(0, 5).map((worker: { _id: string; firstName: string; lastName: string; role: string; email: string }, index: number) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+                            {worker.firstName?.charAt(0)}{worker.lastName?.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900">
+                              {worker.firstName} {worker.lastName}
+                            </p>
+                            <p className="text-xs text-gray-600 capitalize">{worker.role || 'Worker'}</p>
+                          </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-xs font-medium text-yellow-700">
-                            {new Date(checkup.scheduledDate).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric'
-                            })}
-                          </p>
+                          <i className="fas fa-user-check text-blue-600"></i>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <i className="fas fa-calendar-check text-gray-300 text-3xl mb-2"></i>
-                    <p className="text-sm text-gray-500">No upcoming checkups</p>
+                    <i className="fas fa-users text-gray-300 text-3xl mb-2"></i>
+                    <p className="text-sm text-gray-500">No farm workers</p>
                   </div>
                 )}
               </div>
