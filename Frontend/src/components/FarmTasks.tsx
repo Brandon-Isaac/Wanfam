@@ -1,8 +1,10 @@
 import api from "../utils/Api";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { useToast } from "../contexts/ToastContext";
 
 const FarmTasks = () => {
+    const { showToast } = useToast();
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error] = useState<string | null>(null);
@@ -43,7 +45,7 @@ const FarmTasks = () => {
             setShowDeleteModal(false);
         } catch (error) {
             setShowDeleteModal(false)
-            alert("Failed to delete task. Please try again.");
+            showToast("Failed to delete task. Please try again.", "error");
             console.error("Failed to delete task:", error);
         }
     };

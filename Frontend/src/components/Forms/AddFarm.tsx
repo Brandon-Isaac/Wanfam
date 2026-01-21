@@ -64,10 +64,13 @@ const AddFarm = () => {
     if (name.includes('.')) {
       const keys = name.split('.');
       setFormData(prev => {
-        const updated = { ...prev };
+        const updated = JSON.parse(JSON.stringify(prev)); // Deep clone
         let current: any = updated;
         
         for (let i = 0; i < keys.length - 1; i++) {
+          if (!current[keys[i]]) {
+            current[keys[i]] = {};
+          }
           current = current[keys[i]];
         }
         
@@ -116,8 +119,10 @@ const AddFarm = () => {
         }
       };
 
-      // Clean up coordinates if empty
-      if (!submitData.location.coordinates.latitude || !submitData.location.coordinates.longitude) {
+      // Clean up coordinates if empty or undefined
+      if (!submitData.location.coordinates || 
+          !submitData.location.coordinates.latitude || 
+          !submitData.location.coordinates.longitude) {
         delete (submitData.location as any).coordinates;
       } else {
         submitData.location.coordinates = {
@@ -130,10 +135,13 @@ const AddFarm = () => {
       
       setSuccess('Farm created successfully!');
       
-      // Redirect after a short delay
+      // Get the created farm ID from response
+      const createdFarmId = response.data.data._id;
+      
+      // Redirect to the farm's dashboard after a short delay
       setTimeout(() => {
-        navigate('/dashboard');
-      }, 2000);
+        navigate(`/farms/${createdFarmId}/dashboard`);
+      }, 1500);
 
     } catch (error: any) {
       setError(error.response?.data?.message || error.message || 'Failed to create farm');
@@ -335,7 +343,7 @@ const AddFarm = () => {
   <input
     type="number"
     name="location.coordinates.latitude"
-    value={formData.location.coordinates.latitude}
+    value={formData.location?.coordinates?.latitude || ''}
     onChange={handleInputChange}
     step="any"
     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
@@ -346,7 +354,7 @@ const AddFarm = () => {
   <input
     type="number"
     name="location.coordinates.longitude"
-    value={formData.location.coordinates.longitude}
+    value={formData.location?.coordinates?.longitude || ''}
     onChange={handleInputChange}
     step="any"
     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"

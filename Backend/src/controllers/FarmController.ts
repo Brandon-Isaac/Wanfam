@@ -27,7 +27,7 @@ const getFarmById = asyncHandler(async (req: Request, res: Response) => {
     const { farmId } = req.params;
     const farmerId = req.user?.id;
 
-    const farm = await Farm.findOne({ _id: farmId, owner: farmerId })
+    const farm = await Farm.findOne({ _id: farmId, owner: farmerId, isActive: true })
         .populate('workers', 'firstName lastName email phone')
         .populate('assignedVeterinarians', 'firstName lastName email phone licenseNumber specialization');
 
@@ -62,6 +62,21 @@ const getFarmById = asyncHandler(async (req: Request, res: Response) => {
 // Create new farm
 const createFarm = asyncHandler(async (req: Request, res: Response) => {
     const farmerId = req.user?.id;
+    
+    // Clean up coordinates if they're empty strings or invalid
+    if (req.body.location?.coordinates) {
+        const { latitude, longitude } = req.body.location.coordinates;
+        
+        // If coordinates are empty strings or not numbers, remove them
+        if (!latitude || !longitude || isNaN(Number(latitude)) || isNaN(Number(longitude))) {
+            delete req.body.location.coordinates;
+        } else {
+            // Convert to numbers if they're valid
+            req.body.location.coordinates.latitude = Number(latitude);
+            req.body.location.coordinates.longitude = Number(longitude);
+        }
+    }
+    
     const farmData = {
         ...req.body,
         owner: farmerId
@@ -82,8 +97,22 @@ const updateFarm = asyncHandler(async (req: Request, res: Response) => {
     const { farmId } = req.params;
     const farmerId = req.user?.id;
 
+    // Clean up coordinates if they're empty strings or invalid
+    if (req.body.location?.coordinates) {
+        const { latitude, longitude } = req.body.location.coordinates;
+        
+        // If coordinates are empty strings or not numbers, remove them
+        if (!latitude || !longitude || isNaN(Number(latitude)) || isNaN(Number(longitude))) {
+            delete req.body.location.coordinates;
+        } else {
+            // Convert to numbers if they're valid
+            req.body.location.coordinates.latitude = Number(latitude);
+            req.body.location.coordinates.longitude = Number(longitude);
+        }
+    }
+
     const farm = await Farm.findOneAndUpdate(
-        { _id: farmId, owner: farmerId },
+        { _id: farmId, owner: farmerId, isActive: true },
         req.body,
         { new: true, runValidators: true }
     );
@@ -106,7 +135,7 @@ const assignWorker = asyncHandler(async (req: Request, res: Response) => {
     const farmerId = req.user?.id;
 
     // Verify farm ownership
-    const farm = await Farm.findOne({ _id: farmId, owner: farmerId });
+    const farm = await Farm.findOne({ _id: farmId, owner: farmerId, isActive: true });
     if (!farm) {
         return res.status(404).json({ message: 'Farm not found' });
     }
@@ -156,7 +185,7 @@ const assignVeterinarian = asyncHandler(async (req: Request, res: Response) => {
     const farmerId = req.user?.id;
 
     // Verify farm ownership
-    const farm = await Farm.findOne({ _id: farmId, owner: farmerId });
+    const farm = await Farm.findOne({ _id: farmId, owner: farmerId, isActive: true });
     if (!farm) {
         return res.status(404).json({ message: 'Farm not found' });
     }
@@ -209,7 +238,7 @@ const getFarmWorkers = asyncHandler(async (req: Request, res: Response) => {
     const farmerId = req.user?.id;
 
     // Verify farm ownership
-    const farm = await Farm.findOne({ _id: farmId, owner: farmerId });
+    const farm = await Farm.findOne({ _id: farmId, owner: farmerId, isActive: true });
     if (!farm) {
         return res.status(404).json({ message: 'Farm not found' });
     }
@@ -231,7 +260,7 @@ const getFarmVeterinarians = asyncHandler(async (req: Request, res: Response) =>
     const farmerId = req.user?.id;
 
     // Verify farm ownership
-    const farm = await Farm.findOne({ _id: farmId, owner: farmerId });
+    const farm = await Farm.findOne({ _id: farmId, owner: farmerId, isActive: true });
     if (!farm) {
         return res.status(404).json({ message: 'Farm not found' });
     }
@@ -247,11 +276,63 @@ const getFarmVeterinarians = asyncHandler(async (req: Request, res: Response) =>
     });
 });
 
+// Deactivate farm (soft delete)
+const deactivateFarm = asyncHandler(async (req: Request, res: Response) => {
+    const { farmId } = req.params;
+    const farmerId = req.user?.id;
+
+    // Find farm and verify ownership
+    const farm = await Farm.findOne({ _id: farmId, owner: farmerId });
+    if (!farm) {
+        return res.status(404).json({ message: 'Farm not found or you do not have permission to deactivate this farm' });
+    }
+
+    // Soft delete by setting isActive to false
+    farm.isActive = false;
+    await farm.save();
+
+    // Optional: You can also deactivate related records
+    // await FarmWorker.updateMany({ farm: farmId }, { isActive: false });
+    // await Animal.updateMany({ farmId: farmId }, { isActive: false });
+
+    res.json({
+        success: true,
+        message: 'Farm deactivated successfully'
+    });
+});
+
+// Delete farm (permanent delete)
+const deleteFarm = asyncHandler(async (req: Request, res: Response) => {
+    const { farmId } = req.params;
+    const farmerId = req.user?.id;
+
+    // Find farm and verify ownership
+    const farm = await Farm.findOne({ _id: farmId, owner: farmerId });
+    if (!farm) {
+        return res.status(404).json({ message: 'Farm not found or you do not have permission to delete this farm' });
+    }
+
+    // Permanently delete the farm
+    await Farm.deleteOne({ _id: farmId });
+
+    // Optional: Delete related records
+    // await FarmWorker.deleteMany({ farm: farmId });
+    // await Animal.deleteMany({ farmId: farmId });
+    // await Notification.deleteMany({ farmId: farmId });
+
+    res.json({
+        success: true,
+        message: 'Farm permanently deleted'
+    });
+});
+
 const farmController = {
     getFarms,
     getFarmById,
     createFarm,
     updateFarm,
+    deactivateFarm,
+    deleteFarm,
     assignWorker,
     assignVeterinarian,
     getFarmWorkers,

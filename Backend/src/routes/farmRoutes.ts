@@ -15,6 +15,8 @@ router.get('/', roleHandler([UserRole.FARMER]), farmController.getFarms);
 router.get('/:farmId', roleHandler([UserRole.FARMER]), farmController.getFarmById);
 router.post('/', auditMiddleware('CREATE', 'Farm'), roleHandler([UserRole.FARMER]), farmController.createFarm);
 router.put('/:farmId', auditMiddleware('UPDATE', 'Farm'), roleHandler([UserRole.FARMER]), farmController.updateFarm);
+router.patch('/:farmId/deactivate', auditMiddleware('DEACTIVATE', 'Farm'), roleHandler([UserRole.FARMER]), farmController.deactivateFarm);
+router.delete('/:farmId', auditMiddleware('DELETE', 'Farm'), roleHandler([UserRole.FARMER]), farmController.deleteFarm);
 
 // Worker management
 router.post('/:farmId/workers', auditMiddleware('CREATE', 'FarmWorker'), roleHandler([UserRole.FARMER]), farmController.assignWorker);

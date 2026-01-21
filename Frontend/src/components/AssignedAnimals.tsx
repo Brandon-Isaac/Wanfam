@@ -1,6 +1,7 @@
 import api from "../utils/Api";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useToast } from "../contexts/ToastContext";
 
 interface AssignedAnimal {
   _id: string;
@@ -15,6 +16,7 @@ interface AssignedAnimal {
 }
 
 const AssignedAnimals = () => {
+  const { showToast } = useToast();
   const [assignedAnimals, setAssignedAnimals] = useState<AssignedAnimal[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -70,9 +72,9 @@ const AssignedAnimals = () => {
                 healthStatus: healthStatus[animalId],
             };
             await api.put(`livestock/${animalId}/`, updatedData);
-            alert("Animal data updated successfully.");
+            showToast("Animal data updated successfully.", "success");
         } catch (err) {
-            alert("Failed to update animal data.");
+            showToast("Failed to update animal data.", "error");
         }
     };
     if (loading) {

@@ -25,6 +25,11 @@ const Farms = () => {
     const [farms, setFarms] = useState<Farm[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+    const [deactivateConfirm, setDeactivateConfirm] = useState<string | null>(null);
+    const [actionInProgress, setActionInProgress] = useState(false);
+    const [openMenu, setOpenMenu] = useState<string | null>(null);
+
     useEffect(() => {
         const fetchFarms = async () => {
             try {
@@ -37,6 +42,36 @@ const Farms = () => {
         };
         fetchFarms();
     }, []);
+
+    const handleDeactivateFarm = async (farmId: string) => {
+        try {
+            setActionInProgress(true);
+            await api.patch(`/farms/${farmId}/deactivate`);
+            
+            // Remove farm from list
+            setFarms(farms.filter(farm => farm._id !== farmId));
+            setDeactivateConfirm(null);
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Error deactivating farm');
+        } finally {
+            setActionInProgress(false);
+        }
+    };
+
+    const handleDeleteFarm = async (farmId: string) => {
+        try {
+            setActionInProgress(true);
+            await api.delete(`/farms/${farmId}`);
+            
+            // Remove farm from list
+            setFarms(farms.filter(farm => farm._id !== farmId));
+            setDeleteConfirm(null);
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Error deleting farm');
+        } finally {
+            setActionInProgress(false);
+        }
+    };
 
    if (loading) {
     return <div className="flex justify-center py-8">Loading...</div>;
@@ -76,8 +111,44 @@ const Farms = () => {
               {farms.map((farm: Farm) => (
                 <div
                   key={farm._id}
-                  className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 overflow-hidden"
+                  className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 overflow-hidden relative"
                 >
+                  {/* Three-dot menu - Top Right */}
+                  <div className="absolute top-3 left-3 z-10">
+                    <button
+                      onClick={() => setOpenMenu(openMenu === farm._id ? null : farm._id)}
+                      className="w-8 h-8 bg-white bg-opacity-90 hover:bg-opacity-100 text-gray-700 rounded-full shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center"
+                    >
+                      <i className="fas fa-ellipsis-v"></i>
+                    </button>
+                    
+                    {/* Dropdown Menu */}
+                    {openMenu === farm._id && (
+                      <div className="absolute top-10 left-0 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-20">
+                        <button
+                          onClick={() => {
+                            setDeactivateConfirm(farm._id);
+                            setOpenMenu(null);
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-50 transition-colors flex items-center"
+                        >
+                          <i className="fas fa-pause-circle mr-2"></i>
+                          Deactivate Farm
+                        </button>
+                        <button
+                          onClick={() => {
+                            setDeleteConfirm(farm._id);
+                            setOpenMenu(null);
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center"
+                        >
+                          <i className="fas fa-trash-alt mr-2"></i>
+                          Delete Permanently
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  
                   <div className="h-48 bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center relative">
                     <i className="fas fa-barn text-6xl text-white opacity-90"></i>
                     <span className={`absolute top-3 right-3 px-3 py-1 text-xs font-semibold rounded-full shadow-md ${
@@ -128,13 +199,60 @@ const Farms = () => {
                       </div>
                     </div>
 
-                    <Link
-                      to={`/farms/${farm._id}/dashboard`}
-                      className="block w-full px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-center font-semibold rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-md hover:shadow-lg"
-                    >
-                      <i className="fas fa-eye mr-2"></i>
-                      View Farm Details
-                    </Link>
+                    <div className="space-y-2">
+                      <Link
+                        to={`/farms/${farm._id}/dashboard`}
+                        className="block w-full px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-center font-semibold rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                      >
+                        <i className="fas fa-eye mr-2"></i>
+                        View Farm Details
+                      </Link>
+                      
+                      {/* Confirmation Dialogs */}
+                      {deactivateConfirm === farm._id && (
+                        <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3">
+                          <p className="text-sm text-yellow-800 mb-2 font-medium">Deactivate this farm? You can reactivate it later.</p>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleDeactivateFarm(farm._id)}
+                              disabled={actionInProgress}
+                              className="flex-1 px-3 py-2 bg-yellow-600 text-white text-sm font-semibold rounded hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {actionInProgress ? 'Processing...' : 'Yes, Deactivate'}
+                            </button>
+                            <button
+                              onClick={() => setDeactivateConfirm(null)}
+                              disabled={actionInProgress}
+                              className="flex-1 px-3 py-2 bg-gray-300 text-gray-700 text-sm font-semibold rounded hover:bg-gray-400 disabled:opacity-50"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {deleteConfirm === farm._id && (
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                          <p className="text-sm text-red-800 mb-2 font-medium">⚠️ Permanently delete this farm? This cannot be undone!</p>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleDeleteFarm(farm._id)}
+                              disabled={actionInProgress}
+                              className="flex-1 px-3 py-2 bg-red-600 text-white text-sm font-semibold rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {actionInProgress ? 'Deleting...' : 'Yes, Delete Permanently'}
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirm(null)}
+                              disabled={actionInProgress}
+                              className="flex-1 px-3 py-2 bg-gray-300 text-gray-700 text-sm font-semibold rounded hover:bg-gray-400 disabled:opacity-50"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
