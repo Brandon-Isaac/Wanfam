@@ -563,6 +563,20 @@ const Navigation = () => {
             </div>
           )}
           </div>
+
+          {/* Switch Farms Button - Only for farmers with farmId */}
+          {user?.role === 'farmer' && farmId && (
+            <Link
+              to="/farms"
+              className="p-2.5 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 hover:shadow-md group relative"
+              title="Switch Farms"
+            >
+              <i className="fas fa-exchange-alt text-xl"></i>
+              <span className="absolute -bottom-8 right-0 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                Switch Farms
+              </span>
+            </Link>
+          )}
            
          {/* User Profile */}
           <div className="relative" ref={profileDropdownRef}>

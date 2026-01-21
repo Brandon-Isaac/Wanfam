@@ -1,9 +1,6 @@
-  import React from "react";
   import { Link } from "react-router-dom";
-  // import { useLanguage } from "../contexts/LanguageContext";
 
   const Hero = () => {
-    // const { language } = useLanguage();
   return (
   <div className="pt-16 bg-gradient-to-b from-green-50 to-white" id="hero">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-24">

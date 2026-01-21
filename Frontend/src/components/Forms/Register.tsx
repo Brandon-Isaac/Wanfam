@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { validatePassword, getPasswordStrengthMessage, getPasswordStrengthColor } from '../../utils/passwordValidation';
+import { useToast } from '../../contexts/ToastContext';
 
 const Register = () => {
+  const { showToast } = useToast();
   const [userData, setUserData] = useState({
     firstName: '',
     lastName: '',
@@ -89,7 +91,7 @@ const Register = () => {
    if (result.success) {
       // Redirect based on role
       const notification=`Registration successful! Please log in as a ${userData.role.replace('_', ' ')}.`;
-      alert(notification);
+      showToast(notification, 'success');
       let redirectPath;
       switch (userData.role) {
         case 'farmer':

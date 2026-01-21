@@ -33,7 +33,10 @@ const app = Express();
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/yourdbname';
 
-mongoose.connect(MONGO_URI).then(() => {
+mongoose.connect(MONGO_URI, {
+    serverSelectionTimeoutMS: 30000,
+    socketTimeoutMS: 45000,
+}).then(() => {
     console.log("MongoDB connected");
 }).catch((err) => {
     console.error("MongoDB connection error:", err);

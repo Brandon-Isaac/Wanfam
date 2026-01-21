@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 
 const Login = () => {
+  const { showToast } = useToast();
   const [credentials, setCredentials] = useState({
     email: '',
     password: ''
@@ -46,7 +48,7 @@ const Login = () => {
     
     if (result.success) {
       const notification = `Login successful! Welcome back, ${credentials.email}.`;
-      alert(notification);
+      showToast(notification, 'success');
       navigate('/dashboard');
     } else {
       setError(result.message ?? 'Login failed. Please try again.');

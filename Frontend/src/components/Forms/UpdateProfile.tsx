@@ -2,8 +2,10 @@ import api from "../../utils/Api";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../../contexts/ToastContext";
 
 const UpdateProfile = () => {
+    const { showToast } = useToast();
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -28,12 +30,12 @@ const UpdateProfile = () => {
         e.preventDefault();
         try {
             await api.put('/auth/profile', formData);
-            alert('Profile updated successfully!');
+            showToast('Profile updated successfully!', 'success');
             console.log(formData)
             navigate('/profile');
         } catch (error) {
             console.error('Failed to update profile:', error);
-            alert('Failed to update profile. Please try again.');
+            showToast('Failed to update profile. Please try again.', 'error');
         }
     };
 

@@ -1,8 +1,10 @@
 import api from '../utils/Api';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useToast } from '../contexts/ToastContext';
 
 const SickAnimals = () => {
+    const { showToast } = useToast();
     const [sickAnimals, setSickAnimals] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -28,7 +30,7 @@ const SickAnimals = () => {
             fetchSickAnimals();
         } catch (error) {
             console.error('Failed to update health status:', error);
-            alert('Failed to update health status. Please try again.');
+            showToast('Failed to update health status. Please try again.', 'error');
         }
     };
     useEffect(() => {
