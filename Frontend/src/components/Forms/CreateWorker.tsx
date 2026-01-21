@@ -13,10 +13,24 @@ const CreateWorker = () => {
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [wages, setWages] = useState(0);
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<Error | null>(null);
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError(null);
+        
+        if (password !== confirmPassword) {
+            setError(new Error('Passwords do not match'));
+            return;
+        }
+        
+        if (password.length < 6) {
+            setError(new Error('Password must be at least 6 characters long'));
+            return;
+        }
+        
         setLoading(true);
         try {
             await api.post(`/workers/${farmId}`, {
@@ -24,7 +38,8 @@ const CreateWorker = () => {
                 lastName,
                 email,
                 phone,
-                wages
+                wages,
+                password
             });
             navigate(`/farms/${farmId}/workers`);
         } catch (error: any) {
@@ -85,6 +100,30 @@ const CreateWorker = () => {
                         value={wages}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setWages(Number(e.target.value))}
                         className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+                        required
+                    />
+                </label>
+                <label className="block mb-4">
+                    <span className="text-gray-700">Password</span>
+                    <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+                        placeholder="Minimum 6 characters"
+                        minLength={6}
+                        required
+                    />
+                </label>
+                <label className="block mb-4">
+                    <span className="text-gray-700">Confirm Password</span>
+                    <input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+                        placeholder="Re-enter password"
+                        minLength={6}
                         required
                     />
                 </label>

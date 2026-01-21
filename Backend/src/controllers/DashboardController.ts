@@ -48,42 +48,11 @@ const farmerDashboardForFarm = asyncHandler(async (req: Request, res: Response) 
     const pendingTasks = await Task.countDocuments({ farmId, status: { $ne: 'Complete' } });
     const upcomingCheckups = await VaccinationSchedule.find({ farmId, scheduledDate: { $gte: new Date() } }).limit(5).sort({ scheduledDate: 1 }) && await TreatmentSchedule.find({ farmId, scheduledDate: { $gte: new Date() } }).limit(5).sort({ scheduledDate: 1 });
     const upcomingCheckupsCount = (await VaccinationSchedule.countDocuments({ farmId, scheduledDate: { $gte: new Date() } })) + (await TreatmentSchedule.countDocuments({ farmId, scheduledDate: { $gte: new Date() } }));
-    const recentActivity = await AuditLog.find({ farmId }).sort({ createdAt: -1 }).limit(10).populate('userId', 'firstName lastName username');
+    const recentActivity = await AuditLog.find({ entityId: farmId, entityType: "Farm" }).sort({ createdAt: -1 }).limit(10).populate('userId', 'firstName lastName username');
     const livestockSpeciesCount = await Animal.aggregate([
         { $match: { farmId } },
         { $group: { _id: "$species", count: { $sum: 1 } } }
     ]);
-
-    // Financial data - last 30 days
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    const totalRevenue = await Revenue.aggregate([
-        { $match: { farmId, date: { $gte: thirtyDaysAgo } } },
-        { $group: { _id: null, total: { $sum: '$amount' } } }
-    ]);
-
-    const totalExpenses = await Expense.aggregate([
-        { $match: { farmId, date: { $gte: thirtyDaysAgo } } },
-        { $group: { _id: null, total: { $sum: '$amount' } } }
-    ]);
-
-    const revenueBySource = await Revenue.aggregate([
-        { $match: { farmId, date: { $gte: thirtyDaysAgo } } },
-        { $group: { _id: '$source', total: { $sum: '$amount' } } },
-        { $sort: { total: -1 } },
-        { $limit: 5 }
-    ]);
-
-    const expensesByCategory = await Expense.aggregate([
-        { $match: { farmId, date: { $gte: thirtyDaysAgo } } },
-        { $group: { _id: '$category', total: { $sum: '$amount' } } },
-        { $sort: { total: -1 } },
-        { $limit: 5 }
-    ]);
-
-    const netProfit = (totalRevenue[0]?.total || 0) - (totalExpenses[0]?.total || 0);
-
     res.json({
         farmName,
         totalAnimals,
@@ -105,13 +74,7 @@ const farmerDashboardForFarm = asyncHandler(async (req: Request, res: Response) 
         upcomingCheckups,
         recentActivity,
         livestockSpeciesCount,
-        upcomingCheckupsCount,
-        // Financial data
-        totalRevenue: totalRevenue[0]?.total || 0,
-        totalExpenses: totalExpenses[0]?.total || 0,
-        netProfit,
-        revenueBySource,
-        expensesByCategory
+        upcomingCheckupsCount
     });
 });
 
@@ -124,7 +87,7 @@ const farmerDashboard= asyncHandler(async (req: Request, res: Response) => {
     const totalAnimals = await Animal.countDocuments( { farmId: { $in: farmIds } });
     const sickAnimals = await Animal.countDocuments({ farmId: { $in: farmIds }, healthStatus: { $ne: 'healthy' } });
     const healthyAnimals = await Animal.countDocuments({ farmId: { $in: farmIds }, healthStatus: 'healthy' });
-    const recentActivity = await AuditLog.find({ userId: farmerId }).sort({ createdAt: -1 }).limit(10).populate('userId', 'firstName lastName username');
+    const recentActivity = await AuditLog.find({ userId: farmerId }).sort({ createdAt: -1 }).limit(10);
     const upcomingCheckups = await VaccinationSchedule.find({ 
        farmId: { $in: farmIds }, scheduledDate: { $gte: new Date()  } 
     });
@@ -148,13 +111,6 @@ const farmerDashboard= asyncHandler(async (req: Request, res: Response) => {
     ]);
 
     const netProfit = (totalRevenue[0]?.total || 0) - (totalExpenses[0]?.total || 0);
-
-    // Get livestock by species
-    const livestockSpeciesCount = await Animal.aggregate([
-        { $match: { farmId: { $in: farmIds.map(f => f._id) } } },
-        { $group: { _id: "$species", count: { $sum: 1 } } },
-        { $project: { species: "$_id", count: 1, _id: 0 } }
-    ]);
 
     res.json({
         totalFarms,

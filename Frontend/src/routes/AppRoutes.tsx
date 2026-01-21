@@ -13,7 +13,7 @@ import ProtectedRoutes from './ProtectedRoutes';
 import Farms from '../pages/Farms';
 import { FarmProvider } from '../contexts/FarmContext';
 import SelectFarm from '../components/Forms/SelectFarm';
-import ChatbotButton from '../components/ChatbotButton';
+import Chatbot from '../components/Chatbot';
 import Profile from '../components/Profile';
 import AddFarm from '../components/Forms/AddFarm';
 import FarmDashboard from '../pages/Dashboards/FarmDashboard';
@@ -43,16 +43,6 @@ import ScheduleTreatment from '../components/Forms/ScheduleTreatment';
 import TreatmentSchedules from '../components/TreatmentSchedules';
 import TreatAnimal from '../components/Forms/TreatAnimal';
 import NetworkHandler from '../components/NetworkHandler';
-import Vaccinate from '../components/Forms/Vaccinate';
-import VaccinationCases from '../components/VaccinationCases';
-import NotificationList from '../pages/NotificationList';
-
-// Financial Management
-import FinancialOverview from '../pages/Financial/FinancialOverview';
-import RevenueList from '../pages/Financial/RevenueList';
-import RevenueForm from '../pages/Financial/RevenueForm';
-import ExpenseList from '../pages/Financial/ExpenseList';
-import ExpenseForm from '../pages/Financial/ExpenseForm';
 
 const AppRoutes = () => {
     return (
@@ -68,13 +58,6 @@ const AppRoutes = () => {
                         <>
                             <Navigation />
                             <Dashboard />
-                        </>
-                    </ProtectedRoutes>} />
-                <Route path="/notifications" element={
-                    <ProtectedRoutes>
-                        <>
-                            <Navigation />
-                            <NotificationList />
                         </>
                     </ProtectedRoutes>} />
                 <Route path="/dashboard/farmer" element={
@@ -220,6 +203,13 @@ const AppRoutes = () => {
                     </>
                 </ProtectedRoutes>} />
                 
+            <Route path="/chatbot" element={
+                <ProtectedRoutes>
+                    <>                       
+                    <Navigation />
+                   <Chatbot />
+                    </>
+                </ProtectedRoutes>} />
             <Route path="/change-password" element={
                 <ProtectedRoutes><AuthProvider>
                     <Navigation />
@@ -256,14 +246,6 @@ const AppRoutes = () => {
                     <FarmProvider>
                         <Navigation />
                         <UpdateAnimal />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-            <Route path='/:farmId/livestock/:animalId/vaccinate' element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <Vaccinate/>
                     </FarmProvider>
                 </ProtectedRoutes>
             } />
@@ -308,14 +290,6 @@ const AppRoutes = () => {
                 </ProtectedRoutes>
             } />
 
-            <Route path='/vaccinations' element={
-                <ProtectedRoutes>
-                    <>
-                    <Navigation/>
-                    <VaccinationCases/>
-                    </>
-                </ProtectedRoutes>
-            }/>
             <Route path="/treatment-schedules" element={
                 <ProtectedRoutes>
                     <>
@@ -337,74 +311,9 @@ const AppRoutes = () => {
             <Route path="/profile" element={<ProtectedRoutes><Profile /></ProtectedRoutes>} />
             <Route path="/settings" element={<ProtectedRoutes><Settings /></ProtectedRoutes>} /> */}
 
-            {/* Financial Management Routes */}
-            <Route path="/farms/:farmId/financial" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <FinancialOverview />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
-            <Route path="/farms/:farmId/revenues" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <RevenueList />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
-            <Route path="/farms/:farmId/revenues/new" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <RevenueForm />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
-            <Route path="/farms/:farmId/revenues/:revenueId/edit" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <RevenueForm isEdit={true} />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
-            <Route path="/farms/:farmId/expenses" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <ExpenseList />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
-            <Route path="/farms/:farmId/expenses/new" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <ExpenseForm />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
-            <Route path="/farms/:farmId/expenses/:expenseId/edit" element={
-                <ProtectedRoutes>
-                    <FarmProvider>
-                        <Navigation />
-                        <ExpenseForm isEdit={true} />
-                    </FarmProvider>
-                </ProtectedRoutes>
-            } />
-
             {/* Catch all invalid routes */}
             <Route path="*" element={<NotFound />} />
         </Routes>
-        <ChatbotButton />
         </NetworkHandler>
         </AuthProvider>
     );
