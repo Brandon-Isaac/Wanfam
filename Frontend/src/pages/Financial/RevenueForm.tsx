@@ -77,7 +77,7 @@ const RevenueForm: React.FC<RevenueFormProps> = ({ isEdit = false }) => {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;
-        setFormData(prev => ({
+        setFormData((prev: Partial<Revenue>) => ({
             ...prev,
             [name]: type === 'number' ? parseFloat(value) : value
         }));
