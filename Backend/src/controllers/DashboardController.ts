@@ -118,7 +118,7 @@ const farmerDashboardForFarm = asyncHandler(async (req: Request, res: Response) 
 const farmerDashboard= asyncHandler(async (req: Request, res: Response) => {
     const farmerId = req.user.id;
     const farmIds = await Farm.find({ owner: farmerId }).select('_id');
-    const totalFarms = await Farm.countDocuments({ owner: farmerId });
+    const totalFarms = await Farm.countDocuments({ owner: farmerId,isActive: true });
     const totalLoanRequests = await LoanRequest.countDocuments({ farmerId });
     const activity = await User.findById(farmerId).select('isActive createdAt updatedAt');
     const totalAnimals = await Animal.countDocuments( { farmId: { $in: farmIds } });
