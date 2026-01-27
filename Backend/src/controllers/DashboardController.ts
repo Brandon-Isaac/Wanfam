@@ -3,6 +3,7 @@ import { Animal } from "../models/Animal";
 import { Veterinarian } from "../models/Veterinarian";
 import { HealthRecord } from "../models/HealthRecord";
 import { LoanRequest } from "../models/LoanRequest";
+import mongoose from "mongoose";
 import { LoanApproval } from "../models/LoanApproval";
 import { VaccinationSchedule } from "../models/VaccinationSchedule";
 import { VaccinationRecord } from "../models/VaccinationRecord";
@@ -58,25 +59,27 @@ const farmerDashboardForFarm = asyncHandler(async (req: Request, res: Response) 
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+    const farmObjectId = new mongoose.Types.ObjectId(farmId);
+
     const totalRevenue = await Revenue.aggregate([
-        { $match: { farmId, date: { $gte: thirtyDaysAgo } } },
+        { $match: { farmId: farmObjectId, date: { $gte: thirtyDaysAgo } } },
         { $group: { _id: null, total: { $sum: '$amount' } } }
     ]);
 
     const totalExpenses = await Expense.aggregate([
-        { $match: { farmId, date: { $gte: thirtyDaysAgo } } },
+        { $match: { farmId: farmObjectId, date: { $gte: thirtyDaysAgo } } },
         { $group: { _id: null, total: { $sum: '$amount' } } }
     ]);
 
     const revenueBySource = await Revenue.aggregate([
-        { $match: { farmId, date: { $gte: thirtyDaysAgo } } },
+        { $match: { farmId: farmObjectId, date: { $gte: thirtyDaysAgo } } },
         { $group: { _id: '$source', total: { $sum: '$amount' } } },
         { $sort: { total: -1 } },
         { $limit: 5 }
     ]);
 
     const expensesByCategory = await Expense.aggregate([
-        { $match: { farmId, date: { $gte: thirtyDaysAgo } } },
+        { $match: { farmId: farmObjectId, date: { $gte: thirtyDaysAgo } } },
         { $group: { _id: '$category', total: { $sum: '$amount' } } },
         { $sort: { total: -1 } },
         { $limit: 5 }

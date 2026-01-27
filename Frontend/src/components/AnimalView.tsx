@@ -10,6 +10,7 @@ const [error,setError]=useState<string | null>(null);
 const [generatingReport, setGeneratingReport] = useState(false);
 const [reportData, setReportData] = useState<any>(null);
 const [showReport, setShowReport] = useState(false);
+const [milkProducedToday, setMilkProducedToday] = useState<number | null>(null);
 const navigate=useNavigate();
 const { farmId, animalId } = useParams();
 
@@ -23,10 +24,28 @@ const fetchAnimal=async()=>{
         const response=await api.get(`/livestock/${farmId}/animals/${animalId}`);
         setAnimal(response.data.data);
         setLoading(false);
+        
+        // Fetch milk production if animal is female cattle or goat
+        if (response.data.data && 
+            response.data.data.gender === 'female' && 
+            (response.data.data.species.toLowerCase() === 'cattle' || 
+             response.data.data.species.toLowerCase() === 'goat')) {
+            fetchMilkProducedToday(response.data.data._id);
+        }
     }catch(error){
         console.error('Failed to fetch animal:',error);
         setError(error instanceof Error ? error.message : 'An unexpected error occurred');
         setLoading(false);
+    }
+};
+
+const fetchMilkProducedToday = async (animalId: string) => {
+    try {
+        const response = await api.get(`/products/${animalId}/milk/today`);
+        setMilkProducedToday(response.data.data?.totalMilk.amount || null);
+    } catch (err) {
+        console.error(`Failed to fetch milk produced today for animal ${animalId}:`, err);
+        setMilkProducedToday(null);
     }
 };
 
@@ -109,6 +128,29 @@ const closeReport = () => {
                         <div>
                             <strong>Assigned Worker:</strong> {animal?.assignedWorker ? `${animal.assignedWorker.firstName} ${animal.assignedWorker.lastName}` : 'Unassigned'}
                         </div>
+                        
+                        {/* Milk Production Info for Female Cattle/Goats */}
+                        {animal?.gender === 'female' && 
+                         (animal?.species.toLowerCase() === 'cattle' || animal?.species.toLowerCase() === 'goat') && (
+                            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <div className="flex items-center justify-between mb-2">
+                                    <strong className="text-blue-800">
+                                        <i className="fas fa-tint mr-2"></i>
+                                        Milk Production
+                                    </strong>
+                                </div>
+                                <div className="text-sm text-gray-700 mb-3">
+                                    Today's Production: <strong>{milkProducedToday ?? '0'} liters</strong>
+                                </div>
+                                <button
+                                    onClick={() => navigate(`/${animal._id}/milk-production`)}
+                                    className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+                                    <i className="fas fa-plus-circle mr-2"></i>
+                                    Record Milk Production
+                                </button>
+                            </div>
+                        )}
+                        
                         <hr />
                         <button onClick={()=>navigate(`/${farmId}/livestock/${animalId}/edit`)}
                          className="text-blue-500 hover:text-blue-900 transition-colors duration-200">
