@@ -75,7 +75,7 @@ export const getFarmRevenues = asyncHandler(async (req: Request, res: Response) 
         .populate('recordedBy', 'firstName lastName username')
         .sort({ date: -1 });
 
-    res.json(revenues);
+    res.json({ success: true, data: revenues });
 });
 
 // Get single revenue record

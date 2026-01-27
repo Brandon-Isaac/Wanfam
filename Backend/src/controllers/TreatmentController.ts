@@ -62,8 +62,14 @@ const getTreatmentSchedulesByVet = asyncHandler(async (req: Request, res: Respon
 
 const getTreatmentSchedulesAssignedByVet = asyncHandler(async (req: Request, res: Response) => {
     const veterinarianId = req.user?.id;
-    const schedules = await TreatmentSchedule.find({ administeredBy: veterinarianId, status: 'scheduled' })
-    .populate('animalId', 'name species breed');
+    // Explicitly exclude treated and missed schedules
+    const schedules = await TreatmentSchedule.find({ 
+        administeredBy: veterinarianId, 
+        status: { $nin: ['treated', 'missed'] }
+    })
+    .populate('animalId', 'name species breed tagId')
+    .populate('farmId', 'name location')
+    .sort({ scheduledDate: 1 });
     res.json({ success: true, data: schedules });
 });
 

@@ -157,9 +157,14 @@ const closeReport = () => {
                             <i className="fas fa-user-edit"></i> Update Animal
                         </button>
                         <br/>
-                        <button onClick={()=>navigate(`/${farmId}/livestock/${animalId}/vaccinate`)}
+                        <button onClick={()=>navigate(`/${farmId}/livestock/${animalId}/schedule-vaccination`)}
                          className="text-purple-500 hover:text-purple-900 transition-colors duration-200">
-                            <i className="fas fa-plus-circle"></i> Vaccinate
+                            <i className="fas fa-calendar-plus"></i> Schedule Vaccination
+                        </button>
+                        <br/>
+                        <button onClick={()=>navigate(`/${farmId}/livestock/${animalId}/vaccinate`)}
+                         className="text-green-500 hover:text-green-900 transition-colors duration-200">
+                            <i className="fas fa-syringe"></i> Record Vaccination
                         </button>
                         <br/>
                         <button 

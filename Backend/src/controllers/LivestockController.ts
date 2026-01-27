@@ -192,6 +192,54 @@ const updateAnimalByWorkerAssigned = asyncHandler(async (req: Request, res: Resp
     res.json({ success: true, data: animal });
 });
 
+const getAllAnimalsForFarmer = asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    
+    // Get all farms belonging to this farmer - Farm model uses 'owner' field
+    const farms = await Farm.find({ owner: userId });
+    
+    if (!farms || farms.length === 0) {
+        return res.json({ success: true, data: [] });
+    }
+    
+    const farmIds = farms.map(farm => farm._id);
+    
+    // Build query with optional filters
+    const query: any = { farmId: { $in: farmIds } };
+    
+    // Apply filters from query parameters
+    if (req.query.healthStatus && req.query.healthStatus !== 'all') {
+        // Special handling for 'sick' filter - show all unhealthy animals but exclude deceased
+        if (req.query.healthStatus === 'sick') {
+            query.healthStatus = { $in: ['sick', 'treatment', 'recovery', 'quarantined'] };
+        } else {
+            query.healthStatus = req.query.healthStatus;
+        }
+    }
+    
+    if (req.query.species && req.query.species !== 'all') {
+        query.species = new RegExp(req.query.species as string, 'i');
+    }
+    
+    if (req.query.search) {
+        const searchTerm = req.query.search as string;
+        query.$or = [
+            { name: new RegExp(searchTerm, 'i') },
+            { tagId: new RegExp(searchTerm, 'i') },
+            { species: new RegExp(searchTerm, 'i') },
+            { breed: new RegExp(searchTerm, 'i') }
+        ];
+    }
+    
+    // Fetch animals with farm and worker details
+    const animals = await Animal.find(query)
+        .populate('farmId', 'name location')
+        .populate('assignedWorker', 'firstName lastName')
+        .sort({ createdAt: -1 });
+    
+    res.json({ success: true, data: animals });
+});
+
 export const LivestockController = {
     getAnimalsByFarm,
     getSickAnimalsByFarm,
@@ -204,5 +252,6 @@ export const LivestockController = {
     deleteFarmAnimal,
     getFarmAnimalById,
     getAnimalByWorkerAssigned,
-    updateAnimalByWorkerAssigned
+    updateAnimalByWorkerAssigned,
+    getAllAnimalsForFarmer
 };

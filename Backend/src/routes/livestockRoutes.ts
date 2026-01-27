@@ -9,6 +9,7 @@ const router = Router();
 router.use(authenticate);
 
 // Static routes first
+router.get("/farmer/all-animals", roleHandler([UserRole.FARMER, UserRole.ADMIN]), LivestockController.getAllAnimalsForFarmer);
 router.get("/assigned", roleHandler([UserRole.WORKER, UserRole.FARMER, UserRole.ADMIN]), LivestockController.getAnimalByWorkerAssigned);
 router.get("/animals", roleHandler([UserRole.ADMIN]), LivestockController.getAllAnimals);
 

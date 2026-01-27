@@ -43,6 +43,13 @@ import ScheduleTreatment from '../components/Forms/ScheduleTreatment';
 import TreatmentSchedules from '../components/TreatmentSchedules';
 import TreatAnimal from '../components/Forms/TreatAnimal';
 import NetworkHandler from '../components/NetworkHandler';
+import AllAnimals from '../pages/AllAnimals';
+import Revenue from '../pages/Revenue';
+import Expenses from '../pages/Expenses';
+import FinancialOverview from '../pages/FinancialOverview';
+import VaccinationCases from '../components/VaccinationCases';
+import Vaccinate from '../components/Forms/Vaccinate';
+import ScheduleVaccination from '../components/Forms/ScheduleVaccination';
 
 const AppRoutes = () => {
     return (
@@ -195,6 +202,39 @@ const AppRoutes = () => {
                             <AssignedAnimals />
                     </>
                 </ProtectedRoutes>} />
+                
+                <Route path="/animals/all" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <AllAnimals />
+                    </>
+                </ProtectedRoutes>} />
+                
+                <Route path="/revenue" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <Revenue />
+                    </>
+                </ProtectedRoutes>} />
+                
+                <Route path="/expenses" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <Expenses />
+                    </>
+                </ProtectedRoutes>} />
+                
+                <Route path="/financial-overview" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <FinancialOverview />
+                    </>
+                </ProtectedRoutes>} />
+                
                 <Route path="/:animalId/milk-production" element={
                 <ProtectedRoutes>
                     <>
@@ -246,6 +286,22 @@ const AppRoutes = () => {
                     <FarmProvider>
                         <Navigation />
                         <UpdateAnimal />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+            <Route path='/:farmId/livestock/:animalId/vaccinate' element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <Vaccinate />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+            <Route path='/:farmId/livestock/:animalId/schedule-vaccination' element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <ScheduleVaccination />
                     </FarmProvider>
                 </ProtectedRoutes>
             } />
@@ -303,6 +359,15 @@ const AppRoutes = () => {
                     <>
                         <Navigation />
                         <TreatAnimal />
+                    </>
+                </ProtectedRoutes>
+            } />
+            
+            <Route path="/vaccinations" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <VaccinationCases />
                     </>
                 </ProtectedRoutes>
             } />
