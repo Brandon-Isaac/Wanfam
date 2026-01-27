@@ -58,6 +58,21 @@ const getVaccinationSchedules = async (req: Request, res: Response) => {
     }
 };
 
+const getVeterinarianSchedules = async (req: Request, res: Response) => {
+    try {
+        // Get all schedules assigned to this veterinarian
+        const schedules = await VaccinationSchedule.find({ veterinarianId: req.user.id })
+            .populate('animalId', 'name tagId species')
+            .populate('farmId', 'name location')
+            .sort({ scheduledDate: 1 });
+        
+        return res.status(200).json({ schedules });
+    } catch (error) {
+        console.error("Error fetching veterinarian schedules:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 const updateVaccinationSchedule = async (req: Request, res: Response) => {
     try {
         const { scheduleId } = req.params;
@@ -185,6 +200,7 @@ const deleteVaccinationRecord = async (req: Request, res: Response) => {
 export const VaccinationController = {
     createVaccinationSchedule,
     getVaccinationSchedules,
+    getVeterinarianSchedules,
     updateVaccinationSchedule,
     deleteVaccinationSchedule,
     executeVaccinationSchedule,

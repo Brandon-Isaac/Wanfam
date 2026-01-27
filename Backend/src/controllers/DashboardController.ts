@@ -181,7 +181,9 @@ const vetDashboard = asyncHandler(async (req: Request, res: Response) => {
 
     // Fetch vaccination appointments with farm and animal details
     const vaccinationAppointments = await VaccinationSchedule.find({ 
-        veterinarianId: vetId, scheduledDate: { $gte: new Date() }
+        veterinarianId: vetId, 
+        scheduledDate: { $gte: new Date() },
+        status: 'scheduled'
     })
     .populate('farmId', 'name')
     .populate('animalId', 'tagNumber')
@@ -190,7 +192,9 @@ const vetDashboard = asyncHandler(async (req: Request, res: Response) => {
     
     // Fetch treatment appointments with farm and animal details
     const treatmentAppointments = await TreatmentSchedule.find({ 
-        administeredBy: vetId, scheduledDate: { $gte: new Date()  } 
+        administeredBy: vetId, 
+        scheduledDate: { $gte: new Date() },
+        status: 'scheduled'
     })
     .populate('farmId', 'name')
     .populate('animalId', 'tagId')
@@ -217,18 +221,18 @@ const vetDashboard = asyncHandler(async (req: Request, res: Response) => {
     
     const todayAppointmentsCount = await VaccinationSchedule.countDocuments({ 
             veterinarianId: vetId, 
+            status: 'scheduled',
             scheduledDate: { 
                 $gte: new Date(new Date().setHours(0, 0, 0, 0)),
                 $lt: new Date(new Date().setHours(23, 59, 59, 999))
             } 
     }) + await TreatmentSchedule.countDocuments({ 
-        
-            administeredBy: vetId, 
+            administeredBy: vetId,
+            status: 'scheduled',
             scheduledDate: { 
                 $gte: new Date(new Date().setHours(0, 0, 0, 0)),
                 $lt: new Date(new Date().setHours(23, 59, 59, 999))
             } 
-        
     });
 
     const upcomingAppointmentsCount = vaccinationCases + treatmentCases;

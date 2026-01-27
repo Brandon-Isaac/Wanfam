@@ -8,12 +8,38 @@ const Vaccinate = () => {
         vaccineName: "",
         dateAdministered: "",
         veterinarian: "",
+        veterinarianName: "",
+        cost: "",
         notes: ""
     });
+    const [vets, setVets] = useState<any[]>([]);
+    const [useExternalVet, setUseExternalVet] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [fetchingVets, setFetchingVets] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    
+    useEffect(() => {
+        const fetchVets = async () => {
+            try {
+                const response = await api.get(`vets/${farmId}`);
+                const vetsList = response.data.data || [];
+                setVets(vetsList);
+                if (vetsList.length === 0) {
+                    setUseExternalVet(true);
+                }
+            } catch (error) {
+                console.error("Error fetching veterinarians:", error);
+                setUseExternalVet(true); // Fallback to external vet on error
+            } finally {
+                setFetchingVets(false);
+            }
+        };
+        
+        fetchVets();
+    }, [farmId]);
+    
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
@@ -58,17 +84,84 @@ const Vaccinate = () => {
                             required    
                         />
                     </div>
-                    <div>
-                        <label className="block text-gray-700">Veterinarian</label>
-                       <input
-                            type="text"
-                            name="veterinarian"
-                            value={formData.veterinarian}
-                            onChange={handleChange}
-                            className="w-full mt-1 p-2 border border-gray-300 rounded-md"
-                            required
-                        />
-                    </div>
+                    
+                    {/* Veterinarian Selection */}
+                    {!fetchingVets && vets.length > 0 && (
+                        <div>
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="block text-gray-700">Veterinarian</label>
+                                <button
+                                    type="button"
+                                    onClick={() => setUseExternalVet(!useExternalVet)}
+                                    className="text-sm text-blue-600 hover:text-blue-800"
+                                >
+                                    {useExternalVet ? "Use system vet" : "Use external vet"}
+                                </button>
+                            </div>
+                            {!useExternalVet ? (
+                                <select
+                                    name="veterinarian"
+                                    value={formData.veterinarian}
+                                    onChange={handleChange}
+                                    className="w-full mt-1 p-2 border border-gray-300 rounded-md"
+                                    required
+                                >
+                                    <option value="">Select a veterinarian</option>
+                                    {vets.map((vet) => (
+                                        <option key={vet._id} value={vet._id}>
+                                            {vet.firstName} {vet.lastName}
+                                        </option>
+                                    ))}
+                                </select>
+                            ) : (
+                                <input
+                                    type="text"
+                                    name="veterinarianName"
+                                    value={formData.veterinarianName}
+                                    onChange={handleChange}
+                                    placeholder="Enter veterinarian name"
+                                    className="w-full mt-1 p-2 border border-gray-300 rounded-md"
+                                    required
+                                />
+                            )}
+                        </div>
+                    )}
+                    
+                    {/* External Vet Only - No system vets available */}
+                    {!fetchingVets && vets.length === 0 && (
+                        <div>
+                            <label className="block text-gray-700">Veterinarian Name</label>
+                            <input
+                                type="text"
+                                name="veterinarianName"
+                                value={formData.veterinarianName}
+                                onChange={handleChange}
+                                placeholder="Enter veterinarian name"
+                                className="w-full mt-1 p-2 border border-gray-300 rounded-md"
+                                required
+                            />
+                            <p className="text-sm text-gray-500 mt-1">No veterinarians available in the system</p>
+                        </div>
+                    )}
+                    
+                    {/* Cost field - shown only when using external vet (with system vets available) or no system vets */}
+                    {!fetchingVets && ((useExternalVet && vets.length > 0) || vets.length === 0) && (
+                        <div>
+                            <label className="block text-gray-700">Vaccination Cost</label>
+                            <input
+                                type="number"
+                                name="cost"
+                                value={formData.cost}
+                                onChange={handleChange}
+                                placeholder="Enter cost"
+                                className="w-full mt-1 p-2 border border-gray-300 rounded-md"
+                                step="0.01"
+                                min="0"
+                                required
+                            />
+                        </div>
+                    )}
+                    
                     <div>
                         <label className="block text-gray-700">Notes</label>
                         <textarea
