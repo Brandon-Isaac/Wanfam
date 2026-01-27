@@ -44,7 +44,6 @@ const TreatmentSchedules = () => {
         tomorrow.setDate(tomorrow.getDate() + 1);
 
         // Backend status values: 'scheduled', 'treated', 'missed'
-        const completedStatuses = ['treated', 'missed'];
 
         let filtered = [];
 
