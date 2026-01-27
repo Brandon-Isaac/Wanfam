@@ -1,5 +1,6 @@
 import { Animal } from "../models/Animal";
 import { Farm } from "../models/Farm";
+import { Expense } from "../models/Expense";
 import { Request, Response } from "express";
 import { User } from "../models/User";
 import { asyncHandler } from "../middleware/AsyncHandler";
@@ -36,7 +37,7 @@ const getSickAnimalsByFarm = asyncHandler(async (req: Request, res: Response) =>
     if (!farm) {
         return res.status(404).json({ message: "Farm not found" });
     }
-    const animals = await Animal.find({ farmId: farm._id, healthStatus: { $in: ['sick', 'treatment', 'recovery', 'quarantined'] } });
+    const animals = await Animal.find({ farmId: farm._id, healthStatus: { $in: ['sick', 'treatment', 'recovery', 'quarantined', 'deceased'] } });
     res.json({ success: true, data: animals });
 });
 
@@ -54,14 +55,45 @@ const updateHealthStatus = asyncHandler(async (req: Request, res: Response) => {
 
 const addAnimalToFarm = asyncHandler(async (req: Request, res: Response) => {
     const farmId = req.params.farmId;
-    const { name, species, dateOfBirth, dateOfPurchase,breed,gender } = req.body;
+    const { name, species, dateOfBirth, dateOfPurchase, purchasePrice, breed, gender, notes, assignedWorker } = req.body;
     const farm = await Farm.findById(farmId);
     if (!farm) {
         return res.status(404).json({ message: "Farm not found" });
     }
     const age = dateOfBirth ? Math.floor((Date.now() - new Date(dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365.25)) : undefined;
-    const newAnimal = new Animal({ name, species, farmId: farm.id, dateOfBirth, dateOfPurchase, age, breed, gender });
+    const newAnimal = new Animal({ 
+        name, 
+        species, 
+        farmId: farm.id, 
+        dateOfBirth, 
+        dateOfPurchase, 
+        purchasePrice,
+        age, 
+        breed, 
+        gender,
+        notes,
+        assignedWorker
+    });
     await newAnimal.save();
+
+    // Create expense record if purchase price is provided
+    if (purchasePrice && dateOfPurchase) {
+        const expense = new Expense({
+            farmId: farm._id,
+            category: 'other',
+            subcategory: 'Livestock Purchase',
+            amount: purchasePrice,
+            currency: 'KES',
+            date: dateOfPurchase,
+            description: `Purchase of ${species} - ${name || newAnimal.tagId}`,
+            animalId: newAnimal._id,
+            paymentStatus: 'completed',
+            recordedBy: req.user?.id,
+            notes: `Automatic expense record for livestock purchase`
+        });
+        await expense.save();
+    }
+
     res.status(201).json({ success: true, data: newAnimal });
 });
 
