@@ -64,7 +64,7 @@ const getVeterinarianSchedules = async (req: Request, res: Response) => {
         const schedules = await VaccinationSchedule.find({ veterinarianId: req.user.id })
             .populate('animalId', 'name tagId species')
             .populate('farmId', 'name location')
-            .sort({ startDate: 1 });
+            .sort({ scheduledDate: 1 });
         
         return res.status(200).json({ schedules });
     } catch (error) {
