@@ -1,6 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { JSX } from "react/jsx-runtime";
 import { useAuth } from "../contexts/AuthContext";
+import FloatingChatbot from "../components/FloatingChatbot";
 
 interface ProtectedRoutesProps {
   children: JSX.Element;
@@ -17,7 +18,12 @@ const ProtectedRoutes = ({ children }: ProtectedRoutesProps) => {
       );
   }
 
-  return user ? children : <Navigate to="/login" />;
+  return user ? (
+    <>
+      {children}
+      <FloatingChatbot />
+    </>
+  ) : <Navigate to="/login" />;
 };
 
 export default ProtectedRoutes;

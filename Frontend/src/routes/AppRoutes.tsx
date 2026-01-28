@@ -50,6 +50,7 @@ import FinancialOverview from '../pages/FinancialOverview';
 import VaccinationCases from '../components/VaccinationCases';
 import Vaccinate from '../components/Forms/Vaccinate';
 import ScheduleVaccination from '../components/Forms/ScheduleVaccination';
+import FloatingChatbot from '../components/FloatingChatbot';
 
 const AppRoutes = () => {
     return (
