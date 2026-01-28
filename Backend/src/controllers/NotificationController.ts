@@ -120,7 +120,7 @@ const createAnimalRegistrationNotification = asyncHandler(async (req: Request, r
 
 // Get notifications for a user
 const getUserNotifications = asyncHandler(async (req: Request, res: Response) => {
-    const userId = req.user?._id;
+    const userId = req.user?.id;
     if (!userId) {
         return res.status(400).json({ message: "User ID is required" });
     }
@@ -157,7 +157,7 @@ const deleteNotification = asyncHandler(async (req: Request, res: Response) => {
 });
 
 const clearAllNotifications = asyncHandler(async (req: Request, res: Response) => {
-    const userId = req.user?._id;
+    const userId = req.user?.id;
     if (!userId) {
         return res.status(400).json({ message: "User ID is required" });
     }
@@ -165,6 +165,29 @@ const clearAllNotifications = asyncHandler(async (req: Request, res: Response) =
     res.status(200).json({ message: "All notifications cleared" });
 }
 );
+
+// Get unread notification count
+const getUnreadCount = asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+    }
+    const count = await Notification.countDocuments({ userId, isRead: false });
+    res.status(200).json({ count });
+});
+
+// Mark all notifications as read
+const markAllAsRead = asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+    }
+    await Notification.updateMany(
+        { userId, isRead: false },
+        { isRead: true }
+    );
+    res.status(200).json({ message: "All notifications marked as read" });
+});
 
 //notify farmer when their loan is approved
 const createLoanApprovalNotification = asyncHandler(async (req: Request, res: Response) => {
@@ -232,5 +255,7 @@ export const NotificationController = {
     createTreatmentNotification,
     markNotificationAsRead,
     deleteNotification,
-    clearAllNotifications
+    clearAllNotifications,
+    getUnreadCount,
+    markAllAsRead
 };
