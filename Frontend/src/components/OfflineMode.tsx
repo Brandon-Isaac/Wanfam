@@ -51,7 +51,7 @@ const OfflineMode: React.FC<OfflineModeProps> = ({ onRetry }) => {
             className="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold animate-pulse"
           >
             <i className="fas fa-check-circle mr-2"></i>
-            Continue
+            Continue Workings
           </button>
         ) : (
           <div className="space-y-3">
