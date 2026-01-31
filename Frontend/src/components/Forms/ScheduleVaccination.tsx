@@ -1,9 +1,11 @@
 import api from "../../utils/Api";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useToast } from "../../contexts/ToastContext";
 
 const ScheduleVaccination = () => {
     const { farmId, animalId } = useParams();
+    const { showToast } = useToast();
     const [formData, setFormData] = useState({
         vaccineName: "",
         scheduledDate: "",
@@ -16,6 +18,7 @@ const ScheduleVaccination = () => {
     const [loading, setLoading] = useState(false);
     const [fetchingVets, setFetchingVets] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const navigate = useNavigate();
     
     useEffect(() => {
@@ -48,8 +51,9 @@ const ScheduleVaccination = () => {
         e.preventDefault();
         setLoading(true);
         setError(null);
+        setSuccessMessage(null);
         try {
-            await api.post(`/vaccination/${farmId}/schedule`, {
+            await api.post(`/vaccination/schedules/${farmId}/${animalId}`, {
                 animalId,
                 vaccineName: formData.vaccineName,
                 scheduledDate: formData.scheduledDate,
@@ -58,9 +62,25 @@ const ScheduleVaccination = () => {
                 notes: formData.notes,
                 selfAdministered: formData.selfAdministered
             });
-            navigate(`/${farmId}/livestock/${animalId}`);
-        } catch (error) {
-            setError(error instanceof Error ? error.message : "An unexpected error occurred");
+            setSuccessMessage("Vaccination scheduled successfully!");
+            showToast('Vaccination scheduled successfully!', 'success');
+            // Reset form
+            setFormData({
+                vaccineName: "",
+                scheduledDate: "",
+                veterinarianId: "",
+                cost: "",
+                notes: "",
+                selfAdministered: false
+            });
+            // Navigate after a short delay to show the success message
+            setTimeout(() => {
+                navigate(`/${farmId}/livestock/${animalId}`);
+            }, 1500);
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.message || error.message || "Failed to schedule vaccination. Please try again.";
+            setError(errorMessage);
+            showToast(errorMessage, 'error');
         } finally {
             setLoading(false);
         }
@@ -179,7 +199,23 @@ const ScheduleVaccination = () => {
                         ></textarea>
                     </div>
                     
-                    {error && <p className="text-red-500 text-sm">{error}</p>}
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                            <div className="flex items-center">
+                                <i className="fas fa-exclamation-circle text-red-500 mr-2"></i>
+                                <p className="text-red-700 text-sm">{error}</p>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {successMessage && (
+                        <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                            <div className="flex items-center">
+                                <i className="fas fa-check-circle text-green-500 mr-2"></i>
+                                <p className="text-green-700 text-sm">{successMessage}</p>
+                            </div>
+                        </div>
+                    )}
                     
                     <button
                         type="submit"
@@ -190,14 +226,18 @@ const ScheduleVaccination = () => {
                     </button>
                     
                     {/* Navigate to Record Vaccination */}
-                    <button
-                        type="button"
-                        onClick={() => navigate(`/${farmId}/livestock/${animalId}/vaccinate`)}
-                        className="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition-colors duration-200 mt-2"
-                    >
-                        <i className="fas fa-syringe mr-2"></i>
-                        Record Vaccination Now
-                    </button>
+                    <div className="text-center mt-4">
+                        <p className="text-sm text-gray-600">
+                            Or{' '}
+                            <button
+                                type="button"
+                                onClick={() => navigate(`/${farmId}/livestock/${animalId}/vaccinate`)}
+                                className="text-blue-600 hover:text-blue-800 underline font-medium"
+                            >
+                                Record vaccination instead
+                            </button>
+                        </p>
+                    </div>
                 </form>
             </div>
         </div>

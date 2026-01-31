@@ -1,9 +1,11 @@
 import api from "../../utils/Api";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useToast } from "../../contexts/ToastContext";
 
 const Vaccinate = () => {
     const { farmId, animalId } = useParams();
+    const { showToast } = useToast();
     const [formData, setFormData] = useState({
         vaccineName: "",
         dateAdministered: "",
@@ -49,10 +51,28 @@ const Vaccinate = () => {
         setLoading(true);
         setError(null);
         try {
-            await api.post(`/livestock/${farmId}/animals/${animalId}/vaccinations`, formData);
-            navigate(`/${farmId}/livestock/${animalId}`);
-        } catch (error) {
-            setError(error instanceof Error ? error.message : "An unexpected error occurred");
+            const payload = {
+                farmId,
+                animalId,
+                vaccineName: formData.vaccineName,
+                scheduledDate: formData.dateAdministered,
+                notes: formData.notes,
+                ...(useExternalVet ? {
+                    veterinarianName: formData.veterinarianName,
+                    vaccination_cost: formData.cost
+                } : {
+                    veterinarianId: formData.veterinarian
+                })
+            };
+            await api.post(`/vaccination/records`, payload);
+            showToast('Vaccination recorded successfully!', 'success');
+            setTimeout(() => {
+                navigate(`/${farmId}/livestock/${animalId}`);
+            }, 1500);
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.message || error.message || "Failed to record vaccination";
+            setError(errorMessage);
+            showToast(errorMessage, 'error');
         } finally {
             setLoading(false);
         }
