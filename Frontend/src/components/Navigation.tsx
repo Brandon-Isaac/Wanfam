@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useParams } from 'react-router-dom';
-import NotificationDropdown from './NotificationDropdown';
+import NotificationBell from './NotificationBell';
 
 interface SubItem {
   name: string;
@@ -498,7 +498,7 @@ const Navigation = () => {
           </div>
 
           {/* Notifications */}
-          <NotificationDropdown />
+          <NotificationBell />
           
           {/* Switch Farms Button - Only for farmers with farmId */}
           {user?.role === 'farmer' && farmId && (

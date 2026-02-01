@@ -4,6 +4,7 @@ import { Expense } from "../models/Expense";
 import { Request, Response } from "express";
 import { User } from "../models/User";
 import { asyncHandler } from "../middleware/AsyncHandler";
+import notificationService from "../utils/notificationService";
     
 const getAnimalsByFarm = asyncHandler(async (req: Request, res: Response) => {
     const farmId = req.params.farmId;
@@ -48,8 +49,25 @@ const updateHealthStatus = asyncHandler(async (req: Request, res: Response) => {
     if (!animal) {
         return res.status(404).json({ message: "Animal not found" });
     }
+    const previousStatus = animal.healthStatus;
     animal.healthStatus = healthStatus;
     await animal.save();
+    
+    // Notify farm owner about health status change
+    try {
+        const farm = await Farm.findById(animal.farmId).populate('owner');
+        if (farm && farm.owner && previousStatus !== healthStatus) {
+            await notificationService.notifyHealthStatusChange(
+                (farm.owner as any)._id,
+                animal.tagId || animal.name || 'Unknown',
+                healthStatus,
+                animal._id.toString()
+            );
+        }
+    } catch (notifError) {
+        console.error('Error sending health status notification:', notifError);
+    }
+    
     res.json({ success: true, data: animal });
 });
 
@@ -72,7 +90,7 @@ const addAnimalToFarm = asyncHandler(async (req: Request, res: Response) => {
         breed, 
         gender,
         notes,
-        assignedWorker
+        assignedWorker: assignedWorker && assignedWorker !== '' ? assignedWorker : undefined
     });
     await newAnimal.save();
 
@@ -92,6 +110,21 @@ const addAnimalToFarm = asyncHandler(async (req: Request, res: Response) => {
             notes: `Automatic expense record for livestock purchase`
         });
         await expense.save();
+    }
+
+    // Notify farm owner about new animal registration
+    try {
+        const farmPopulated = await Farm.findById(farmId).populate('owner');
+        if (farmPopulated && farmPopulated.owner) {
+            await notificationService.notifyAnimalRegistration(
+                (farmPopulated.owner as any)._id,
+                newAnimal.tagId || name || 'Unknown',
+                species,
+                newAnimal._id.toString()
+            );
+        }
+    } catch (notifError) {
+        console.error('Error sending animal registration notification:', notifError);
     }
 
     res.status(201).json({ success: true, data: newAnimal });
@@ -120,7 +153,7 @@ const updateAnimal = asyncHandler(async (req: Request, res: Response) => {
     animal.gender = gender;
     animal.weight = weight;
     animal.healthStatus = healthStatus;
-    animal.assignedWorker = assignedWorker;
+    animal.assignedWorker = assignedWorker && assignedWorker !== '' ? assignedWorker : undefined;
     await animal.save();
     res.json({ success: true, data: animal, tagId: animal.tagId });
 });

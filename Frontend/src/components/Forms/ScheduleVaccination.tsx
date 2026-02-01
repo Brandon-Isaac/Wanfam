@@ -101,7 +101,7 @@ const ScheduleVaccination = () => {
                 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-gray-700">Vaccine Name</label>
+                        <label className="block text-gray-700">Vaccine/Infection/Prevention</label>
                         <input
                             type="text"
                             name="vaccineName"
