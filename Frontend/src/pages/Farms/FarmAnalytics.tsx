@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import api from '../../utils/Api';
 
 interface FarmStats {
@@ -23,45 +25,40 @@ interface FarmStats {
 }
 
 const FarmAnalytics = () => {
+  const { farmId } = useParams<{ farmId: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [stats, setStats] = useState<FarmStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('month');
+  const [error, setError] = useState('');
+
+  const isAdmin = user?.role === 'admin';
+  const isSystemWide = isAdmin && !farmId;
 
   useEffect(() => {
+    // For farmers, farmId is required
+    if (!isAdmin && !farmId) {
+      setError('Invalid farm ID');
+      setLoading(false);
+      return;
+    }
     fetchAnalytics();
-  }, [timeRange]);
+  }, [timeRange, farmId]);
 
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/farms/analytics?range=${timeRange}`);
+      setError('');
+      // Use different endpoint based on whether it's system-wide or farm-specific
+      const endpoint = isSystemWide 
+        ? '/farms/analytics' 
+        : `/farms/${farmId}/analytics`;
+      const response = await api.get(endpoint);
       setStats(response.data.data || response.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching analytics:', error);
-      // Mock data for demo
-      setStats({
-        totalFarms: 12,
-        activeFarms: 10,
-        totalAnimals: 450,
-        totalLand: 1250,
-        avgAnimalsPerFarm: 37.5,
-        topFarms: [
-          { _id: '1', name: 'Green Valley Farm', location: 'Nakuru', totalAnimals: 85, landSize: 200 },
-          { _id: '2', name: 'Sunrise Ranch', location: 'Eldoret', totalAnimals: 72, landSize: 180 },
-          { _id: '3', name: 'Mountain View Farm', location: 'Nanyuki', totalAnimals: 65, landSize: 150 }
-        ],
-        animalsBySpecies: {
-          cattle: 180,
-          goats: 120,
-          sheep: 90,
-          poultry: 60
-        },
-        healthDistribution: {
-          healthy: 380,
-          sick: 55,
-          critical: 15
-        }
-      });
+      setError(error.response?.data?.message || 'Failed to load farm analytics');
     } finally {
       setLoading(false);
     }
@@ -71,6 +68,24 @@ const FarmAnalytics = () => {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      </div>
+    );
+  }
+
+  if (error || !stats) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <i className="fas fa-exclamation-circle text-4xl text-red-500 mb-4"></i>
+          <h2 className="text-xl font-semibold text-red-800 mb-2">Error Loading Analytics</h2>
+          <p className="text-red-600 mb-4">{error || 'Failed to load farm analytics'}</p>
+          <button
+            onClick={() => navigate('/farms')}
+            className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700"
+          >
+            Back to Farms
+          </button>
+        </div>
       </div>
     );
   }
@@ -85,8 +100,14 @@ const FarmAnalytics = () => {
       {/* Header */}
       <div className="mb-8 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Farm Analytics</h1>
-          <p className="text-gray-600 mt-2">Comprehensive insights into farm performance</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {isSystemWide ? 'System-Wide Farm Analytics' : 'Farm Analytics'}
+          </h1>
+          <p className="text-gray-600 mt-2">
+            {isSystemWide 
+              ? 'Comprehensive insights across all farms in the system' 
+              : 'Comprehensive insights into farm performance'}
+          </p>
         </div>
         <select
           value={timeRange}

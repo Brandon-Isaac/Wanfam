@@ -36,6 +36,179 @@ const getAllFarms = asyncHandler(async (req: Request, res: Response) => {
     });
 });
 
+// Get analytics for a specific farm
+const getFarmAnalytics = asyncHandler(async (req: Request, res: Response) => {
+    const { farmId } = req.params;
+    const farmerId = req.user?.id;
+    const userRole = req.user?.role;
+
+    // Verify farm exists and user has access
+    let farm;
+    if (userRole === 'admin') {
+        farm = await Farm.findOne({ _id: farmId, isActive: true });
+    } else {
+        farm = await Farm.findOne({ _id: farmId, owner: farmerId, isActive: true });
+    }
+
+    if (!farm) {
+        return res.status(404).json({ message: 'Farm not found' });
+    }
+
+    // Get total animals for this farm (removed isActive check - Animal model doesn't have this field)
+    const totalAnimals = await Animal.countDocuments({ farmId: farm._id });
+    
+    // Get animals by species
+    const speciesData = await Animal.aggregate([
+        { $match: { farmId: farm._id } },
+        { $group: { _id: '$species', count: { $sum: 1 } } }
+    ]);
+    const animalsBySpecies: Record<string, number> = {};
+    speciesData.forEach(item => {
+        animalsBySpecies[item._id] = item.count;
+    });
+
+    // Get health distribution - properly categorize all health statuses
+    const healthData = await Animal.aggregate([
+        { $match: { farmId: farm._id } },
+        { $group: { _id: '$healthStatus', count: { $sum: 1 } } }
+    ]);
+    const healthDistribution = {
+        healthy: 0,
+        sick: 0,
+        critical: 0
+    };
+    healthData.forEach(item => {
+        if (item._id === 'healthy') {
+            healthDistribution.healthy = item.count;
+        } else if (['sick', 'treatment', 'recovery'].includes(item._id)) {
+            healthDistribution.sick += item.count;
+        } else if (['critical', 'quarantined', 'deceased'].includes(item._id)) {
+            healthDistribution.critical += item.count;
+        }
+    });
+
+    // Get farm's land size
+    const totalLand = farm.size?.value || 0;
+
+    // Calculate average animals per acre
+    const avgAnimalsPerFarm = totalLand > 0 ? (totalAnimals / totalLand) : 0;
+
+    // Get top performing farms (for comparison)
+    const topFarms = await Farm.find({ isActive: true })
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .select('name location size');
+    
+    const topFarmsWithAnimals = await Promise.all(topFarms.map(async (f) => {
+        const animalCount = await Animal.countDocuments({ farmId: f._id });
+        return {
+            _id: f._id,
+            name: f.name,
+            location: f.location?.county || 'Unknown',
+            totalAnimals: animalCount,
+            landSize: f.size?.value || 0
+        };
+    }));
+
+    const analytics = {
+        totalFarms: 1,
+        activeFarms: 1,
+        totalAnimals,
+        totalLand,
+        avgAnimalsPerFarm,
+        topFarms: topFarmsWithAnimals,
+        animalsBySpecies,
+        healthDistribution
+    };
+
+    res.json({
+        success: true,
+        data: analytics
+    });
+});
+
+//Get systems Farm analytics
+const getAllSystemFarmAnalytics = asyncHandler(async (req: Request, res: Response) => {
+    const farms = await Farm.find({ isActive: true });
+    const totalFarms = farms.length;
+    const activeFarms = totalFarms;
+
+    // Get total animals across all farms (removed isActive check)
+    const totalAnimals = await Animal.countDocuments({});
+    
+    // Get animals by species (system-wide)
+    const speciesData = await Animal.aggregate([
+        { $group: { _id: '$species', count: { $sum: 1 } } }
+    ]);
+    const animalsBySpecies: Record<string, number> = {};
+    speciesData.forEach(item => {
+        animalsBySpecies[item._id] = item.count;
+    });
+
+    // Get total land size across all farms
+    const landData = await Farm.aggregate([
+        { $match: { isActive: true } },
+        { $group: { _id: null, totalSize: { $sum: '$size.value' } } }
+    ]);
+    const totalLand = landData.length > 0 ? landData[0].totalSize : 0;
+
+    // Calculate average animals per farm
+    const avgAnimalsPerFarm = totalFarms > 0 ? (totalAnimals / totalFarms) : 0;
+
+    // Get health distribution (system-wide) - properly categorize all statuses
+    const healthData = await Animal.aggregate([
+        { $group: { _id: '$healthStatus', count: { $sum: 1 } } }
+    ]);
+    const healthDistribution = {
+        healthy: 0,
+        sick: 0,
+        critical: 0
+    };
+    healthData.forEach(item => {
+        if (item._id === 'healthy') {
+            healthDistribution.healthy = item.count;
+        } else if (['sick', 'treatment', 'recovery'].includes(item._id)) {
+            healthDistribution.sick += item.count;
+        } else if (['critical', 'quarantined', 'deceased'].includes(item._id)) {
+            healthDistribution.critical += item.count;
+        }
+    });
+
+    // Get top performing farms
+    const topFarms = await Farm.find({ isActive: true })
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .select('name location size');
+    
+    const topFarmsWithAnimals = await Promise.all(topFarms.map(async (farm) => {
+        const animalCount = await Animal.countDocuments({ farmId: farm._id });
+        return {
+            _id: farm._id,
+            name: farm.name,
+            location: farm.location?.county || 'Unknown',
+            totalAnimals: animalCount,
+            landSize: farm.size?.value || 0
+        };
+    }));
+
+    const analytics = {
+        totalFarms,
+        activeFarms,
+        totalAnimals,
+        totalLand,
+        avgAnimalsPerFarm,
+        topFarms: topFarmsWithAnimals,
+        animalsBySpecies,
+        healthDistribution
+    };
+
+    res.json({
+        success: true,
+        data: analytics
+    });
+});
+
+
 // Get single farm
 const getFarmById = asyncHandler(async (req: Request, res: Response) => {
     const { farmId } = req.params;
@@ -325,14 +498,7 @@ const deleteFarm = asyncHandler(async (req: Request, res: Response) => {
     if (!farm) {
         return res.status(404).json({ message: 'Farm not found or you do not have permission to delete this farm' });
     }
-
-    // Permanently delete the farm
     await Farm.deleteOne({ _id: farmId });
-
-    // Optional: Delete related records
-    // await FarmWorker.deleteMany({ farm: farmId });
-    // await Animal.deleteMany({ farmId: farmId });
-    // await Notification.deleteMany({ farmId: farmId });
 
     res.json({
         success: true,
@@ -351,7 +517,9 @@ const farmController = {
     assignWorker,
     assignVeterinarian,
     getFarmWorkers,
-    getFarmVeterinarians
+    getFarmVeterinarians,
+    getFarmAnalytics,
+    getAllSystemFarmAnalytics
 };
 
 export default farmController;

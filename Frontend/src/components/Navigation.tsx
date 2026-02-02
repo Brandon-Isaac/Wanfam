@@ -72,8 +72,6 @@ const Navigation = () => {
           subItems: [
             { name: 'All Animals', path: '/livestock/all' },
             { name: 'Health Records', path: '/health' },
-            { name: 'Treatments', path: '/treatments' },
-            { name: 'Vaccinations', path: '/vaccinations' }
           ]
         },
         {
@@ -82,8 +80,7 @@ const Navigation = () => {
           icon: 'fas fa-barn',
           subItems: [
             { name: 'All Farms', path: '/farms' },
-            { name: 'Active Farms', path: '/farms?status=active' },
-            { name: 'Farm Analytics', path: '/farms/analytics' }
+            { name: 'System Analytics', path: '/farms/analytics' }
           ]
         },
         {
@@ -93,8 +90,6 @@ const Navigation = () => {
           subItems: [
             { name: 'System Health', path: '/dashboard' },
             { name: 'Audit Logs', path: '/audit-logs' },
-            { name: 'Settings', path: '/settings' },
-            { name: 'Backup & Restore', path: '/settings/backup' }
           ]
         }
       ],
@@ -105,6 +100,7 @@ const Navigation = () => {
       icon: 'fas fa-barn',
       subItems: farmId ? [
         { name: 'My Farms', path: '/farms' },
+        { name: 'Farm Analytics', path: `/farms/${farmId}/analytics` },
         { name: 'Add Farm', path: '/farms/add' },
         { name: 'Select Farm', path: '/select/farm' }
       ] : [

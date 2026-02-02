@@ -58,10 +58,9 @@ import AllUsers from '../pages/Users/AllUsers';
 import AddUser from '../pages/Users/AddUser';
 import RolesPermissions from '../pages/Users/RolesPermissions';
 
-// Health & Treatment Pages
+// Health Pages
 import HealthRecords from '../pages/Health/HealthRecords';
-import TreatmentList from '../pages/Treatments/TreatmentList';
-import VaccinationList from '../pages/Vaccinations/VaccinationList';
+import HealthRecordDetail from '../pages/Health/HealthRecordDetail';
 
 // Farm Analytics
 import FarmAnalytics from '../pages/Farms/FarmAnalytics';
@@ -434,11 +433,11 @@ const AppRoutes = () => {
                     </>
                 </ProtectedRoutes>
             } />
-            <Route path="/treatments" element={
+            <Route path="/health/:id" element={
                 <ProtectedRoutes>
                     <>
                         <Navigation />
-                        <TreatmentList />
+                        <HealthRecordDetail />
                     </>
                 </ProtectedRoutes>
             } />
@@ -450,17 +449,17 @@ const AppRoutes = () => {
                     </>
                 </ProtectedRoutes>
             } />
-            <Route path="/vaccinations/list" element={
+
+            {/* Farm Analytics Routes */}
+            <Route path="/farms/analytics" element={
                 <ProtectedRoutes>
                     <>
                         <Navigation />
-                        <VaccinationList />
+                        <FarmAnalytics />
                     </>
                 </ProtectedRoutes>
             } />
-
-            {/* Farm Analytics Route */}
-            <Route path="/farms/analytics" element={
+            <Route path="/farms/:farmId/analytics" element={
                 <ProtectedRoutes>
                     <>
                         <Navigation />
