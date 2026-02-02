@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import api from "../../utils/Api";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import VetEarnings from "../../components/VetEarnings";
 
 const VeterinaryDashboard = () => {
     const [stats, setStats] = useState<any>({});
@@ -21,6 +22,11 @@ const VeterinaryDashboard = () => {
 
   return (
     <div>
+      {/* Earnings Section */}
+      <div className="mb-8">
+        <VetEarnings />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Link
           to="/treatment-schedules?filter=today"

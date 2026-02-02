@@ -46,9 +46,7 @@ const Vaccinate = () => {
             try {
                 const response = await api.get(`/vaccination/schedules/${farmId}/${animalId}`);
                 const schedulesList = response.data.schedules || [];
-                console.log('Fetched schedules:', schedulesList);
                 const pendingSchedules = schedulesList.filter((s: any) => s.status === 'scheduled');
-                console.log('Pending schedules:', pendingSchedules);
                 setSchedules(pendingSchedules);
                 if (pendingSchedules.length === 0) {
                     setRecordType('new');

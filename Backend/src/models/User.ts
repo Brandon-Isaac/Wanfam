@@ -15,6 +15,12 @@ export interface IUser extends Document {
   // Veterinary-specific fields
   licenseNumber?: string;
   specialization?: 'general' | 'dairy' | 'poultry' | 'small_animals' | 'surgery';
+  earnings?: {
+    totalEarnings: number;
+    vaccinationEarnings: number;
+    treatmentEarnings: number;
+    lastUpdated: Date;
+  };
   
   // Worker and Loan Officer fields
   employeeId?: string;
@@ -48,6 +54,12 @@ const userSchema = new Schema<IUser>({
   specialization: { 
     type: String, 
     enum: ['general', 'dairy', 'poultry', 'small_animals', 'surgery']
+  },
+  earnings: {
+    totalEarnings: { type: Number, default: 0 },
+    vaccinationEarnings: { type: Number, default: 0 },
+    treatmentEarnings: { type: Number, default: 0 },
+    lastUpdated: { type: Date, default: Date.now }
   },
   wages: { type: Number },
   // Worker and Loan Officer fields

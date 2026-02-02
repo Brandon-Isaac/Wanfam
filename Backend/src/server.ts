@@ -47,6 +47,17 @@ mongoose.connect(MONGO_URI, {
     startScheduledJobs();
 }).catch((err) => {
     console.error("MongoDB connection error:", err);
+    console.error("Make sure MongoDB is running and MONGO_URI is correct");
+    process.exit(1); // Exit if can't connect to database
+});
+
+// Handle connection errors after initial connection
+mongoose.connection.on('error', (err) => {
+    console.error('MongoDB connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+    console.warn('MongoDB disconnected');
 });
 
 app.use(Express.json());

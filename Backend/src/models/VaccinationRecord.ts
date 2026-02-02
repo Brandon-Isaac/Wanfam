@@ -2,7 +2,6 @@ import {Schema, model, Document} from 'mongoose';
 
 export interface IVaccinationRecord extends Document {
     scheduleId?: Schema.Types.ObjectId;
-    slug?: string;
     farmId: Schema.Types.ObjectId;
     animalId: Schema.Types.ObjectId;
     vaccineName: string;
@@ -10,6 +9,8 @@ export interface IVaccinationRecord extends Document {
     batchNumber?: string;
     nextDueDate?: Date;
     administeredBy?: Schema.Types.ObjectId;
+    veterinarianName?: string;
+    cost?: number;
     administrationSite: [{ type: string, enum: ['left front leg', 'right front leg', 'left hind leg', 'right hind leg', 'neck', 'other'] }];
     sideEffects?: string;
     notes?: string;
@@ -23,15 +24,11 @@ const vaccinationRecordSchema = new Schema<IVaccinationRecord>({
     vaccinationDates: { type: [Date], required: true },
     nextDueDate: { type: Date },
     administeredBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    veterinarianName: { type: String },
+    cost: { type: Number, min: 0 },
     administrationSite: [{ type: String, enum: ['left front leg', 'right front leg', 'left hind leg', 'right hind leg', 'neck', 'other'] }],
     sideEffects: { type: String },
     notes: { type: String }
-});
-vaccinationRecordSchema.pre<IVaccinationRecord>('save', async function(next) {
-    if (this.isNew) {
-        this.slug = `${this.vaccineName}-${this.animalId}-${Date.now()}`;
-    }
-    next();
 });
 
 export const VaccinationRecord = model<IVaccinationRecord>('VaccinationRecord', vaccinationRecordSchema);

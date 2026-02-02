@@ -4,6 +4,8 @@ import { asyncHandler } from "../middleware/AsyncHandler";
 import { Wage } from "../models/Wages";
 import { User } from "../models/User";
 import { Farm } from "../models/Farm";
+import { VaccinationRecord } from "../models/VaccinationRecord";
+import { TreatmentRecord } from "../models/TreatmentRecord";
 
 const getFarmVets = asyncHandler(async (req: Request, res: Response) => {
     const farmId = req.params.farmId;
@@ -90,4 +92,82 @@ const getTotalVetsWages = asyncHandler(async (req: Request, res: Response) => {
     res.status(200).json({ totalWages });
 });
 
-export const VetController = { getFarmVets, getVetSalary, getTotalVetsWages, updateVetAvailability, createVetServices, addFarmToVet, getVetsAvailable };
+// Get vet earnings summary
+const getVetEarnings = asyncHandler(async (req: Request, res: Response) => {
+    const vetId = req.user?.id;
+    const user = await User.findById(vetId).select('earnings firstName lastName');
+    
+    if (!user) {
+        return res.status(404).json({ message: "Veterinarian not found" });
+    }
+    
+    res.status(200).json({ 
+        success: true, 
+        data: {
+            name: `${user.firstName} ${user.lastName}`,
+            earnings: user.earnings || {
+                totalEarnings: 0,
+                vaccinationEarnings: 0,
+                treatmentEarnings: 0,
+                lastUpdated: new Date()
+            }
+        }
+    });
+});
+
+// Get detailed vet service records (vaccinations and treatments)
+const getVetServiceRecords = asyncHandler(async (req: Request, res: Response) => {
+    const vetId = req.user?.id;
+    
+    // Get vaccination records with cost
+    const vaccinations = await VaccinationRecord.find({ 
+        veterinarianId: vetId,
+        cost: { $exists: true, $gt: 0 }
+    })
+    .populate('animalId', 'name tagId species breed')
+    .populate('farmId', 'name')
+    .sort({ createdAt: -1 });
+    
+    // Get treatment records with cost
+    const treatments = await TreatmentRecord.find({ 
+        administeredBy: vetId,
+        cost: { $exists: true, $gt: 0 }
+    })
+    .populate('animalId', 'name tagId species breed')
+    .sort({ scheduledDate: -1 });
+    
+    res.status(200).json({ 
+        success: true, 
+        data: {
+            vaccinations: vaccinations.map(v => ({
+                id: v._id,
+                type: 'vaccination',
+                vaccineName: v.vaccineName,
+                animal: v.animalId,
+                farm: v.farmId,
+                cost: v.cost
+            })),
+            treatments: treatments.map(t => ({
+                id: t._id,
+                type: 'treatment',
+                treatmentGiven: t.treatmentGiven,
+                animal: t.animalId,
+                cost: t.cost,
+                date: t.treatmentDate,
+                healthStatus: t.healthStatus
+            }))
+        }
+    });
+});
+
+export const VetController = { 
+    getFarmVets, 
+    getVetSalary, 
+    getTotalVetsWages, 
+    updateVetAvailability, 
+    createVetServices, 
+    addFarmToVet, 
+    getVetsAvailable,
+    getVetEarnings,
+    getVetServiceRecords
+};

@@ -24,7 +24,6 @@ const ScheduleTreatment = () => {
                 setVeterinarians(response.data.data);
                 setLoading(false);
             } catch (error) {
-                console.error("Failed to fetch veterinarians:", error);
                 setError(error instanceof Error ? error.message : "An unexpected error occurred");
                 setLoading(false);
             }
@@ -48,7 +47,6 @@ const ScheduleTreatment = () => {
             await api.put(`/livestock/${animalId}/health-status`, { healthStatus });
             navigate(`/${farmId}/animals/sick`);
         } catch (error) {
-            console.error("Failed to schedule treatment:", error);
             setError(error instanceof Error ? error.message : "An unexpected error occurred");
         }
     };

@@ -18,6 +18,12 @@ export interface IVeterinarian extends Document {
         paymentInterval: 'monthly' | 'bi-monthly' | 'weekly' | 'daily';
         status: 'paid' | 'unpaid';
     }
+    earnings?: {
+        totalEarnings: number;
+        vaccinationEarnings: number;
+        treatmentEarnings: number;
+        lastUpdated: Date;
+    };
     availability?: boolean;
     notes?: string;
 }
@@ -38,6 +44,12 @@ const veterinarianSchema = new Schema<IVeterinarian>({
         currency: { type: String, required: true },
         paymentInterval: { type: String, enum: ['monthly', 'bi-monthly', 'weekly', 'daily'], required: true },
         status: { type: String, enum: ['paid', 'unpaid'], default: 'unpaid' }
+    },
+    earnings: {
+        totalEarnings: { type: Number, default: 0 },
+        vaccinationEarnings: { type: Number, default: 0 },
+        treatmentEarnings: { type: Number, default: 0 },
+        lastUpdated: { type: Date, default: Date.now }
     },
     availability: { type: Boolean, default: true },
     notes: { type: String }

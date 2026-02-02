@@ -3,6 +3,8 @@ import { VaccinationSchedule } from "../models/VaccinationSchedule";
 import { Request, Response } from "express";
 import { Animal } from "../models/Animal";
 import { Farm } from "../models/Farm";
+import { User } from "../models/User";
+import { Expense } from "../models/Expense";
 import { get } from "http";
 import * as notificationService from "../utils/notificationService";
 
@@ -45,6 +47,21 @@ const createVaccinationSchedule = async (req: Request, res: Response) => {
             console.error('Error sending vaccination schedule notification:', notifError);
         }
 
+        // Notify veterinarian about the vaccination assignment
+        if (veterinarianId) {
+            try {
+                await notificationService.notifyVetVaccinationAssignment(
+                    veterinarianId,
+                    animal.tagId || animal.name || 'Unknown',
+                    vaccineName,
+                    scheduledDate,
+                    newSchedule._id.toString()
+                );
+            } catch (notifError) {
+                console.error('Error sending vet vaccination assignment notification:', notifError);
+            }
+        }
+
         return res.status(201).json({ message: "Vaccination schedule created successfully", schedule: newSchedule });
     } catch (error) {
         console.error("Error creating vaccination schedule:", error);
@@ -81,13 +98,32 @@ const getAnimalVaccinationSchedules = async (req: Request, res: Response) => {
 
 const getVeterinarianSchedules = async (req: Request, res: Response) => {
     try {
-        // Get all schedules assigned to this veterinarian
-        const schedules = await VaccinationSchedule.find({ veterinarianId: req.user.id })
+        // Get all schedules assigned to this veterinarian (excluding completed ones)
+        const schedules = await VaccinationSchedule.find({ 
+            veterinarianId: req.user.id,
+            status: { $ne: 'completed' }
+        })
             .populate('animalId', 'name tagId species')
             .populate('farmId', 'name location')
-            .sort({ startDate: 1 });
+            .sort({ scheduledDate: 1 });
         
-        return res.status(200).json({ schedules });
+        // Transform the data to match frontend expectations
+        const transformedSchedules = schedules.map(schedule => {
+            const scheduleObj = schedule.toObject();
+            // Since animalId is an array, get the first animal
+            const animal = Array.isArray(scheduleObj.animalId) && scheduleObj.animalId.length > 0
+                ? scheduleObj.animalId[0]
+                : scheduleObj.animalId;
+            
+            return {
+                ...scheduleObj,
+                animalId: animal,
+                scheduleName: scheduleObj.vaccineName,
+                vaccinationTime: scheduleObj.scheduledDate
+            };
+        });
+        
+        return res.status(200).json({ schedules: transformedSchedules });
     } catch (error) {
         console.error("Error fetching veterinarian schedules:", error);
         return res.status(500).json({ message: "Internal server error" });
@@ -264,6 +300,100 @@ const deleteVaccinationRecord = async (req: Request, res: Response) => {
     }
 };
 
+// Create vaccination record with animalId from URL params (used by vets)
+const createVaccinationRecordForAnimal = async (req: Request, res: Response) => {
+    try {
+        const { animalId } = req.params;
+        const { farmId, vaccineName, dose, unit, vaccination_cost, scheduledDate, notes, veterinarianId, veterinarianName } = req.body;
+        
+        const farm = await Farm.findById(farmId);
+        if (!farm) {
+            return res.status(404).json({ message: "Farm not found" });
+        }
+        
+        const animal = await Animal.findOne({ _id: animalId, farmId });
+        if (!animal) {
+            return res.status(400).json({ message: "Animal not found in the specified farm" });
+        }
+        
+        const newRecord = new VaccinationRecord({
+            farmId,
+            animalId,
+            ...(veterinarianId && { veterinarianId }),
+            ...(veterinarianName && { veterinarianName }),
+            vaccineName,
+            dose,
+            unit,
+            scheduledDate,
+            cost: vaccination_cost,
+            notes
+        });
+        await newRecord.save();
+
+        // Update vet earnings if cost is provided and veterinarianId exists
+        if (vaccination_cost && (veterinarianId || req.user?.id)) {
+            const vetId = veterinarianId || req.user?.id;
+            const cost = parseFloat(vaccination_cost);
+            
+            try {
+                await User.findByIdAndUpdate(
+                    vetId,
+                    {
+                        $inc: {
+                            'earnings.totalEarnings': cost,
+                            'earnings.vaccinationEarnings': cost
+                        },
+                        $set: {
+                            'earnings.lastUpdated': new Date()
+                        }
+                    },
+                    { upsert: false }
+                );
+                
+                // Create expense entry for the vaccination
+                const expenseData = {
+                    farmId,
+                    category: 'healthcare',
+                    subcategory: 'vaccination',
+                    amount: cost,
+                    currency: 'KES',
+                    date: scheduledDate || new Date(),
+                    description: `Vaccination: ${vaccineName} for animal ${animal.tagId || animal.name}`,
+                    animalId: animalId,
+                    workerId: vetId,
+                    paymentStatus: 'completed',
+                    recordedBy: req.user?.id
+                };
+                
+                const expense = new Expense(expenseData);
+                await expense.save();
+            } catch (updateError) {
+                console.error('Error updating vet earnings or creating expense:', updateError);
+            }
+        }
+
+        // Notify farm owner about the vaccination record
+        try {
+            const farmPopulated = await Farm.findById(farmId).populate('owner');
+            if (farmPopulated && farmPopulated.owner) {
+                await notificationService.notifyVaccinationRecorded(
+                    (farmPopulated.owner as any)._id,
+                    animal.tagId || animal.name || 'Unknown',
+                    vaccineName,
+                    newRecord._id.toString()
+                );
+            }
+        } catch (notifError) {
+            console.error('Error sending vaccination record notification:', notifError);
+        }
+
+        return res.status(201).json({ message: "Vaccination record created successfully", record: newRecord });
+    } catch (error) {
+        console.error("Error creating vaccination record:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 export const VaccinationController = {
     createVaccinationSchedule,
     getAnimalVaccinationSchedules,
@@ -274,6 +404,7 @@ export const VaccinationController = {
     executeVaccinationSchedule,
     getVaccinationRecords,
     createVaccinationRecord,
+    createVaccinationRecordForAnimal,
     updateVaccinationRecord,
     deleteVaccinationRecord
 };

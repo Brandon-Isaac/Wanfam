@@ -270,7 +270,10 @@ const AllAnimals = () => {
             {filteredAnimals.map((animal) => (
               <Link
                 key={animal._id}
-                to={`/${animal.farmId._id}/livestock/${animal._id}`}
+                to={animal.healthStatus === 'healthy' 
+                  ? `/${animal.farmId._id}/livestock/${animal._id}`
+                  : `/${animal.farmId._id}/animals/sick`
+                }
                 className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-lg transition-shadow overflow-hidden"
               >
                 <div className="p-6">

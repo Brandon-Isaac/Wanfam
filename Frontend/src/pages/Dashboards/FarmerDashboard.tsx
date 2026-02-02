@@ -127,21 +127,6 @@ const FarmerDashboard = () => {
               </div>
             </div>
           </Link>
-
-          <Link
-            to="/treatment-schedules"
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md transition-all hover:border-yellow-400 cursor-pointer"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Checkups</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{stats.upcomingCheckupsCount || 0}</p>
-              </div>
-              <div className="p-2 bg-yellow-50 rounded-lg">
-                <i className="fas fa-calendar-alt text-yellow-600"></i>
-              </div>
-            </div>
-          </Link>
           <Link
             to="/expenses"
             className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md transition-all hover:border-purple-400 cursor-pointer"

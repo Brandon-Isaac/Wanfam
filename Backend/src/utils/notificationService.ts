@@ -166,6 +166,23 @@ export const notifyVaccinationScheduled = async (
     });
 };
 
+// Notify veterinarian when assigned to a vaccination case
+export const notifyVetVaccinationAssignment = async (
+    vetId: Schema.Types.ObjectId | string,
+    animalTag: string,
+    vaccineName: string,
+    scheduledDate: Date,
+    scheduleId: Schema.Types.ObjectId | string
+) => {
+    return createNotification({
+        userId: vetId,
+        message: `You have been assigned to vaccinate animal ${animalTag} with ${vaccineName} on ${new Date(scheduledDate).toLocaleDateString()}`,
+        type: 'vaccination',
+        relatedEntityId: scheduleId,
+        relatedEntityType: 'vaccination_schedule'
+    });
+};
+
 // Notify when a vaccination is due
 export const notifyVaccinationDue = async (
     farmerId: Schema.Types.ObjectId | string,

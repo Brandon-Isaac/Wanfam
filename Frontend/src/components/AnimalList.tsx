@@ -66,6 +66,7 @@ const params = useParams();
         purchaseDate: animal.dateOfPurchase,
         notes: animal.notes,
         weight: animal.weight,
+        healthStatus: animal.healthStatus,
         assignedWorker: animal.assignedWorker,
         createdAt: animal.addedAt,
         updatedAt: animal.updatedAt,
@@ -456,6 +457,9 @@ const params = useParams();
                     Age/Weight
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Health Status
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Production
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -508,6 +512,29 @@ const params = useParams();
                       <div className="text-xs text-gray-500 capitalize">
                         {animal.gender} • {animal.weight ? `${animal.weight} kg` : 'No weight'}
                       </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {animal.healthStatus && animal.healthStatus !== 'healthy' ? (
+                        <button
+                          onClick={() => navigate(`/${farmId}/animals/sick`)}
+                          className={`px-3 py-1 rounded-full text-xs font-medium cursor-pointer hover:opacity-80 transition-opacity ${
+                            animal.healthStatus === 'sick' ? 'bg-red-100 text-red-800' :
+                            animal.healthStatus === 'treatment' ? 'bg-orange-100 text-orange-800' :
+                            animal.healthStatus === 'recovery' ? 'bg-yellow-100 text-yellow-800' :
+                            animal.healthStatus === 'quarantined' ? 'bg-purple-100 text-purple-800' :
+                            animal.healthStatus === 'deceased' ? 'bg-gray-100 text-gray-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}
+                        >
+                          <i className="fas fa-exclamation-circle mr-1"></i>
+                          {animal.healthStatus}
+                        </button>
+                      ) : (
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <i className="fas fa-check-circle mr-1"></i>
+                          {animal.healthStatus || 'healthy'}
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {animal.gender === 'female' && 
