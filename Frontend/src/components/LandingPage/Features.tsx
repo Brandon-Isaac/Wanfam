@@ -18,7 +18,6 @@ const Features = () => {
       title: 'Productivity Analysis',
       description: 'Monitor milk production, weight gain, and breeding success to calculate ROI.'
     },
-   
     {
       icon: 'fas fa-mobile-alt',
       title: 'Mobile Friendly',
