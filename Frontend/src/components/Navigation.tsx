@@ -56,7 +56,7 @@ const Navigation = () => {
     const roleBasedItems = {
       admin: [
         {
-          name: 'User Management',
+          name: 'Users',
           path: '/users',
           icon: 'fas fa-users',
           subItems: [
@@ -66,12 +66,34 @@ const Navigation = () => {
           ]
         },
         {
-          name: 'System Settings',
-          path: '/settings',
-          icon: 'fas fa-cog',
+          name: 'Animals',
+          path: '/livestock/all',
+          icon: 'fas fa-paw',
           subItems: [
-            { name: 'General Settings', path: '/settings/general' },
-            { name: 'Security', path: '/settings/security' },
+            { name: 'All Animals', path: '/livestock/all' },
+            { name: 'Health Records', path: '/health' },
+            { name: 'Treatments', path: '/treatments' },
+            { name: 'Vaccinations', path: '/vaccinations' }
+          ]
+        },
+        {
+          name: 'Farms',
+          path: '/farms',
+          icon: 'fas fa-barn',
+          subItems: [
+            { name: 'All Farms', path: '/farms' },
+            { name: 'Active Farms', path: '/farms?status=active' },
+            { name: 'Farm Analytics', path: '/farms/analytics' }
+          ]
+        },
+        {
+          name: 'System',
+          path: '/system',
+          icon: 'fas fa-server',
+          subItems: [
+            { name: 'System Health', path: '/dashboard' },
+            { name: 'Audit Logs', path: '/audit-logs' },
+            { name: 'Settings', path: '/settings' },
             { name: 'Backup & Restore', path: '/settings/backup' }
           ]
         }

@@ -347,6 +347,15 @@ const adminDashboard = asyncHandler(async (req: Request, res: Response) => {
         userActivity
     });
 });
+const getSystemMetrics = asyncHandler(async (req: Request, res: Response) => {
+    const performanceMetrics = {
+        uptime: process.uptime(),
+        memoryUsage: process.memoryUsage(),
+        cpuUsage: process.cpuUsage(),
+        eventLoopDelay: require('perf_hooks').performance.now()
+    };
+    res.json({ performanceMetrics });
+});
 
 
 export const DashboardController = {
@@ -355,5 +364,6 @@ export const DashboardController = {
     vetDashboard,
     workerDashboard,
     loanOfficerDashboard,
-    adminDashboard
+    adminDashboard,
+    getSystemMetrics
 };

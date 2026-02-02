@@ -5,13 +5,8 @@ import { roleHandler } from "../middleware/roleHandler";
 import { UserRole } from "../models/UserRole";
 
 const router = Router();
-
-router.post("/:farmSlug/animals/:animalSlug", authenticate, roleHandler([UserRole.VETERINARY]), healthController.createHealthRecord);
-router.get("/:farmSlug/animals/:animalSlug", authenticate, roleHandler([UserRole.VETERINARY, UserRole.FARMER, UserRole.ADMIN]), healthController.getHealthRecords);
-router.get("/:farmSlug/animals/:animalSlug/:id", authenticate, roleHandler([UserRole.VETERINARY, UserRole.FARMER, UserRole.ADMIN]), healthController.getHealthRecordById);
-router.get("/:farmSlug/", authenticate, roleHandler([UserRole.VETERINARY, UserRole.FARMER, UserRole.ADMIN]), healthController.getFarmHealthRecords);
-router.put("/:farmSlug/animals/:animalSlug/:id", authenticate, roleHandler([UserRole.VETERINARY]), healthController.updateHealthRecord);
-router.delete("/:farmSlug/animals/:animalSlug/:id", authenticate, roleHandler([UserRole.VETERINARY]), healthController.deleteHealthRecord);
-router.put("/:farmSlug/animals/:animalSlug/:id/weight", authenticate, roleHandler([UserRole.VETERINARY]), healthController.updateWeightRecord);
+router.get("/animal/:animalId", authenticate, roleHandler([UserRole.FARMER, UserRole.VETERINARY, UserRole.WORKER, UserRole.LOAN_OFFICER, UserRole.ADMIN]), healthController.getAnimalHealthRecords);
+router.get("/farm/:farmId", authenticate, roleHandler([UserRole.FARMER, UserRole.VETERINARY, UserRole.WORKER, UserRole.LOAN_OFFICER, UserRole.ADMIN]), healthController.getAllFarmHealthRecords);
+router.get("/", authenticate, roleHandler([UserRole.ADMIN]), healthController.getAllSystemHealthRecords);
 
 export default router;
