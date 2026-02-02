@@ -135,51 +135,10 @@ const Chatbot: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl mx-auto">
-                <div className="mb-4">
-                    <button onClick={() => window.history.back()} className="mb-4 text-purple-600 hover:text-purple-800 flex items-center space-x-2">
-                        <i className="fas fa-arrow-left"></i>
-                        <span>
-                            Back To Dashboard
-                        </span>
-                    </button>
-                </div>
-                {/* Header */}
-                <div className="bg-white rounded-t-lg shadow-sm border-b border-gray-200 p-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
-                                <i className="fas fa-robot text-white text-lg"></i>
-                            </div>
-                            <div>
-                                <h1 className="text-lg font-semibold text-gray-900">WANFAM AI Assistant</h1>
-                                <p className="text-xs text-gray-500">Livestock Management Expert</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <button
-                                onClick={() => setShowSuggestions(!showSuggestions)}
-                                className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                                title="Toggle suggestions"
-                            >
-                                <i className="fas fa-lightbulb"></i>
-                            </button>
-                            <button
-                                onClick={clearChat}
-                                className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                title="Clear chat"
-                            >
-                                <i className="fas fa-trash-alt"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Messages Container */}
-                <div className="bg-white shadow-sm" style={{ height: 'calc(100vh - 300px)', minHeight: '400px' }}>
-                    <div className="h-full overflow-y-auto p-4 space-y-4">
-                        {messages.map((message, index) => (
+        <div className="h-full flex flex-col bg-white">
+            {/* Messages Container */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {messages.map((message, index) => (
                             <div
                                 key={index}
                                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -239,7 +198,6 @@ const Chatbot: React.FC = () => {
 
                         <div ref={messagesEndRef} />
                     </div>
-                </div>
 
                 {/* Suggestions */}
                 {showSuggestions && suggestions.length > 0 && (
@@ -293,17 +251,17 @@ const Chatbot: React.FC = () => {
                 </div>
 
                 {/* Context Tabs */}
-                <div className="mt-4 bg-white rounded-lg shadow-sm p-3">
+                <div className="bg-gray-50 p-3 border-t border-gray-200">
                     <p className="text-xs text-gray-500 mb-2">
                         <i className="fas fa-lightbulb text-yellow-500 mr-1"></i>
-                        Quick topics (click to see suggested questions):
+                        Quick topics:
                     </p>
                     <div className="flex flex-wrap gap-2">
                         {['general', 'health', 'feeding', 'breeding', 'management'].map((context) => (
                             <button
                                 key={context}
                                 onClick={() => loadSuggestions(context)}
-                                className="text-xs px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md hover:bg-purple-50 hover:text-purple-700 transition-colors capitalize border border-gray-200 hover:border-purple-300"
+                                className="text-xs px-2 py-1 bg-white text-gray-700 rounded hover:bg-green-50 hover:text-green-700 transition-colors capitalize border border-gray-300 hover:border-green-400"
                             >
                                 <i className={`fas ${
                                     context === 'general' ? 'fa-info-circle' :
@@ -318,7 +276,6 @@ const Chatbot: React.FC = () => {
                     </div>
                 </div>
             </div>
-        </div>
     );
 };
 

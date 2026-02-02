@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useParams } from 'react-router-dom';
+import NotificationBell from './NotificationBell';
 
 interface SubItem {
   name: string;
@@ -55,7 +56,7 @@ const Navigation = () => {
     const roleBasedItems = {
       admin: [
         {
-          name: 'User Management',
+          name: 'Users',
           path: '/users',
           icon: 'fas fa-users',
           subItems: [
@@ -65,13 +66,30 @@ const Navigation = () => {
           ]
         },
         {
-          name: 'System Settings',
-          path: '/settings',
-          icon: 'fas fa-cog',
+          name: 'Animals',
+          path: '/livestock/all',
+          icon: 'fas fa-paw',
           subItems: [
-            { name: 'General Settings', path: '/settings/general' },
-            { name: 'Security', path: '/settings/security' },
-            { name: 'Backup & Restore', path: '/settings/backup' }
+            { name: 'All Animals', path: '/livestock/all' },
+            { name: 'Health Records', path: '/health' },
+          ]
+        },
+        {
+          name: 'Farms',
+          path: '/farms',
+          icon: 'fas fa-barn',
+          subItems: [
+            { name: 'All Farms', path: '/farms' },
+            { name: 'System Analytics', path: '/farms/analytics' }
+          ]
+        },
+        {
+          name: 'System',
+          path: '/system',
+          icon: 'fas fa-server',
+          subItems: [
+            { name: 'System Health', path: '/dashboard' },
+            { name: 'Audit Logs', path: '/audit-logs' },
           ]
         }
       ],
@@ -82,6 +100,7 @@ const Navigation = () => {
       icon: 'fas fa-barn',
       subItems: farmId ? [
         { name: 'My Farms', path: '/farms' },
+        { name: 'Farm Analytics', path: `/farms/${farmId}/analytics` },
         { name: 'Add Farm', path: '/farms/add' },
         { name: 'Select Farm', path: '/select/farm' }
       ] : [
@@ -497,73 +516,8 @@ const Navigation = () => {
           </div>
 
           {/* Notifications */}
-          <div className="relative" ref={notificationsRef}>
-          <button
-            onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-            className="relative p-2.5 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 hover:shadow-md"
-          >
-            <i className="fas fa-bell text-xl"></i>
-            {unreadNotifications > 0 && (
-            <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-pulse shadow-lg">
-              {unreadNotifications > 9 ? '9+' : unreadNotifications}
-            </span>
-            )}
-          </button>
-
-          {isNotificationsOpen && (
-            <div className="absolute right-0 mt-3 w-96 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-            <div className="px-5 py-3 border-b border-gray-100 bg-gradient-to-r from-green-50 to-transparent">
-              <div className="flex justify-between items-center">
-              <h3 className="text-sm font-semibold text-gray-900 flex items-center">
-                <i className="fas fa-bell text-green-600 mr-2"></i>
-                Notifications
-              </h3>
-              <Link
-                to="/notifications/center"
-                className="text-sm text-green-600 hover:text-green-700 font-medium hover:underline"
-                onClick={() => setIsNotificationsOpen(false)}
-              >
-                View All
-              </Link>
-              </div>
-            </div>
-            <div className="max-h-96 overflow-y-auto">
-              {/* Sample notifications */}
-              <div className="px-5 py-4 hover:bg-gradient-to-r hover:from-red-50 hover:to-transparent border-b border-gray-50 transition-all duration-200 cursor-pointer group">
-              <div className="flex items-start space-x-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all duration-200">
-                <i className="fas fa-exclamation-triangle text-white"></i>
-                </div>
-                <div className="flex-1">
-                <p className="text-sm font-semibold text-gray-900">Health Alert</p>
-                <p className="text-xs text-gray-600 mt-1">Cow #234 needs vaccination</p>
-                <p className="text-xs text-gray-500 mt-2 flex items-center">
-                  <i className="far fa-clock mr-1"></i>
-                  30 minutes ago
-                </p>
-                </div>
-              </div>
-              </div>
-              <div className="px-5 py-4 hover:bg-gradient-to-r hover:from-green-50 hover:to-transparent border-b border-gray-50 transition-all duration-200 cursor-pointer group">
-              <div className="flex items-start space-x-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all duration-200">
-                <i className="fas fa-money-bill-wave text-white"></i>
-                </div>
-                <div className="flex-1">
-                <p className="text-sm font-semibold text-gray-900">Payment Received</p>
-                <p className="text-xs text-gray-600 mt-1">KSh 45,000 from milk sales</p>
-                <p className="text-xs text-gray-500 mt-2 flex items-center">
-                  <i className="far fa-clock mr-1"></i>
-                  2 hours ago
-                </p>
-                </div>
-              </div>
-              </div>
-            </div>
-            </div>
-          )}
-          </div>
-
+          <NotificationBell />
+          
           {/* Switch Farms Button - Only for farmers with farmId */}
           {user?.role === 'farmer' && farmId && (
             <Link

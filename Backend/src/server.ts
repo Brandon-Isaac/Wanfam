@@ -28,6 +28,10 @@ import wageRoutes from "./routes/wageRoutes";
 import vetRoutes from "./routes/VetRoutes";
 import treatmentRoutes from "./routes/treatmentRoutes";
 import chatRoutes from "./routes/chatRoutes";
+import revenueRoutes from "./routes/revenueRoutes";
+import expenseRoutes from "./routes/expenseRoutes";
+import vaccinationRoutes from "./routes/vaccinationRoutes";
+import { startScheduledJobs } from "./utils/scheduledJobs";
 
 const app = Express();
 const PORT = process.env.PORT || 5000;
@@ -38,8 +42,21 @@ mongoose.connect(MONGO_URI, {
     socketTimeoutMS: 45000,
 }).then(() => {
     console.log("MongoDB connected");
+    
+    // Start scheduled notification jobs after DB connection
+    startScheduledJobs();
 }).catch((err) => {
     console.error("MongoDB connection error:", err);
+    console.error("Make sure MongoDB is running and MONGO_URI is correct");
+});
+
+// Handle connection errors after initial connection
+mongoose.connection.on('error', (err) => {
+    console.error('MongoDB connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+    console.warn('MongoDB disconnected');
 });
 
 app.use(Express.json());
@@ -72,6 +89,9 @@ app.use("/api/v1/wages", wageRoutes);
 app.use("/api/v1/vets", vetRoutes);
 app.use("/api/v1/treatments", treatmentRoutes);
 app.use("/api/v1/chat", chatRoutes);
+app.use("/api/v1/revenue", revenueRoutes);
+app.use("/api/v1/expenses", expenseRoutes);
+app.use("/api/v1/vaccination", vaccinationRoutes);
 app.use('/api/v1/breeds', require('./routes/breedRoutes').default);
 
 app.listen(PORT, () => {

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext";
 import api from "../utils/Api";
 import { Link } from "react-router-dom";
 
@@ -22,6 +23,7 @@ interface Farm {
 }
 
 const Farms = () => {
+    const { user } = useAuth();
     const [farms, setFarms] = useState<Farm[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -30,10 +32,14 @@ const Farms = () => {
     const [actionInProgress, setActionInProgress] = useState(false);
     const [openMenu, setOpenMenu] = useState<string | null>(null);
 
+    const isAdmin = user?.role === 'admin';
+
     useEffect(() => {
         const fetchFarms = async () => {
             try {
-                const response = await api.get('/farms');
+                // Admin uses /farms/all to get all farms in the system
+                const endpoint = isAdmin ? '/farms/all' : '/farms';
+                const response = await api.get(endpoint);
                 setFarms(response.data.data);
             } catch (err: any) {
                 setError(err.message || 'Error fetching farms');
@@ -41,7 +47,7 @@ const Farms = () => {
             setLoading(false);
         };
         fetchFarms();
-    }, []);
+    }, [isAdmin]);
 
     const handleDeactivateFarm = async (farmId: string) => {
         try {
@@ -81,8 +87,8 @@ const Farms = () => {
       <div className="min-h-screen bg-gray-50 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Farms</h1>
-            <p className="text-gray-600 mb-8">View and manage all your farms</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{isAdmin ? 'System Farms' : 'Your Farms'}</h1>
+            <p className="text-gray-600 mb-8">{isAdmin ? 'View and manage all farms in the system' : 'View and manage all your farms'}</p>
           </div>
 
           {error && (
@@ -97,14 +103,16 @@ const Farms = () => {
                 <i className="fas fa-barn text-6xl text-gray-400"></i>
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No farms found</h3>
-              <p className="text-gray-600 mb-6">You don't have any farms yet. Create your first farm to get started.</p>
-              <Link
-                to="/farms/add"
-                className="inline-block px-6 py-3 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
-              >
-                <i className="fas fa-plus mr-2"></i>
-                Create Your First Farm
-              </Link>
+              <p className="text-gray-600 mb-6">{isAdmin ? 'No farms registered in the system yet.' : "You don't have any farms yet. Create your first farm to get started."}</p>
+              {!isAdmin && (
+                <Link
+                  to="/farms/add"
+                  className="inline-block px-6 py-3 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                >
+                  <i className="fas fa-plus mr-2"></i>
+                  Create Your First Farm
+                </Link>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -113,7 +121,7 @@ const Farms = () => {
                   key={farm._id}
                   className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 overflow-hidden relative"
                 >
-                  {/* Three-dot menu - Top Right */}
+                  {/* Three-dot menu - Top Left */}
                   <div className="absolute top-3 left-3 z-10">
                     <button
                       onClick={() => setOpenMenu(openMenu === farm._id ? null : farm._id)}
@@ -200,13 +208,15 @@ const Farms = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Link
-                        to={`/farms/${farm._id}/dashboard`}
-                        className="block w-full px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-center font-semibold rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-md hover:shadow-lg"
-                      >
-                        <i className="fas fa-eye mr-2"></i>
-                        View Farm Details
-                      </Link>
+                      {!isAdmin && (
+                        <Link
+                          to={`/farms/${farm._id}/dashboard`}
+                          className="block w-full px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-center font-semibold rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                        >
+                          <i className="fas fa-eye mr-2"></i>
+                          View Farm Details
+                        </Link>
+                      )}
                       
                       {/* Confirmation Dialogs */}
                       {deactivateConfirm === farm._id && (
@@ -259,14 +269,16 @@ const Farms = () => {
             </div>
           )}
 
-          <div className="mt-8 text-center">
-            <Link
-              to="/farms/add"
-              className="inline-block px-6 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-            >
-              Add New Farm
-            </Link>
-          </div>
+          {!isAdmin && (
+            <div className="mt-8 text-center">
+              <Link
+                to="/farms/add"
+                className="inline-block px-6 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+              >
+                Add New Farm
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     );

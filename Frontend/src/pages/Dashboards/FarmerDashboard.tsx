@@ -52,7 +52,10 @@ const FarmerDashboard = () => {
         {/* Top Metrics Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Large Metric Cards */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <Link 
+            to="/select/farm"
+            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all hover:border-blue-400 cursor-pointer"
+          >
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500 mb-2">Total Farms</p>
@@ -66,9 +69,12 @@ const FarmerDashboard = () => {
                 <i className="fas fa-home text-2xl text-blue-600"></i>
               </div>
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <Link
+            to="/revenue"
+            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all hover:border-green-400 cursor-pointer"
+          >
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500 mb-2">Total Revenue (30d)</p>
@@ -83,9 +89,12 @@ const FarmerDashboard = () => {
                 <i className="fas fa-chart-line text-2xl text-green-600"></i>
               </div>
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <Link
+            to="/animals/all"
+            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all hover:border-green-400 cursor-pointer"
+          >
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500 mb-2">Total Animals</p>
@@ -99,12 +108,15 @@ const FarmerDashboard = () => {
                 <i className="fas fa-cow text-2xl text-green-600"></i>
               </div>
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* Secondary Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+          <Link
+            to="/animals/all?filter=sick"
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md transition-all hover:border-red-400 cursor-pointer"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Health Alerts</p>
@@ -114,21 +126,11 @@ const FarmerDashboard = () => {
                 <i className="fas fa-exclamation-triangle text-red-600"></i>
               </div>
             </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Checkups</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{stats.upcomingCheckupsCount || 0}</p>
-              </div>
-              <div className="p-2 bg-yellow-50 rounded-lg">
-                <i className="fas fa-calendar-alt text-yellow-600"></i>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+          </Link>
+          <Link
+            to="/expenses"
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md transition-all hover:border-purple-400 cursor-pointer"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Expenses (30d)</p>
@@ -140,9 +142,11 @@ const FarmerDashboard = () => {
                 <i className="fas fa-receipt text-purple-600"></i>
               </div>
             </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+          </Link>
+          <Link
+            to="/financial-overview"
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md transition-all hover:border-green-400 cursor-pointer"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Net Profit (30d)</p>
@@ -154,8 +158,10 @@ const FarmerDashboard = () => {
                 <i className={`fas fa-coins ${(stats.netProfit || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}></i>
               </div>
             </div>
-          </div>
-        </div>
+          </Link>
+              </div>
+            </div>
+
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -248,14 +254,20 @@ const FarmerDashboard = () => {
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-2 gap-6 mb-6">
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <Link
+                    to="/animals/all?filter=healthy"
+                    className="text-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-all hover:shadow-md cursor-pointer border border-green-200"
+                  >
                     <p className="text-3xl font-bold text-green-600">{stats.healthyAnimals || 0}</p>
                     <p className="text-sm text-gray-600 mt-1">Healthy Animals</p>
-                  </div>
-                  <div className="text-center p-4 bg-red-50 rounded-lg">
+                  </Link>
+                  <Link
+                    to="/animals/all?filter=sick"
+                    className="text-center p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-all hover:shadow-md cursor-pointer border border-red-200"
+                  >
                     <p className="text-3xl font-bold text-red-600">{stats.sickAnimals || 0}</p>
                     <p className="text-sm text-gray-600 mt-1">Sick Animals</p>
-                  </div>
+                  </Link>
                 </div>
 
                 {/* Livestock by Type */}
@@ -364,7 +376,6 @@ const FarmerDashboard = () => {
             )}
           </div>
         </div>
-      </div>
     </div>
   );
 };

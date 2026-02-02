@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import api from '../../utils/Api';
@@ -43,7 +42,10 @@ const FarmDashboard = () => {
         {/* Top Metrics Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Large Metric Cards */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <Link
+            to={`/${farmId}/livestock`}
+            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all hover:border-green-400 cursor-pointer"
+          >
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500 mb-2">Total Animals</p>
@@ -57,9 +59,12 @@ const FarmDashboard = () => {
                 <i className="fas fa-cow text-2xl text-green-600"></i>
               </div>
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <Link
+            to="/revenue"
+            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all hover:border-blue-400 cursor-pointer"
+          >
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500 mb-2">Revenue (30 days)</p>
@@ -74,9 +79,12 @@ const FarmDashboard = () => {
                 <i className="fas fa-chart-line text-2xl text-blue-600"></i>
               </div>
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <Link
+            to="/financial-overview"
+            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all hover:border-green-400 cursor-pointer"
+          >
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500 mb-2">Net Profit (30 days)</p>
@@ -91,12 +99,15 @@ const FarmDashboard = () => {
                 <i className={`fas fa-coins text-2xl ${(stats.netProfit || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}></i>
               </div>
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* Secondary Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+          <Link
+            to={`/${farmId}/tasks`}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md transition-all hover:border-blue-400 cursor-pointer"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Pending Tasks</p>
@@ -106,9 +117,12 @@ const FarmDashboard = () => {
                 <i className="fas fa-tasks text-blue-600"></i>
               </div>
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+          <Link
+            to={`/${farmId}/sick-animals`}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md transition-all hover:border-red-400 cursor-pointer"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Health Alerts</p>
@@ -118,9 +132,12 @@ const FarmDashboard = () => {
                 <i className="fas fa-exclamation-triangle text-red-600"></i>
               </div>
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+          <Link
+            to="/treatment-schedules"
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md transition-all hover:border-yellow-400 cursor-pointer"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Checkups</p>
@@ -130,9 +147,12 @@ const FarmDashboard = () => {
                 <i className="fas fa-calendar-alt text-yellow-600"></i>
               </div>
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+          <Link
+            to="/expenses"
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md transition-all hover:border-purple-400 cursor-pointer"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Expenses</p>
@@ -144,42 +164,87 @@ const FarmDashboard = () => {
                 <i className="fas fa-receipt text-purple-600"></i>
               </div>
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - 2/3 width */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Livestock Overview */}
+
+            {/* Animal Status Breakdown */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200">
               <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Livestock Overview</h2>
+                <h2 className="text-lg font-semibold text-gray-900">Animal Health Status</h2>
               </div>
               <div className="p-6">
-                <div className="grid grid-cols-2 gap-6 mb-6">
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <p className="text-3xl font-bold text-green-600">{stats.healthyLivestock || 0}</p>
-                    <p className="text-sm text-gray-600 mt-1">Healthy Animals</p>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+                    <div className="flex items-center gap-3">
+                      <i className="fas fa-check-circle text-green-600"></i>
+                      <span className="text-sm font-medium text-gray-700">Healthy</span>
+                    </div>
+                    <span className="text-sm font-bold text-green-600">{stats.healthyLivestock || 0}</span>
                   </div>
-                  <div className="text-center p-4 bg-red-50 rounded-lg">
-                    <p className="text-3xl font-bold text-red-600">{stats.sickAnimals || 0}</p>
-                    <p className="text-sm text-gray-600 mt-1">Sick Animals</p>
+                  <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                    <div className="flex items-center gap-3">
+                      <i className="fas fa-heartbeat text-red-600"></i>
+                      <span className="text-sm font-medium text-gray-700">Sick</span>
+                    </div>
+                    <span className="text-sm font-bold text-red-600">{stats.sickAnimals || 0}</span>
                   </div>
                 </div>
+              </div>
+            </div>
 
-                {/* Livestock by Type */}
-                {stats.livestockSpeciesCount?.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-semibold text-gray-700 mb-3">By Species</h4>
-                    <div className="space-y-2">
-                      {stats.livestockSpeciesCount.map((item: { species: string; count: number }, index: number) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <span className="text-sm font-medium text-gray-700 capitalize">{item.species}</span>
-                          <span className="text-sm font-bold text-gray-900">{item.count}</span>
+            {/* Scheduled Checkups */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+              <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-900">Upcoming Checkups</h2>
+                <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-1 rounded-full">
+                  {stats.upcomingCheckupsCount || 0}
+                </span>
+              </div>
+              <div className="p-6">
+                {stats.upcomingCheckups && stats.upcomingCheckups.length > 0 ? (
+                  <div className="space-y-3">
+                    {stats.upcomingCheckups.slice(0, 5).map((checkup: any, index: number) => (
+                      <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-yellow-300 transition-colors">
+                        <div className="flex-shrink-0 w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                          <i className={`fas ${checkup.type === 'vaccination' ? 'fa-syringe' : 'fa-stethoscope'} text-yellow-600`}></i>
                         </div>
-                      ))}
-                    </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 truncate">
+                            {checkup.animalId?.name || 'Animal'}
+                          </p>
+                          <p className="text-xs text-gray-600 capitalize">
+                            {checkup.vaccineName || checkup.treatmentType || 'Checkup'}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                            <i className="fas fa-calendar text-yellow-600"></i>
+                            {new Date(checkup.scheduledDate).toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                        <div className="flex-shrink-0">
+                          <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                            checkup.status === 'completed' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {checkup.status || 'Scheduled'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <i className="fas fa-calendar-check text-gray-300 text-3xl mb-2"></i>
+                    <p className="text-sm text-gray-500">No upcoming checkups scheduled</p>
                   </div>
                 )}
               </div>

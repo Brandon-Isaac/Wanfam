@@ -10,12 +10,15 @@ const [error,setError]=useState<string | null>(null);
 const [generatingReport, setGeneratingReport] = useState(false);
 const [reportData, setReportData] = useState<any>(null);
 const [showReport, setShowReport] = useState(false);
+const [milkProducedToday, setMilkProducedToday] = useState<number | null>(null);
+const [vaccinationSchedules, setVaccinationSchedules] = useState<any[]>([]);
 const navigate=useNavigate();
 const { farmId, animalId } = useParams();
 
 
 useEffect(()=>{
     fetchAnimal();
+    fetchVaccinationSchedules();
 },[]);
 
 const fetchAnimal=async()=>{
@@ -23,10 +26,39 @@ const fetchAnimal=async()=>{
         const response=await api.get(`/livestock/${farmId}/animals/${animalId}`);
         setAnimal(response.data.data);
         setLoading(false);
+        
+        // Fetch milk production if animal is female cattle or goat
+        if (response.data.data && 
+            response.data.data.gender === 'female' && 
+            (response.data.data.species.toLowerCase() === 'cattle' || 
+             response.data.data.species.toLowerCase() === 'goat')) {
+            fetchMilkProducedToday(response.data.data._id);
+        }
     }catch(error){
         console.error('Failed to fetch animal:',error);
         setError(error instanceof Error ? error.message : 'An unexpected error occurred');
         setLoading(false);
+    }
+};
+
+const fetchMilkProducedToday = async (animalId: string) => {
+    try {
+        const response = await api.get(`/products/${animalId}/milk/today`);
+        setMilkProducedToday(response.data.data?.totalMilk.amount || null);
+    } catch (err) {
+        console.error(`Failed to fetch milk produced today for animal ${animalId}:`, err);
+        setMilkProducedToday(null);
+    }
+};
+
+const fetchVaccinationSchedules = async () => {
+    try {
+        const response = await api.get(`/vaccination/schedules/${farmId}/${animalId}?status=scheduled`);
+        const schedules = response.data.schedules || [];
+        setVaccinationSchedules(schedules);
+    } catch (err) {
+        console.error('Failed to fetch vaccination schedules:', err);
+        setVaccinationSchedules([]);
     }
 };
 
@@ -109,15 +141,70 @@ const closeReport = () => {
                         <div>
                             <strong>Assigned Worker:</strong> {animal?.assignedWorker ? `${animal.assignedWorker.firstName} ${animal.assignedWorker.lastName}` : 'Unassigned'}
                         </div>
+                        
+                        {/* Milk Production Info for Female Cattle/Goats */}
+                        {animal?.gender === 'female' && 
+                         (animal?.species.toLowerCase() === 'cattle' || animal?.species.toLowerCase() === 'goat') && (
+                            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <div className="flex items-center justify-between mb-2">
+                                    <strong className="text-blue-800">
+                                        <i className="fas fa-tint mr-2"></i>
+                                        Milk Production
+                                    </strong>
+                                </div>
+                                <div className="text-sm text-gray-700 mb-3">
+                                    Today's Production: <strong>{milkProducedToday ?? '0'} liters</strong>
+                                </div>
+                                <button
+                                    onClick={() => navigate(`/${animal._id}/milk-production`)}
+                                    className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+                                    <i className="fas fa-plus-circle mr-2"></i>
+                                    Record Milk Production
+                                </button>
+                            </div>
+                        )}
+                        
                         <hr />
                         <button onClick={()=>navigate(`/${farmId}/livestock/${animalId}/edit`)}
                          className="text-blue-500 hover:text-blue-900 transition-colors duration-200">
                             <i className="fas fa-user-edit"></i> Update Animal
                         </button>
                         <br/>
+                        {vaccinationSchedules.length === 0 ? (
+                            <>
+                                <button onClick={()=>navigate(`/${farmId}/livestock/${animalId}/schedule-vaccination`)}
+                                 className="text-purple-500 hover:text-purple-900 transition-colors duration-200">
+                                    <i className="fas fa-calendar-plus"></i> Schedule Vaccination
+                                </button>
+                                <br/>
+                            </>
+                        ) : (
+                            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 my-3">
+                                <div className="flex items-start">
+                                    <i className="fas fa-clock text-yellow-600 mt-1 mr-3"></i>
+                                    <div className="flex-1">
+                                        <h4 className="font-semibold text-yellow-800 mb-2">
+                                            Awaiting Vaccination
+                                        </h4>
+                                        {vaccinationSchedules.map((schedule, index) => (
+                                            <div key={index} className="text-sm text-yellow-700 mb-2">
+                                                <div><strong>Vaccine:</strong> {schedule.vaccineName}</div>
+                                                <div><strong>Scheduled:</strong> {new Date(schedule.scheduledDate).toLocaleDateString()}</div>
+                                                {schedule.veterinarianId && (
+                                                    <div><strong>Veterinarian:</strong> {schedule.veterinarianId.firstName} {schedule.veterinarianId.lastName}</div>
+                                                )}
+                                                {schedule.selfAdministered && (
+                                                    <div className="text-yellow-600 italic">Self-administered</div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                         <button onClick={()=>navigate(`/${farmId}/livestock/${animalId}/vaccinate`)}
-                         className="text-purple-500 hover:text-purple-900 transition-colors duration-200">
-                            <i className="fas fa-plus-circle"></i> Vaccinate
+                         className="text-green-500 hover:text-green-900 transition-colors duration-200">
+                            <i className="fas fa-syringe"></i> Record Vaccination
                         </button>
                         <br/>
                         <button 

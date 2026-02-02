@@ -3,6 +3,7 @@ import { Farm } from "../models/Farm";
 import { User } from "../models/User";
 import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/AsyncHandler";
+import notificationService from "../utils/notificationService";
 
 const getAllTasks = asyncHandler(async (req: Request, res: Response) => {
     const farmId = req.params.farmId;
@@ -43,6 +44,23 @@ const createTask = asyncHandler(async (req: Request, res: Response) => {
     const { title, description, assignedTo, dueDate, taskCategory, priority, status } = req.body;
     const newTask = new Task({ title, description, farmId: farm._id, createdBy: createdBy._id, assignedTo, dueDate, taskCategory, priority, status });
     await newTask.save();
+    
+    // Notify assigned worker(s) about new task
+    try {
+        if (assignedTo) {
+            const workers = Array.isArray(assignedTo) ? assignedTo : [assignedTo];
+            for (const workerId of workers) {
+                await notificationService.notifyTaskAssignment(
+                    workerId,
+                    title,
+                    newTask._id.toString()
+                );
+            }
+        }
+    } catch (notifError) {
+        console.error('Error sending task assignment notification:', notifError);
+    }
+    
     res.status(201).json({ success: true, data: newTask });
 });
 
@@ -106,12 +124,28 @@ const assignTasksToWorkers = asyncHandler(async (req: Request, res: Response) =>
 
 const markTaskAsCompleted = asyncHandler(async (req: Request, res: Response) => {
     const taskId = req.params.taskId;
-    const task = await Task.findById(taskId);
+    const task = await Task.findById(taskId).populate('createdBy');
     if (!task) {
         return res.status(404).json({ message: "Task not found" });
     }
     task.status = "Completed";
     await task.save();
+    
+    // Notify task creator about completion
+    try {
+        if (task.createdBy) {
+            const completedBy = req.user?.firstName || 'A worker';
+            await notificationService.notifyTaskCompletion(
+                (task.createdBy as any)._id,
+                task.title,
+                completedBy,
+                task._id.toString()
+            );
+        }
+    } catch (notifError) {
+        console.error('Error sending task completion notification:', notifError);
+    }
+    
     res.json({ success: true, data: task });
 });
 

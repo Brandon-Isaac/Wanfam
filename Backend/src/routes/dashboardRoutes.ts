@@ -13,5 +13,6 @@ router.get('/admin-dashboard', roleHandler([UserRole.ADMIN]), DashboardControlle
 router.get('/veterinary-dashboard', roleHandler([UserRole.VETERINARY]), DashboardController.vetDashboard);
 router.get('/worker-dashboard', roleHandler([UserRole.WORKER]), DashboardController.workerDashboard);
 router.get('/officer-dashboard', roleHandler([UserRole.LOAN_OFFICER]), DashboardController.loanOfficerDashboard);
+router.get('/system-info', roleHandler([UserRole.ADMIN]), DashboardController.getSystemMetrics);
 
 export default router;

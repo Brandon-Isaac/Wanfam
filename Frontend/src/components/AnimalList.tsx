@@ -29,6 +29,7 @@ const params = useParams();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [milkProduction, setMilkProduction] = useState<{ [key: string]: number | null }>({});
 
 
   useEffect(() => {
@@ -65,6 +66,7 @@ const params = useParams();
         purchaseDate: animal.dateOfPurchase,
         notes: animal.notes,
         weight: animal.weight,
+        healthStatus: animal.healthStatus,
         assignedWorker: animal.assignedWorker,
         createdAt: animal.addedAt,
         updatedAt: animal.updatedAt,
@@ -76,11 +78,37 @@ const params = useParams();
       }));
       
       setAnimals(mappedAnimals);
+      
+      // Fetch milk production for female cattle and goats
+      fetchMilkProductionData(mappedAnimals);
     } catch (error:any) {
       setError('Failed to fetch data: ' + (error.response?.data?.message || error.message));
       console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchMilkProductionData = async (animalsList: Animal[]) => {
+    const productiveAnimals = animalsList.filter(
+      animal => animal.gender === 'female' && 
+      (animal.type?.toLowerCase() === 'cattle' || animal.type?.toLowerCase() === 'goat')
+    );
+
+    for (const animal of productiveAnimals) {
+      try {
+        const response = await api.get(`/products/${animal.id}/milk/today`);
+        setMilkProduction(prev => ({
+          ...prev,
+          [animal.id]: response.data.data?.totalMilk.amount || null
+        }));
+      } catch (err) {
+        console.error(`Failed to fetch milk for animal ${animal.id}:`, err);
+        setMilkProduction(prev => ({
+          ...prev,
+          [animal.id]: null
+        }));
+      }
     }
   };
 
@@ -429,6 +457,12 @@ const params = useParams();
                     Age/Weight
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Health Status
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Production
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Worker
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -478,6 +512,51 @@ const params = useParams();
                       <div className="text-xs text-gray-500 capitalize">
                         {animal.gender} • {animal.weight ? `${animal.weight} kg` : 'No weight'}
                       </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {animal.healthStatus && animal.healthStatus !== 'healthy' ? (
+                        <button
+                          onClick={() => navigate(`/${farmId}/animals/sick`)}
+                          className={`px-3 py-1 rounded-full text-xs font-medium cursor-pointer hover:opacity-80 transition-opacity ${
+                            animal.healthStatus === 'sick' ? 'bg-red-100 text-red-800' :
+                            animal.healthStatus === 'treatment' ? 'bg-orange-100 text-orange-800' :
+                            animal.healthStatus === 'recovery' ? 'bg-yellow-100 text-yellow-800' :
+                            animal.healthStatus === 'quarantined' ? 'bg-purple-100 text-purple-800' :
+                            animal.healthStatus === 'deceased' ? 'bg-gray-100 text-gray-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}
+                        >
+                          <i className="fas fa-exclamation-circle mr-1"></i>
+                          {animal.healthStatus}
+                        </button>
+                      ) : (
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <i className="fas fa-check-circle mr-1"></i>
+                          {animal.healthStatus || 'healthy'}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {animal.gender === 'female' && 
+                       (animal.type?.toLowerCase() === 'cattle' || animal.type?.toLowerCase() === 'goat') ? (
+                        <div>
+                          <div className="text-sm text-gray-900 flex items-center gap-1">
+                            <i className="fas fa-tint text-blue-500 text-xs"></i>
+                            {milkProduction[animal.id] !== undefined 
+                              ? `${milkProduction[animal.id] || 0}L today` 
+                              : 'Loading...'}
+                          </div>
+                          <button
+                            onClick={() => navigate(`/${animal.id}/milk-production`)}
+                            className="text-xs text-blue-600 hover:text-blue-800 mt-1"
+                          >
+                            <i className="fas fa-plus-circle mr-1"></i>
+                            Record
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-400">-</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {animal.assignedWorker ? 

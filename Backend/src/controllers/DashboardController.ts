@@ -3,6 +3,7 @@ import { Animal } from "../models/Animal";
 import { Veterinarian } from "../models/Veterinarian";
 import { HealthRecord } from "../models/HealthRecord";
 import { LoanRequest } from "../models/LoanRequest";
+import mongoose from "mongoose";
 import { LoanApproval } from "../models/LoanApproval";
 import { VaccinationSchedule } from "../models/VaccinationSchedule";
 import { VaccinationRecord } from "../models/VaccinationRecord";
@@ -58,25 +59,27 @@ const farmerDashboardForFarm = asyncHandler(async (req: Request, res: Response) 
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+    const farmObjectId = new mongoose.Types.ObjectId(farmId);
+
     const totalRevenue = await Revenue.aggregate([
-        { $match: { farmId, date: { $gte: thirtyDaysAgo } } },
+        { $match: { farmId: farmObjectId, date: { $gte: thirtyDaysAgo } } },
         { $group: { _id: null, total: { $sum: '$amount' } } }
     ]);
 
     const totalExpenses = await Expense.aggregate([
-        { $match: { farmId, date: { $gte: thirtyDaysAgo } } },
+        { $match: { farmId: farmObjectId, date: { $gte: thirtyDaysAgo } } },
         { $group: { _id: null, total: { $sum: '$amount' } } }
     ]);
 
     const revenueBySource = await Revenue.aggregate([
-        { $match: { farmId, date: { $gte: thirtyDaysAgo } } },
+        { $match: { farmId: farmObjectId, date: { $gte: thirtyDaysAgo } } },
         { $group: { _id: '$source', total: { $sum: '$amount' } } },
         { $sort: { total: -1 } },
         { $limit: 5 }
     ]);
 
     const expensesByCategory = await Expense.aggregate([
-        { $match: { farmId, date: { $gte: thirtyDaysAgo } } },
+        { $match: { farmId: farmObjectId, date: { $gte: thirtyDaysAgo } } },
         { $group: { _id: '$category', total: { $sum: '$amount' } } },
         { $sort: { total: -1 } },
         { $limit: 5 }
@@ -118,7 +121,7 @@ const farmerDashboardForFarm = asyncHandler(async (req: Request, res: Response) 
 const farmerDashboard= asyncHandler(async (req: Request, res: Response) => {
     const farmerId = req.user.id;
     const farmIds = await Farm.find({ owner: farmerId }).select('_id');
-    const totalFarms = await Farm.countDocuments({ owner: farmerId });
+    const totalFarms = await Farm.countDocuments({ owner: farmerId,isActive: true });
     const totalLoanRequests = await LoanRequest.countDocuments({ farmerId });
     const activity = await User.findById(farmerId).select('isActive createdAt updatedAt');
     const totalAnimals = await Animal.countDocuments( { farmId: { $in: farmIds } });
@@ -178,7 +181,9 @@ const vetDashboard = asyncHandler(async (req: Request, res: Response) => {
 
     // Fetch vaccination appointments with farm and animal details
     const vaccinationAppointments = await VaccinationSchedule.find({ 
-        veterinarianId: vetId, scheduledDate: { $gte: new Date() }
+        veterinarianId: vetId, 
+        scheduledDate: { $gte: new Date() },
+        status: 'scheduled'
     })
     .populate('farmId', 'name')
     .populate('animalId', 'tagNumber')
@@ -187,7 +192,9 @@ const vetDashboard = asyncHandler(async (req: Request, res: Response) => {
     
     // Fetch treatment appointments with farm and animal details
     const treatmentAppointments = await TreatmentSchedule.find({ 
-        administeredBy: vetId, scheduledDate: { $gte: new Date()  } 
+        administeredBy: vetId, 
+        scheduledDate: { $gte: new Date() },
+        status: 'scheduled'
     })
     .populate('farmId', 'name')
     .populate('animalId', 'tagId')
@@ -214,18 +221,18 @@ const vetDashboard = asyncHandler(async (req: Request, res: Response) => {
     
     const todayAppointmentsCount = await VaccinationSchedule.countDocuments({ 
             veterinarianId: vetId, 
+            status: 'scheduled',
             scheduledDate: { 
                 $gte: new Date(new Date().setHours(0, 0, 0, 0)),
                 $lt: new Date(new Date().setHours(23, 59, 59, 999))
             } 
     }) + await TreatmentSchedule.countDocuments({ 
-        
-            administeredBy: vetId, 
+            administeredBy: vetId,
+            status: 'scheduled',
             scheduledDate: { 
                 $gte: new Date(new Date().setHours(0, 0, 0, 0)),
                 $lt: new Date(new Date().setHours(23, 59, 59, 999))
             } 
-        
     });
 
     const upcomingAppointmentsCount = vaccinationCases + treatmentCases;
@@ -340,6 +347,15 @@ const adminDashboard = asyncHandler(async (req: Request, res: Response) => {
         userActivity
     });
 });
+const getSystemMetrics = asyncHandler(async (req: Request, res: Response) => {
+    const performanceMetrics = {
+        uptime: process.uptime(),
+        memoryUsage: process.memoryUsage(),
+        cpuUsage: process.cpuUsage(),
+        eventLoopDelay: require('perf_hooks').performance.now()
+    };
+    res.json({ performanceMetrics });
+});
 
 
 export const DashboardController = {
@@ -348,5 +364,6 @@ export const DashboardController = {
     vetDashboard,
     workerDashboard,
     loanOfficerDashboard,
-    adminDashboard
+    adminDashboard,
+    getSystemMetrics
 };

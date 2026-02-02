@@ -1,177 +1,197 @@
 import { Request, Response } from "express";
 import { Farm } from "../models/Farm";
 import { Animal } from "../models/Animal";
-import {HealthRecord } from "../models/HealthRecord";
+import { HealthRecord } from "../models/HealthRecord";
+import { VaccinationRecord } from "../models/VaccinationRecord";
+import { TreatmentRecord } from "../models/TreatmentRecord";
 import { asyncHandler } from "../middleware/AsyncHandler";
 import { User } from "../models/User";
 
-const createHealthRecord = (asyncHandler(async(req: Request, res: Response) => {
-    const farmSlug = req.params.farmSlug;
-    const farm = await Farm.findOne({ slug: farmSlug });
-    if (!farm) {
-        return res.status(404).json({ message: "Farm not found" });
-    }
-    const animalSlug = req.params.animalSlug;
-    const animal = await Animal.findOne({ slug: animalSlug, farmId: farm._id });    
+const getAnimalHealthRecords = asyncHandler(async (req: Request, res: Response) => {
+    const animalId = req.params.animalId;
+    const animal = await Animal.findById(animalId);
     if (!animal) {
         return res.status(404).json({ message: "Animal not found" });
     }
-    const UserId=req.user._id;
-    const { recordType, description, diagnosis, treatment, medication, treatmentDate, recoveryDate, outcome, notes } = req.body;
-    const user = await User.findById(UserId, 'firstName');
-    if (!user) {
-        return res.status(404).json({ message: "User not found" });
-    }
-    const treatedBy = user.firstName;
-    if (!recordType || !description) {
-        return res.status(400).json({ message: "recordType and description are required" });
-    }
-    const newRecord = new HealthRecord({ farmId: farm._id, animalId: animal._id, recordType, description, diagnosis, treatment, medication, treatedBy, treatmentDate, recoveryDate, outcome, notes });
-    await newRecord.save();
-    const animalHealthStatus = await Animal.findById(animal._id);
-    if (recordType.toLowerCase() === 'illness' || recordType.toLowerCase() === 'injury' || recordType.toLowerCase() === 'surgery') {
-        animal.healthStatus = 'sick';
-    }
-    if (recordType.toLowerCase() === 'recovery' || recordType.toLowerCase() === 'completed') {
-        animal.healthStatus = 'healthy';
-    }
-    await animal.save();
-    res.status(201).json({ success: true, data: newRecord });
-}));
+    
+    // Get all health-related records
+    const [healthRecords, vaccinationRecords, treatmentRecords] = await Promise.all([
+        HealthRecord.find({ animalId }),
+        VaccinationRecord.find({ animalId }),
+        TreatmentRecord.find({ animalId })
+    ]);
+    
+    // Combine all records
+    const allRecords = [
+        ...healthRecords.map(r => ({
+            ...r.toObject(),
+            recordType: r.recordType || 'general',
+            date: r.date
+        })),
+        ...vaccinationRecords.map(r => ({
+            ...r.toObject(),
+            recordType: 'vaccination',
+            date: r.scheduledDate,
+            diagnosis: r.vaccineName
+        })),
+        ...treatmentRecords.map(r => ({
+            ...r.toObject(),
+            recordType: 'treatment',
+            date: r.treatmentDate,
+            diagnosis: r.treatmentGiven
+        }))
+    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    res.json({ success: true, data: allRecords });
+});
 
-const updateWeightRecord = (asyncHandler(async(req: Request, res: Response) => {
-    const farmSlug = req.params.farmSlug;
-    const farm = await Farm.findOne({ slug: farmSlug });
+const getAllFarmHealthRecords = asyncHandler(async (req: Request, res: Response) => {
+    const farmId = req.params.farmId;
+    const farm = await Farm.findById(farmId);
     if (!farm) {
         return res.status(404).json({ message: "Farm not found" });
     }
-    const animalSlug = req.params.animalSlug;
-    const animal = await Animal.findOne({ slug: animalSlug, farmId: farm._id });
-    if (!animal) {
-        return res.status(404).json({ message: "Animal not found" });
-    }
-    const healthRecordId = req.params.id;
-    const healthRecord = await HealthRecord.findOne({ _id: healthRecordId, farmId: farm._id, animalId: animal._id });
-    if (!healthRecord) {
-        return res.status(404).json({ message: "Health record not found" });
-    }
-    const { weight } = req.body;
-    if (!weight || !weight.amount || !weight.unit) {
-        return res.status(400).json({ message: "Weight with amount and unit is required" });
-    }
-    healthRecord.weight = weight;
-    await healthRecord.save();
-    res.status(200).json({ success: true, data: healthRecord });
-}));
+    const animals = await Animal.find({ farmId });
+    const animalIds = animals.map(a => a._id);
+    
+    // Get all health-related records for farm animals
+    const [healthRecords, vaccinationRecords, treatmentRecords] = await Promise.all([
+        HealthRecord.find({ animalId: { $in: animalIds } }).populate('animalId', 'name species breed tagId').populate('treatedBy', 'firstName lastName'),
+        VaccinationRecord.find({ animalId: { $in: animalIds } }).populate('animalId', 'name species breed tagId').populate('administeredBy', 'firstName lastName'),
+        TreatmentRecord.find({ animalId: { $in: animalIds } }).populate('animalId', 'name species breed tagId').populate('administeredBy', 'firstName lastName')
+    ]);
+    
+    // Combine all records
+    const allRecords = [
+        ...healthRecords.map(r => ({
+            ...r.toObject(),
+            recordType: r.recordType || 'general',
+            date: r.date
+        })),
+        ...vaccinationRecords.map(r => {
+            const obj = r.toObject();
+            return {
+                ...obj,
+                recordType: 'vaccination',
+                date: r.scheduledDate,
+                diagnosis: r.vaccineName,
+                treatedBy: obj.administeredBy
+            };
+        }),
+        ...treatmentRecords.map(r => {
+            const obj = r.toObject();
+            return {
+                ...obj,
+                recordType: 'treatment',
+                date: r.treatmentDate,
+                diagnosis: r.treatmentGiven,
+                treatedBy: obj.administeredBy
+            };
+        })
+    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    res.json({ success: true, data: allRecords });
+});
 
-const getHealthRecords = (asyncHandler(async(req: Request, res: Response) => {
-    const farmSlug = req.params.farmSlug;
-    const farm = await Farm.findOne({ slug: farmSlug });
-    if (!farm) {
-        return res.status(404).json({ message: "Farm not found" });
-    }
-    const animalSlug = req.params.animalSlug;
-    const animal = await Animal.findOne({ slug: animalSlug, farmId: farm._id });
-    if (!animal) {
-        return res.status(404).json({ message: "Animal not found" });
-    }
-    const healthRecords = await HealthRecord.find({ farmId: farm._id, animalId: animal._id });
-    res.status(200).json({ success: true, data: healthRecords });
-}));
+const getAllSystemHealthRecords = asyncHandler(async (req: Request, res: Response) => {
+    // Get all health-related records across the system
+    const [healthRecords, vaccinationRecords, treatmentRecords] = await Promise.all([
+        HealthRecord.find().populate('animalId', 'name species breed tagId').populate('treatedBy', 'firstName lastName'),
+        VaccinationRecord.find().populate('animalId', 'name species breed tagId').populate('administeredBy', 'firstName lastName'),
+        TreatmentRecord.find().populate('animalId', 'name species breed tagId').populate('administeredBy', 'firstName lastName')
+    ]);
+    
+    // Combine all records
+    const allRecords = [
+        ...healthRecords.map(r => ({
+            ...r.toObject(),
+            recordType: r.recordType || 'general',
+            date: r.date
+        })),
+        ...vaccinationRecords.map(r => {
+            const obj = r.toObject();
+            return {
+                ...obj,
+                recordType: 'vaccination',
+                date: r.scheduledDate,
+                diagnosis: r.vaccineName,
+                healthStatus: 'vaccination',
+                treatedBy: obj.administeredBy // Map administeredBy to treatedBy
+            };
+        }),
+        ...treatmentRecords.map(r => {
+            const obj = r.toObject();
+            return {
+                ...obj,
+                recordType: 'treatment',
+                date: r.treatmentDate,
+                diagnosis: r.treatmentGiven,
+                healthStatus: r.healthStatus || 'treatment',
+                treatedBy: obj.administeredBy // Map administeredBy to treatedBy
+            };
+        })
+    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    res.json({ success: true, data: allRecords });
+});
 
-const getHealthRecordById = (asyncHandler(async(req: Request, res: Response) => {
-    const farmSlug = req.params.farmSlug;
-    const farm = await Farm.findOne({ slug: farmSlug });
-    if (!farm) {
-        return res.status(404).json({ message: "Farm not found" });
+const getHealthRecordById = asyncHandler(async (req: Request, res: Response) => {
+    const recordId = req.params.id;
+    
+    // Try to find in HealthRecord first
+    let record = await HealthRecord.findById(recordId)
+        .populate('animalId', 'name species breed tagId')
+        .populate('treatedBy', 'firstName lastName')
+        .populate('recordedBy', 'firstName lastName');
+    
+    if (record) {
+        return res.json({ success: true, data: record });
     }
-    const animalSlug = req.params.animalSlug;
-    const animal = await Animal.findOne({ slug: animalSlug, farmId: farm._id });
-    if (!animal) {
-        return res.status(404).json({ message: "Animal not found" });
+    
+    // Try VaccinationRecord
+    const vaccinationRecord = await VaccinationRecord.findById(recordId)
+        .populate('animalId', 'name species breed tagId')
+        .populate('administeredBy', 'firstName lastName');
+    
+    if (vaccinationRecord) {
+        const obj = vaccinationRecord.toObject();
+        return res.json({
+            success: true,
+            data: {
+                ...obj,
+                recordType: 'vaccination',
+                date: obj.scheduledDate,
+                diagnosis: obj.vaccineName,
+                treatedBy: obj.administeredBy
+            }
+        });
     }
-    const healthRecordId = req.params.id;
-    const healthRecord = await HealthRecord.findOne({ _id: healthRecordId, farmId: farm._id, animalId: animal._id });
-    if (!healthRecord) {
-        return res.status(404).json({ message: "Health record not found" });
+    
+    // Try TreatmentRecord
+    const treatmentRecord = await TreatmentRecord.findById(recordId)
+        .populate('animalId', 'name species breed tagId')
+        .populate('administeredBy', 'firstName lastName');
+    
+    if (treatmentRecord) {
+        const obj = treatmentRecord.toObject();
+        return res.json({
+            success: true,
+            data: {
+                ...obj,
+                recordType: 'treatment',
+                date: obj.treatmentDate,
+                diagnosis: obj.treatmentGiven,
+                treatedBy: obj.administeredBy
+            }
+        });
     }
-    res.status(200).json({ success: true, data: healthRecord });
-}));
-
-const getFarmHealthRecords = (asyncHandler(async(req: Request, res: Response) => {
-    const farmSlug = req.params.farmSlug;
-    const farm = await Farm.findOne({ slug: farmSlug });
-    if (!farm) {
-        return res.status(404).json({ message: "Farm not found" });
-    }
-    const healthRecords = await HealthRecord.find({ farmId: farm._id });
-    res.status(200).json({ success: true, data: healthRecords });
-}));
-
-const updateHealthRecord = (asyncHandler(async(req: Request, res: Response) => {
-    const farmSlug = req.params.farmSlug;
-    const farm = await Farm.findOne({ slug: farmSlug });
-    if (!farm) {
-        return res.status(404).json({ message: "Farm not found" });
-    }
-    const animalSlug = req.params.animalSlug;
-    const animal = await Animal.findOne({ slug: animalSlug, farmId: farm._id });
-    if (!animal) {
-        return res.status(404).json({ message: "Animal not found" });
-    }
-    const healthRecordSlug = req.params.id;
-    const healthRecord = await HealthRecord.findOne({ slug: healthRecordSlug, farmId: farm._id, animalId: animal._id });
-    if (!healthRecord) {
-        return res.status(404).json({ message: "Health record not found" });
-    }
-    const { recordType, description, diagnosis, treatment, medication, treatmentDate, recoveryDate, outcome, notes } = req.body;
-    if (recordType) healthRecord.recordType = recordType;
-    if (description) healthRecord.description = description;
-    if (diagnosis) healthRecord.diagnosis = diagnosis;
-    if (treatment) healthRecord.treatment = treatment;
-    if (medication) healthRecord.medication = medication;
-    if (treatmentDate) healthRecord.treatmentDate = treatmentDate;
-    if (recoveryDate) healthRecord.recoveryDate = recoveryDate;
-    if (outcome) healthRecord.outcome = outcome;
-    if (notes) healthRecord.notes = notes;
-    await healthRecord.save();
-    const animalHealthStatus = await Animal.findById(animal._id);
-    if (recordType?.toLowerCase() === 'illness' || recordType?.toLowerCase() === 'injury' || recordType?.toLowerCase() === 'surgery') {
-        animal.healthStatus = 'sick';
-    }
-    if (recordType?.toLowerCase() === 'recovery' || recordType?.toLowerCase() === 'completed') {
-        animal.healthStatus = 'healthy';
-    }
-    await animalHealthStatus?.save();
-    res.status(200).json({ success: true, data: healthRecord });
-}));
-
-const deleteHealthRecord = (asyncHandler(async(req: Request, res: Response) => {
-    const farmSlug = req.params.farmSlug;
-    const farm = await Farm.findOne({ slug: farmSlug });
-    if (!farm) {
-        return res.status(404).json({ message: "Farm not found" });
-    }
-    const animalSlug = req.params.animalSlug;
-    const animal = await Animal.findOne({ slug: animalSlug, farmId: farm._id });
-    if (!animal) {
-        return res.status(404).json({ message: "Animal not found" });
-    }
-    const healthRecordSlug = req.params.id;
-    const healthRecord = await HealthRecord.findOne({ slug: healthRecordSlug, farmId: farm._id, animalId: animal._id });
-    if (!healthRecord) {
-        return res.status(404).json({ message: "Health record not found" });
-    }
-    await healthRecord.deleteOne();
-    res.status(204).json({ success: true });
-}));
+    
+    return res.status(404).json({ success: false, message: "Health record not found" });
+});
 
 export const healthController = {
-    createHealthRecord,
-    getHealthRecords,
-    getHealthRecordById,
-    getFarmHealthRecords,
-    updateHealthRecord,
-    deleteHealthRecord,
-    updateWeightRecord
+    getAnimalHealthRecords,
+    getAllFarmHealthRecords,
+    getAllSystemHealthRecords,
+    getHealthRecordById
 };

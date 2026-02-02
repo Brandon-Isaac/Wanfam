@@ -10,9 +10,9 @@ export interface IExpense extends Document {
     description?: string;
     
     // Related entities
-    animalId?: Schema.Types.ObjectId; // If expense is for specific animal
-    workerId?: Schema.Types.ObjectId; // If labor expense
-    inventoryId?: Schema.Types.ObjectId; // If inventory purchase
+    animalId?: Schema.Types.ObjectId;
+    workerId?: Schema.Types.ObjectId;
+    inventoryId?: Schema.Types.ObjectId; 
     
     // Vendor/supplier info
     vendor?: string;

@@ -7,6 +7,8 @@ import { UserRole } from "../models/UserRole";
 const router = Router();
 
 router.use(authenticate);
+router.get("/earnings/summary", roleHandler([UserRole.VETERINARY]), VetController.getVetEarnings);
+router.get("/earnings/records", roleHandler([UserRole.VETERINARY]), VetController.getVetServiceRecords);
 router.get("/available", roleHandler([UserRole.FARMER, UserRole.ADMIN, UserRole.VETERINARY]), VetController.getVetsAvailable);
 router.get("/:farmId", roleHandler([UserRole.FARMER, UserRole.ADMIN, UserRole.VETERINARY]), VetController.getFarmVets);
 router.post("/add-farm", roleHandler([UserRole.FARMER, UserRole.VETERINARY, UserRole.ADMIN]), VetController.addFarmToVet);

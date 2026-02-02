@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import api from "../../utils/Api";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import VetEarnings from "../../components/VetEarnings";
 
 const VeterinaryDashboard = () => {
     const [stats, setStats] = useState<any>({});
@@ -21,8 +22,16 @@ const VeterinaryDashboard = () => {
 
   return (
     <div>
+      {/* Earnings Section */}
+      <div className="mb-8">
+        <VetEarnings />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
+        <Link
+          to="/treatment-schedules?filter=today"
+          className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-all hover:border hover:border-blue-400 cursor-pointer"
+        >
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-blue-100 text-blue-600">
               <i className="fas fa-calendar-check text-xl"></i>
@@ -32,9 +41,12 @@ const VeterinaryDashboard = () => {
               <p className="text-2xl font-bold text-gray-900">{stats.todayAppointmentsCount || 0}</p>
             </div>
           </div>
-        </div>
+        </Link>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <Link
+          to="/vaccinations"
+          className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-all hover:border hover:border-red-400 cursor-pointer"
+        >
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-red-100 text-red-600">
               <i className="fas fa-exclamation-triangle text-xl"></i>
@@ -44,9 +56,12 @@ const VeterinaryDashboard = () => {
               <p className="text-2xl font-bold text-gray-900">{stats.vaccinationCases || 0}</p>
             </div>
           </div>
-        </div>
+        </Link>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <Link
+          to="/treatment-schedules?filter=upcoming"
+          className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-all hover:border hover:border-green-400 cursor-pointer"
+        >
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-green-100 text-green-600">
               <i className="fas fa-syringe text-xl"></i>
@@ -56,19 +71,22 @@ const VeterinaryDashboard = () => {
               <p className="text-2xl font-bold text-gray-900">{stats.treatmentCases || 0}</p>
             </div>
           </div>
-        </div>
+        </Link>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <Link
+          to="/treatment-schedules?filter=missed"
+          className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-all hover:border hover:border-orange-400 cursor-pointer"
+        >
           <div className="flex items-center">
-            <div className="p-3 rounded-full bg-purple-100 text-purple-600">
-              <i className="fas fa-users text-xl"></i>
+            <div className="p-3 rounded-full bg-orange-100 text-orange-600">
+              <i className="fas fa-clock text-xl"></i>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Active Farms</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalAssignedFarms || 0}</p>
+              <p className="text-sm font-medium text-gray-600">Missed Appointments</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.missedAppointments || 0}</p>
             </div>
           </div>
-        </div>
+        </Link>
       </div>
 
 <div className="flex flex-row justify-between space-x-6">

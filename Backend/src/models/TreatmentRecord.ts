@@ -7,8 +7,11 @@ export interface ITreatmentRecord extends Document {
     administeredBy: Schema.Types.ObjectId;
     treatmentDate: Date;
     dosage?: string;
+    cost?: number;
     notes?: string;
     status?: string;
+    createdAt: Date;
+    updatedAt: Date;
 }
 const TreatmentRecordSchema = new Schema<ITreatmentRecord>({
     animalId: { type: Schema.Types.ObjectId, ref: 'Animal', required: true },
@@ -17,6 +20,7 @@ const TreatmentRecordSchema = new Schema<ITreatmentRecord>({
     dosage: { type: String },
     administeredBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     treatmentDate: { type: Date, required: true },
+    cost: { type: Number, min: 0 },
     notes: { type: String },
     status: { type: String, enum: ['treated', 'pending', 'missed'], default: 'treated' }
 }, { timestamps: true

@@ -3,10 +3,12 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import api from '../../utils/Api';
 import worker from '../../types/Worker';
 import farm from '../../types/FarmTypes';
+import { useToast } from '../../contexts/ToastContext';
 
 const AddLivestock = () => {
   const { farmId } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   
   const [farm, setFarm] = useState<farm | null>(null);
   const [loading, setLoading] = useState(false);
@@ -23,6 +25,7 @@ const AddLivestock = () => {
     gender: 'female',
     dateOfBirth: '',
     dateOfPurchase: '',
+    purchasePrice: '',
     notes: '',
     assignedWorker: ''
   });
@@ -103,9 +106,17 @@ const AddLivestock = () => {
       if (!formData.gender) {
         throw new Error('Gender is required');
       }
+      if (formData.dateOfPurchase && !formData.purchasePrice) {
+        throw new Error('Purchase cost is required when purchase date is provided');
+      }
 
       const response = await api.post(`/livestock/${farmId}`, formData);
-      setSuccess('Livestock added successfully!');
+      
+      const purchaseCostMessage = formData.purchasePrice 
+        ? ` and expense of KES ${parseFloat(formData.purchasePrice).toLocaleString()} has been recorded` 
+        : '';
+      
+      showToast(`Livestock added successfully${purchaseCostMessage}!`, 'success');
       
       // Redirect to farm livestock list after success
       setTimeout(() => {
@@ -113,7 +124,9 @@ const AddLivestock = () => {
       }, 2000);
 
     } catch (error: any) {
-      setError('Failed to add livestock: ' + (error.response?.data?.message || error.message));
+      const errorMessage = error.response?.data?.message || error.message;
+      setError('Failed to add livestock: ' + errorMessage);
+      showToast('Failed to add livestock: ' + errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -307,6 +320,31 @@ const AddLivestock = () => {
                   />
                 </div>
               </div>
+
+              {formData.dateOfPurchase && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Purchase Cost (KES) *
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2 text-gray-500">KES</span>
+                    <input
+                      type="number"
+                      name="purchasePrice"
+                      value={formData.purchasePrice}
+                      onChange={handleInputChange}
+                      min="0"
+                      step="0.01"
+                      className="w-full pl-14 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      placeholder="Enter purchase cost"
+                      required
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    This will be recorded as an expense in your financial records
+                  </p>
+                </div>
+              )}
             </div>
           )}
 

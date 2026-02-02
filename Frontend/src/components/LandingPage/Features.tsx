@@ -19,16 +19,6 @@ const Features = () => {
       description: 'Monitor milk production, weight gain, and breeding success to calculate ROI.'
     },
     {
-      icon: 'fas fa-globe',
-      title: 'Offline Capability',
-      description: 'Works even without internet connection, perfect for rural areas.'
-    },
-    {
-      icon: 'fas fa-language',
-      title: 'Bilingual Support',
-      description: 'Available in both English and Swahili to serve all Kenyan farmers.'
-    },
-    {
       icon: 'fas fa-mobile-alt',
       title: 'Mobile Friendly',
       description: 'Access your livestock data from any device - no special hardware required.'

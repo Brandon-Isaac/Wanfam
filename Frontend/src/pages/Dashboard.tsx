@@ -67,16 +67,8 @@ const Dashboard = () => {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
 
   const renderRoleDashboard = () => {
-        const dashboardProps = {
-      stats,
-      farmDetails
-    };
     
     switch (userRole) {
       case 'veterinary':

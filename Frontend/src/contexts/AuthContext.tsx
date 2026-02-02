@@ -41,7 +41,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Monitor session expiration events
   useEffect(() => {
     const handleSessionExpired = (event: any) => {
-      console.log('Session expired event received:', event.detail);
       setSessionExpired(true);
     };
 
@@ -86,6 +85,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [token, user]);
 
   const fetchUserProfile = useCallback(async () => {
+    // Don't fetch if there's no token
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setServerError(false);
       const response = await api.get('/auth/profile');
@@ -102,12 +107,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setServerError(true);
         }
         // Don't logout on network errors - keep user session
-        console.error('Network error while fetching profile:', error.message);
       } 
       // Server errors (5xx)
       else if (axiosError.response.status >= 500) {
         setServerError(true);
-        console.error('Server error while fetching profile');
         // Don't logout on server errors
       }
       // Authentication errors (401) - only then logout
@@ -116,12 +119,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       // Other errors - log but don't logout
       else {
-        console.error('Error fetching profile:', error);
+        // Silent error handling
       }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     if (token) {

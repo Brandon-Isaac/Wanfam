@@ -1,5 +1,7 @@
 import { TreatmentSchedule } from "../models/TreatmentSchedule";
 import { TreatmentRecord } from "../models/TreatmentRecord";
+import { HealthRecord } from "../models/HealthRecord";
+import { Expense } from "../models/Expense";
 import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/AsyncHandler";
 
@@ -32,19 +34,102 @@ const getTreatmentSchedulesByAnimal = asyncHandler(async (req: Request, res: Res
 
 const recordTreatment = asyncHandler(async (req: Request, res: Response) => {
     const administeredBy = req.user?.id;
-    const {animalId, scheduleId, date, treatmentGiven, notes, healthStatus,status } = req.body;
-    const newRecord = new TreatmentRecord({ animalId, scheduleId, treatmentDate:date, treatmentGiven, notes, administeredBy, healthStatus, status });
+    const {animalId, scheduleId, date, treatmentGiven, notes, healthStatus, status, cost } = req.body;
+    const newRecord = new TreatmentRecord({ 
+        animalId, 
+        scheduleId, 
+        treatmentDate: date, 
+        treatmentGiven, 
+        notes, 
+        administeredBy, 
+        healthStatus, 
+        status,
+        ...(cost && { cost: parseFloat(cost) })
+    });
     await newRecord.save();
+    
+    // Create corresponding health record
+    const healthRecord = new HealthRecord({
+        animalId,
+        healthStatus: healthStatus || 'treatment',
+        recordType: 'treatment',
+        diagnosis: treatmentGiven,
+        date: date || new Date(),
+        notes: notes,
+        treatedBy: administeredBy,
+        recordedBy: administeredBy
+    });
+    await healthRecord.save();
+    
     if (scheduleId && status === 'treated') {
         await TreatmentSchedule.findByIdAndUpdate(scheduleId, { status: 'treated' });
     }
+    
+    // Update vet earnings if cost is provided
+    if (cost && administeredBy) {
+        const treatmentCost = parseFloat(cost);
+        try {
+            const User = require('../models/User').User;
+            await User.findByIdAndUpdate(
+                administeredBy,
+                {
+                    $inc: {
+                        'earnings.totalEarnings': treatmentCost,
+                        'earnings.treatmentEarnings': treatmentCost
+                    },
+                    $set: {
+                        'earnings.lastUpdated': new Date()
+                    }
+                },
+                { upsert: false }
+            );
+            
+            // Create expense entry for the treatment
+            const schedule = scheduleId ? await TreatmentSchedule.findById(scheduleId) : null;
+            const expenseData = {
+                farmId: schedule?.farmId,
+                category: 'healthcare',
+                subcategory: 'treatment',
+                amount: treatmentCost,
+                currency: 'KES',
+                date: date || new Date(),
+                description: `Treatment: ${treatmentGiven || 'Medical treatment'} for animal`,
+                animalId: animalId,
+                workerId: administeredBy,
+                paymentStatus: 'completed',
+                recordedBy: administeredBy
+            };
+            
+            if (expenseData.farmId) {
+                const expense = new Expense(expenseData);
+                await expense.save();
+            }
+        } catch (updateError) {
+            console.error('Error updating vet earnings or creating expense:', updateError);
+        }
+    }
+    
     res.status(201).json({ success: true, data: newRecord });
 });
 
 const recordUnscheduledTreatment = asyncHandler(async (req: Request, res: Response) => {
-    const { animalId,  date, notes, administeredBy } = req.body;
-    const newRecord = new TreatmentRecord({ animalId,  treatmentDate:date, notes, administeredBy, isUnscheduled: true });
+    const { animalId, date, notes, administeredBy, treatmentGiven, healthStatus } = req.body;
+    const newRecord = new TreatmentRecord({ animalId, treatmentDate: date, notes, administeredBy, treatmentGiven, isUnscheduled: true });
     await newRecord.save();
+    
+    // Create corresponding health record
+    const healthRecord = new HealthRecord({
+        animalId,
+        healthStatus: healthStatus || 'treatment',
+        recordType: 'treatment',
+        diagnosis: treatmentGiven,
+        date: date || new Date(),
+        notes: notes,
+        treatedBy: administeredBy,
+        recordedBy: administeredBy
+    });
+    await healthRecord.save();
+    
     res.status(201).json({ success: true, data: newRecord });
 });
 
@@ -62,8 +147,14 @@ const getTreatmentSchedulesByVet = asyncHandler(async (req: Request, res: Respon
 
 const getTreatmentSchedulesAssignedByVet = asyncHandler(async (req: Request, res: Response) => {
     const veterinarianId = req.user?.id;
-    const schedules = await TreatmentSchedule.find({ administeredBy: veterinarianId, status: 'scheduled' })
-    .populate('animalId', 'name species breed');
+    // Explicitly exclude treated and missed schedules
+    const schedules = await TreatmentSchedule.find({ 
+        administeredBy: veterinarianId, 
+        status: { $nin: ['treated', 'missed'] }
+    })
+    .populate('animalId', 'name species breed tagId')
+    .populate('farmId', 'name location')
+    .sort({ scheduledDate: 1 });
     res.json({ success: true, data: schedules });
 });
 
