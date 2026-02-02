@@ -1,5 +1,6 @@
 import { TreatmentSchedule } from "../models/TreatmentSchedule";
 import { TreatmentRecord } from "../models/TreatmentRecord";
+import { Expense } from "../models/Expense";
 import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/AsyncHandler";
 
@@ -32,12 +33,68 @@ const getTreatmentSchedulesByAnimal = asyncHandler(async (req: Request, res: Res
 
 const recordTreatment = asyncHandler(async (req: Request, res: Response) => {
     const administeredBy = req.user?.id;
-    const {animalId, scheduleId, date, treatmentGiven, notes, healthStatus,status } = req.body;
-    const newRecord = new TreatmentRecord({ animalId, scheduleId, treatmentDate:date, treatmentGiven, notes, administeredBy, healthStatus, status });
+    const {animalId, scheduleId, date, treatmentGiven, notes, healthStatus, status, cost } = req.body;
+    const newRecord = new TreatmentRecord({ 
+        animalId, 
+        scheduleId, 
+        treatmentDate: date, 
+        treatmentGiven, 
+        notes, 
+        administeredBy, 
+        healthStatus, 
+        status,
+        ...(cost && { cost: parseFloat(cost) })
+    });
     await newRecord.save();
+    
     if (scheduleId && status === 'treated') {
         await TreatmentSchedule.findByIdAndUpdate(scheduleId, { status: 'treated' });
     }
+    
+    // Update vet earnings if cost is provided
+    if (cost && administeredBy) {
+        const treatmentCost = parseFloat(cost);
+        try {
+            const User = require('../models/User').User;
+            await User.findByIdAndUpdate(
+                administeredBy,
+                {
+                    $inc: {
+                        'earnings.totalEarnings': treatmentCost,
+                        'earnings.treatmentEarnings': treatmentCost
+                    },
+                    $set: {
+                        'earnings.lastUpdated': new Date()
+                    }
+                },
+                { upsert: false }
+            );
+            
+            // Create expense entry for the treatment
+            const schedule = scheduleId ? await TreatmentSchedule.findById(scheduleId) : null;
+            const expenseData = {
+                farmId: schedule?.farmId,
+                category: 'healthcare',
+                subcategory: 'treatment',
+                amount: treatmentCost,
+                currency: 'KES',
+                date: date || new Date(),
+                description: `Treatment: ${treatmentGiven || 'Medical treatment'} for animal`,
+                animalId: animalId,
+                workerId: administeredBy,
+                paymentStatus: 'completed',
+                recordedBy: administeredBy
+            };
+            
+            if (expenseData.farmId) {
+                const expense = new Expense(expenseData);
+                await expense.save();
+            }
+        } catch (updateError) {
+            console.error('Error updating vet earnings or creating expense:', updateError);
+        }
+    }
+    
     res.status(201).json({ success: true, data: newRecord });
 });
 

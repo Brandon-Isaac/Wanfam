@@ -133,6 +133,56 @@ export const notifyTreatmentSchedule = async (
     });
 };
 
+// Notify when vaccination is recorded
+export const notifyVaccinationRecorded = async (
+    farmerId: Schema.Types.ObjectId | string,
+    animalTag: string,
+    vaccineName: string,
+    recordId: Schema.Types.ObjectId | string
+) => {
+    return createNotification({
+        userId: farmerId,
+        message: `Vaccination recorded for animal ${animalTag}: ${vaccineName}`,
+        type: 'vaccination',
+        relatedEntityId: recordId,
+        relatedEntityType: 'vaccination_record'
+    });
+};
+
+// Notify when vaccination is scheduled
+export const notifyVaccinationScheduled = async (
+    farmerId: Schema.Types.ObjectId | string,
+    animalTag: string,
+    vaccineName: string,
+    scheduledDate: Date,
+    scheduleId: Schema.Types.ObjectId | string
+) => {
+    return createNotification({
+        userId: farmerId,
+        message: `Vaccination scheduled for animal ${animalTag}: ${vaccineName} on ${new Date(scheduledDate).toLocaleDateString()}`,
+        type: 'vaccination',
+        relatedEntityId: scheduleId,
+        relatedEntityType: 'vaccination_schedule'
+    });
+};
+
+// Notify veterinarian when assigned to a vaccination case
+export const notifyVetVaccinationAssignment = async (
+    vetId: Schema.Types.ObjectId | string,
+    animalTag: string,
+    vaccineName: string,
+    scheduledDate: Date,
+    scheduleId: Schema.Types.ObjectId | string
+) => {
+    return createNotification({
+        userId: vetId,
+        message: `You have been assigned to vaccinate animal ${animalTag} with ${vaccineName} on ${new Date(scheduledDate).toLocaleDateString()}`,
+        type: 'vaccination',
+        relatedEntityId: scheduleId,
+        relatedEntityType: 'vaccination_schedule'
+    });
+};
+
 // Notify when a vaccination is due
 export const notifyVaccinationDue = async (
     farmerId: Schema.Types.ObjectId | string,
@@ -351,6 +401,8 @@ export default {
     notifyAnimalRegistration,
     notifyHealthStatusChange,
     notifyTreatmentSchedule,
+    notifyVaccinationRecorded,
+    notifyVaccinationScheduled,
     notifyVaccinationDue,
     notifyCheckupReminder,
     notifyLoanApproval,

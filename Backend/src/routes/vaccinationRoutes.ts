@@ -6,13 +6,16 @@ import { roleHandler } from "../middleware/roleHandler";
 
 const router = Router();
 
-router.post("/schedules/:farmSlug/:animalId", authenticate, roleHandler([UserRole.FARMER, UserRole.VETERINARY]), VaccinationController.createVaccinationSchedule);
+// More specific routes first to avoid parameter conflicts
+router.post("/schedules/:scheduleId/execute", authenticate, roleHandler([UserRole.FARMER, UserRole.VETERINARY]), VaccinationController.executeVaccinationSchedule);
 router.get("/schedules/veterinarian", authenticate, roleHandler([UserRole.VETERINARY]), VaccinationController.getVeterinarianSchedules);
+router.post("/schedules/:farmId/:animalId", authenticate, roleHandler([UserRole.FARMER, UserRole.VETERINARY]), VaccinationController.createVaccinationSchedule);
+router.get("/schedules/:farmId/:animalId", authenticate, roleHandler([UserRole.FARMER, UserRole.VETERINARY]), VaccinationController.getAnimalVaccinationSchedules);
 router.get("/schedules/:farmId", authenticate, roleHandler([UserRole.FARMER, UserRole.VETERINARY]), VaccinationController.getVaccinationSchedules);
 router.put("/schedules/:scheduleId", authenticate, roleHandler([UserRole.FARMER, UserRole.VETERINARY]), VaccinationController.updateVaccinationSchedule);
 router.delete("/schedules/:scheduleId", authenticate, roleHandler([UserRole.FARMER, UserRole.VETERINARY]), VaccinationController.deleteVaccinationSchedule);
+router.post("/records/:animalId", authenticate, roleHandler([UserRole.FARMER, UserRole.VETERINARY]), VaccinationController.createVaccinationRecordForAnimal);
 router.post("/records", authenticate, roleHandler([UserRole.FARMER, UserRole.VETERINARY]), VaccinationController.createVaccinationRecord);
-router.post("/schedules/:scheduleId/execute", authenticate, roleHandler([UserRole.FARMER, UserRole.VETERINARY]), VaccinationController.executeVaccinationSchedule);
 router.get("/records/:farmId", authenticate, roleHandler([UserRole.FARMER, UserRole.VETERINARY]), VaccinationController.getVaccinationRecords);
 router.put("/records/:recordId", authenticate, roleHandler([UserRole.FARMER, UserRole.VETERINARY]), VaccinationController.updateVaccinationRecord);
 router.delete("/records/:recordId", authenticate, roleHandler([UserRole.FARMER, UserRole.VETERINARY]), VaccinationController.deleteVaccinationRecord);

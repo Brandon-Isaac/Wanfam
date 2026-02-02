@@ -11,7 +11,8 @@ const VaccinationCases = () => {
         vaccinationDate: "",
         administrationSite: "",
         notes: "",
-        sideEffects: ""
+        sideEffects: "",
+        vaccination_cost: ""
     });
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -43,7 +44,8 @@ const VaccinationCases = () => {
             vaccinationDate: new Date().toISOString().split('T')[0],
             administrationSite: "",
             notes: schedule.notes || "",
-            sideEffects: ""
+            sideEffects: "",
+            vaccination_cost: ""
         });
         setUpdateStatusModalOpen(true);
     };
@@ -321,6 +323,25 @@ const VaccinationCases = () => {
                                             <option value="neck">Neck</option>
                                             <option value="other">Other</option>
                                         </select>
+                                    </div>
+
+                                    <div>
+                                        <label htmlFor="vaccination_cost" className="block text-sm font-medium text-gray-700 mb-1">
+                                            Vaccination Cost (KES) <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="number"
+                                            id="vaccination_cost"
+                                            name="vaccination_cost"
+                                            value={recordData.vaccination_cost}
+                                            onChange={handleInputChange}
+                                            className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Enter vaccination cost"
+                                            min="0"
+                                            step="0.01"
+                                            required
+                                            disabled={submitting}
+                                        />
                                     </div>
 
                                     <div>

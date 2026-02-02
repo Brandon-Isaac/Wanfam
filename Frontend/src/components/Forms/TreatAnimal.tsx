@@ -15,7 +15,8 @@ const TreatAnimal = () => {
         notes: "",
         dosage: "",
         date: "",
-        status: "treated"
+        status: "treated",
+        cost: ""
     });
     const navigate = useNavigate();
 
@@ -28,9 +29,7 @@ const TreatAnimal = () => {
                     ...prevState,
                     animalId: response.data.data.animalId._id
                 }));
-                console.log("Fetched treatment details:", response.data.data);
             } catch (error) {
-                console.error("Error fetching treatment details:", error);
                 setError("Failed to load treatment details.");
             } finally {
                 setLoading(false);
@@ -55,7 +54,6 @@ const TreatAnimal = () => {
             await api.put(`/livestock/${treatmentDetails.animalId._id}/health-status/`, { healthStatus: formData.healthStatus });
             navigate("/treatment-schedules");
         } catch (error) {
-            console.error("Error submitting treatment:", error);
             setError("Failed to submit treatment.");
         }
     };
@@ -108,6 +106,20 @@ const TreatAnimal = () => {
                         value={formData.dosage}
                         onChange={handleChange}
                         className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                        required
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Treatment Cost (KES) <span className="text-red-500">*</span></label>
+                    <input
+                        type="number"
+                        name="cost"
+                        value={formData.cost}
+                        onChange={handleChange}
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                        placeholder="Enter treatment cost"
+                        min="0"
+                        step="0.01"
                         required
                     />
                 </div>

@@ -22,7 +22,6 @@ const TreatmentSchedules = () => {
                 setActiveFilter(filterParam);
                 applyFilter(response.data.data, filterParam);
             } catch (error) {
-                console.error("Error fetching treatment schedules:", error);
                 setError("Failed to load treatment schedules.");
             } finally {
                 setLoading(false);

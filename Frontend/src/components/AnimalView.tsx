@@ -11,12 +11,14 @@ const [generatingReport, setGeneratingReport] = useState(false);
 const [reportData, setReportData] = useState<any>(null);
 const [showReport, setShowReport] = useState(false);
 const [milkProducedToday, setMilkProducedToday] = useState<number | null>(null);
+const [vaccinationSchedules, setVaccinationSchedules] = useState<any[]>([]);
 const navigate=useNavigate();
 const { farmId, animalId } = useParams();
 
 
 useEffect(()=>{
     fetchAnimal();
+    fetchVaccinationSchedules();
 },[]);
 
 const fetchAnimal=async()=>{
@@ -46,6 +48,17 @@ const fetchMilkProducedToday = async (animalId: string) => {
     } catch (err) {
         console.error(`Failed to fetch milk produced today for animal ${animalId}:`, err);
         setMilkProducedToday(null);
+    }
+};
+
+const fetchVaccinationSchedules = async () => {
+    try {
+        const response = await api.get(`/vaccination/schedules/${farmId}/${animalId}?status=scheduled`);
+        const schedules = response.data.schedules || [];
+        setVaccinationSchedules(schedules);
+    } catch (err) {
+        console.error('Failed to fetch vaccination schedules:', err);
+        setVaccinationSchedules([]);
     }
 };
 
@@ -157,11 +170,38 @@ const closeReport = () => {
                             <i className="fas fa-user-edit"></i> Update Animal
                         </button>
                         <br/>
-                        <button onClick={()=>navigate(`/${farmId}/livestock/${animalId}/schedule-vaccination`)}
-                         className="text-purple-500 hover:text-purple-900 transition-colors duration-200">
-                            <i className="fas fa-calendar-plus"></i> Schedule Vaccination
-                        </button>
-                        <br/>
+                        {vaccinationSchedules.length === 0 ? (
+                            <>
+                                <button onClick={()=>navigate(`/${farmId}/livestock/${animalId}/schedule-vaccination`)}
+                                 className="text-purple-500 hover:text-purple-900 transition-colors duration-200">
+                                    <i className="fas fa-calendar-plus"></i> Schedule Vaccination
+                                </button>
+                                <br/>
+                            </>
+                        ) : (
+                            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 my-3">
+                                <div className="flex items-start">
+                                    <i className="fas fa-clock text-yellow-600 mt-1 mr-3"></i>
+                                    <div className="flex-1">
+                                        <h4 className="font-semibold text-yellow-800 mb-2">
+                                            Awaiting Vaccination
+                                        </h4>
+                                        {vaccinationSchedules.map((schedule, index) => (
+                                            <div key={index} className="text-sm text-yellow-700 mb-2">
+                                                <div><strong>Vaccine:</strong> {schedule.vaccineName}</div>
+                                                <div><strong>Scheduled:</strong> {new Date(schedule.scheduledDate).toLocaleDateString()}</div>
+                                                {schedule.veterinarianId && (
+                                                    <div><strong>Veterinarian:</strong> {schedule.veterinarianId.firstName} {schedule.veterinarianId.lastName}</div>
+                                                )}
+                                                {schedule.selfAdministered && (
+                                                    <div className="text-yellow-600 italic">Self-administered</div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                         <button onClick={()=>navigate(`/${farmId}/livestock/${animalId}/vaccinate`)}
                          className="text-green-500 hover:text-green-900 transition-colors duration-200">
                             <i className="fas fa-syringe"></i> Record Vaccination

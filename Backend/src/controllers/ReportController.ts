@@ -268,8 +268,7 @@ const generateAnimalReport = asyncHandler(async (req: Request, res: Response) =>
                     total: animalVaccinations.length,
                     records: animalVaccinations.map(vr => ({
                         vaccineName: vr.vaccineName || 'Unknown',
-                        vaccinationDates: vr.vaccinationDates || [],
-                        nextDueDate: vr.nextDueDate || null,
+                        scheduledDate: vr.scheduledDate || null,
                         administeredBy: vr.administeredBy && typeof vr.administeredBy === 'object' ? 
                             `${(vr.administeredBy as any).firstName || ''} ${(vr.administeredBy as any).lastName || ''}`.trim() || 'Unknown' : 'N/A',
                         administrationSite: vr.administrationSite || [],

@@ -48,6 +48,7 @@ import Revenue from '../pages/Revenue';
 import Expenses from '../pages/Expenses';
 import FinancialOverview from '../pages/FinancialOverview';
 import VaccinationCases from '../components/VaccinationCases';
+import NotificationList from '../pages/NotificationList';
 import Vaccinate from '../components/Forms/Vaccinate';
 import ScheduleVaccination from '../components/Forms/ScheduleVaccination';
 import FloatingChatbot from '../components/FloatingChatbot';
@@ -66,6 +67,13 @@ const AppRoutes = () => {
                         <>
                             <Navigation />
                             <Dashboard />
+                        </>
+                    </ProtectedRoutes>} />
+                <Route path="/notifications" element={
+                    <ProtectedRoutes>
+                        <>
+                            <Navigation />
+                            <NotificationList />
                         </>
                     </ProtectedRoutes>} />
                 <Route path="/dashboard/farmer" element={

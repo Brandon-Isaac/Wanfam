@@ -99,7 +99,7 @@ const SickAnimals = () => {
                                         <button 
                                             onClick={() =>navigate(`/farms/${farmId}/livestock/${animal._id}/treatment/schedule`)}
                                             className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
-                                           Update Treatment
+                                           Schedule Treatment
                                         </button>
                                     )}
                                     <button 
