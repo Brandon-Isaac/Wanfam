@@ -85,6 +85,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [token, user]);
 
   const fetchUserProfile = useCallback(async () => {
+    // Don't fetch if there's no token
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setServerError(false);
       const response = await api.get('/auth/profile');
@@ -118,7 +124,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     if (token) {

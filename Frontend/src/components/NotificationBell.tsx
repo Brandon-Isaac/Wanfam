@@ -53,7 +53,7 @@ const NotificationBell = () => {
       setNotifications(response.data.notifications || []);
       setUnreadCount(response.data.unreadCount || 0);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      // Silently handle notification fetch errors
     }
   };
 
@@ -67,7 +67,7 @@ const NotificationBell = () => {
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      // Silently handle mark as read errors
     }
   };
 
@@ -80,7 +80,7 @@ const NotificationBell = () => {
       );
       setUnreadCount(0);
     } catch (error) {
-      console.error('Error marking all as read:', error);
+      // Silently handle mark all as read errors
     } finally {
       setLoading(false);
     }
