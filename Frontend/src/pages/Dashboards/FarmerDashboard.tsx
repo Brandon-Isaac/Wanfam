@@ -5,6 +5,7 @@ import api from '../../utils/Api';
 const FarmerDashboard = () => {
   const [stats, setStats] = useState<any>({});
   const [farmWorkers, setFarmWorkers] = useState<any[]>([]);
+  const [farms, setFarms] = useState<any[]>([]);
   
   const fetchStats = async () => {
     try {
@@ -24,11 +25,12 @@ const FarmerDashboard = () => {
     try {
       // Get all farms first
       const farmsResponse = await api.get('/farms');
-      const farms = farmsResponse.data.data || farmsResponse.data;
+      const farmsData = farmsResponse.data.data || farmsResponse.data;
+      setFarms(farmsData);
       
-      if (farms.length > 0) {
+      if (farmsData.length > 0) {
         // Fetch workers from the first farm
-        const workersResponse = await api.get(`/workers/${farms[0]._id}`);
+        const workersResponse = await api.get(`/workers/${farmsData[0]._id}`);
         setFarmWorkers(workersResponse.data.data || []);
       }
     } catch (error) {
@@ -309,6 +311,26 @@ const FarmerDashboard = () => {
                 >
                   <i className="fas fa-user text-red-600 text-xl mb-2"></i>
                   <span className="text-xs font-semibold text-red-800 text-center">Profile</span>
+                </Link>
+                <Link
+                  to={farms?.[0]?._id ? `/farms/${farms[0]._id}/feed-schedules` : '/select/farm'}
+                  className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg hover:shadow-md transition-all border border-blue-200"
+                  onClick={(e) => {
+                    if (!farms?.[0]?._id) {
+                      e.preventDefault();
+                      alert('Please select a farm first');
+                    }
+                  }}
+                >
+                  <i className="fas fa-calendar-plus text-blue-600 text-xl mb-2"></i>
+                  <span className="text-xs font-semibold text-blue-800 text-center">Feed Schedule</span>
+                </Link>
+                <Link
+                  to="/tasks"
+                  className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg hover:shadow-md transition-all border border-purple-200"
+                >
+                  <i className="fas fa-tasks text-purple-600 text-xl mb-2"></i>
+                  <span className="text-xs font-semibold text-purple-800 text-center">My Tasks</span>
                 </Link>
               </div>
             </div>

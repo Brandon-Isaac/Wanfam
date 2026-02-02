@@ -7,153 +7,67 @@ import { Animal } from "../models/Animal";
 import { ProductivityRecord } from "../models/ProductivityRecord";
 import { User } from "../models/User";
 
-const getFeedConsumptionByAnimal = asyncHandler(async (req: Request, res: Response) => {
-    const farmSlug = req.params.farmSlug;
-    const farm = await Farm.findOne({ slug: farmSlug });
-    if (!farm) {
-        return res.status(404).json({ message: "Farm not found" });
-    }
-    const animalSlug = req.params.animalSlug;
-    const animal = await Animal.findOne({ slug: animalSlug, farmId: farm._id });
-    if (!animal) {
-        return res.status(404).json({ message: "Animal not found" });
-    }
-    const records = await FeedingRecord.find({ animalId: animal._id });
-    const totalFeed = records.reduce((acc, record) => acc + (record.quantity || 0), 0);
-    res.json({ success: true, data: { totalFeed: { amount: totalFeed, unit: 'kg' } } });
-});
-
-const getConsumptionByFarm = asyncHandler(async (req: Request, res: Response) => {
-    const farmSlug = req.params.farmSlug;
-    const farm = await Farm.findOne({ slug: farmSlug });
-    if (!farm) {
-        return res.status(404).json({ message: "Farm not found" });
-    }
-    const records = await FeedingRecord.find({ farmId: farm._id });
-    const totalFeed = records.reduce((acc, record) => acc + (record.quantity || 0), 0);
-    res.json({ success: true, data: { totalFeed: { amount: totalFeed, unit: 'kg' } } });
-});
-
 const recordFeedConsumption = asyncHandler(async (req: Request, res: Response) => {
-    const farmSlug = req.params.farmSlug;
-    const farm = await Farm.findOne({ slug: farmSlug });
-    if (!farm) {
-        return res.status(404).json({ message: "Farm not found" });
-    }
-    const animalSlug = req.params.animalSlug;
-    const animal = await Animal.findOne({ slug: animalSlug, farmId: farm._id });
-    if (!animal) {
-        return res.status(404).json({ message: "Animal not found" });
-    }
-    const userId = req.user?.id;
-    if (!userId) {
-        return res.status(401).json({ message: "Unauthorized" });
-    }
-    const user= await User.findOne({ _id: userId });
-    const { feedType, amount } = req.body;
-    const newRecord = new FeedingRecord({ farmId: farm._id, animalId: animal._id, feedType, amount, fedBy: user?.firstName, date: new Date() });
+    const farmId = req.params.farmId;
+    const animalId = req.params.animalId;
+    const { date, feedType, quantity, unit, notes } = req.body;
+    const newRecord = new FeedingRecord({ farmId, animalId, date, feedType, quantity, unit, notes });
     await newRecord.save();
     res.status(201).json({ success: true, data: newRecord });
 });
 
 const recordFeedConsumptionByMultipleAnimals = asyncHandler(async (req: Request, res: Response) => {
-    const farmSlug = req.params.farmSlug;
-    const farm = await Farm.findOne({ slug: farmSlug });
-    if (!farm) {
-        return res.status(404).json({ message: "Farm not found" });
+    const farmId = req.params.farmId;
+    const { animalIds, date, feedType, quantity, unit, notes } = req.body;
+    const records = [];
+    for (const animalId of animalIds) {
+        const newRecord = new FeedingRecord({ farmId, animalId, date, feedType, quantity, unit, notes });
+        await newRecord.save();
+        records.push(newRecord);
     }
-    const { animalIds, feedType, amount } = req.body;
-    const validAnimalIds = await Animal.find({ _id: { $in: animalIds }, farmId: farm._id }).select('_id');
-    if (validAnimalIds.length === 0) {
-        return res.status(400).json({ message: "No valid animals found for the provided IDs" });
-    }
-
-    const userId = req.user?.id;
-    if (!userId) {
-        return res.status(401).json({ message: "Unauthorized" });
-    }
-    const user = await User.findOne({ _id: userId });
-
-    const feedingRecords = validAnimalIds.map(animalId => {
-        return new FeedingRecord({ farmId: farm._id, animalId: animalId._id, feedType, amount, fedBy: user?.firstName, date: new Date() });
-    });
-
-    await FeedingRecord.insertMany(feedingRecords);
-    res.status(201).json({ success: true, data: feedingRecords });
+    res.status(201).json({ success: true, data: records });
 });
 
-const recordFeedConsumptionScheduled = asyncHandler(async (req: Request, res: Response) => {
-    const farmSlug = req.params.farmSlug;
-    const farm = await Farm.findOne({ slug: farmSlug });
-    if (!farm) {
-        return res.status(404).json({ message: "Farm not found" });
-    }
-    const scheduleSlug = req.params.scheduleSlug;
-    const schedule = await FeedingSchedule.findOne({ slug: scheduleSlug, farmId: farm._id });
-    if (!schedule) {
-        return res.status(404).json({ message: "Feeding schedule not found" });
-    }
-    const userId = req.user?.id;
-    if (!userId) {
-        return res.status(401).json({ message: "Unauthorized" });
-    }
-    const user= await User.findOne({ _id: userId });
-    const { quantity, unit, feedingTime, feedCondition, animalResponse, weather, notes } = req.body;
-    const newRecord = new FeedingRecord({ farmId: farm._id, animalId: schedule.animalId, feedingScheduleId: schedule._id, fedBy: user?.firstName, quantity, unit, feedingTime, feedCondition, animalResponse, weather, notes });
-    await newRecord.save();
-    res.status(201).json({ success: true, data: newRecord });
+const getFeedConsumptionByAnimal = asyncHandler(async (req: Request, res: Response) => {
+    const farmId = req.params.farmId;
+    const animalId = req.params.animalId;
+    const records = await FeedingRecord.find({ farmId, animalId });
+    res.json({ success: true, data: records });
+});
+
+const getConsumptionByFarm = asyncHandler(async (req: Request, res: Response) => {
+    const farmId = req.params.farmId;
+    const records = await FeedingRecord.find({ farmId });
+    res.json({ success: true, data: records });
 });
 
 const updateFeedConsumption = asyncHandler(async (req: Request, res: Response) => {
-    const farmSlug = req.params.farmSlug;
-    const farm = await Farm.findOne({ slug: farmSlug });
-    if (!farm) {
-        return res.status(404).json({ message: "Farm not found" });
-    }
-    const animalSlug = req.params.animalSlug;
-    const animal = await Animal.findOne({ slug: animalSlug, farmId: farm._id });
-    if (!animal) {
-        return res.status(404).json({ message: "Animal not found" });
-    }
-    const recordSlug = req.params.recordSlug;
-    const record = await FeedingRecord.findOne({ slug: recordSlug, animalId: animal._id });
+    const farmId = req.params.farmId;
+    const animalId = req.params.animalId;
+    const recordId = req.params.recordId;
+    const updateData = req.body;
+    const record = await FeedingRecord.findOneAndUpdate({ _id: recordId, farmId, animalId }, updateData, { new: true, runValidators: true });
     if (!record) {
-        return res.status(404).json({ message: "Feeding record not found" });
-    }   
-    const { quantity, unit } = req.body;
-    if (quantity !== undefined) record.quantity = quantity;
-    if (unit !== undefined) record.unit = unit;
-    await record.save();
+        return res.status(404).json({ message: "Feeding Record not found" });
+    }
     res.json({ success: true, data: record });
 });
 
 const deleteFeedConsumption = asyncHandler(async (req: Request, res: Response) => {
-    const farmSlug = req.params.farmSlug;
-    const farm = await Farm.findOne
-({ slug: farmSlug });
-    if (!farm) {
-        return res.status(404).json({ message: "Farm not found" });
-    }
-    const animalSlug = req.params.animalSlug;
-    const animal = await Animal.findOne({ slug: animalSlug, farmId: farm._id });
-    if (!animal) {
-        return res.status(404).json({ message: "Animal not found" });
-    }
-    const recordSlug = req.params.recordSlug;
-    const record = await FeedingRecord.findOne({ slug: recordSlug, animalId: animal._id });
+    const farmId = req.params.farmId;
+    const animalId = req.params.animalId;
+    const recordId = req.params.recordId;
+    const record = await FeedingRecord.findOneAndDelete({ _id: recordId, farmId, animalId });
     if (!record) {
-        return res.status(404).json({ message: "Feeding record not found" });
+        return res.status(404).json({ message: "Feeding Record not found" });
     }
-    await record.deleteOne();
-    res.json({ success: true, message: "Feeding record deleted" });
+    res.json({ success: true, data: record });
 });
 
-
-export const feedConsumptionController = {
-    getFeedConsumptionByAnimal,
+export const FeedConsumptionController = {
     recordFeedConsumption,
-    recordFeedConsumptionScheduled,
     recordFeedConsumptionByMultipleAnimals,
+    getFeedConsumptionByAnimal,
     getConsumptionByFarm,
     updateFeedConsumption,
     deleteFeedConsumption

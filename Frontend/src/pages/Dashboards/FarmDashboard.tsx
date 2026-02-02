@@ -315,6 +315,13 @@ const FarmDashboard = () => {
                   <i className="fas fa-chart-pie text-teal-600 text-xl mb-2"></i>
                   <span className="text-xs font-semibold text-teal-800 text-center">Financial</span>
                 </Link>
+                <Link
+                  to={`/farms/${farmId}/feed-schedules`}
+                  className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg hover:shadow-md transition-all border border-cyan-200"
+                >
+                  <i className="fas fa-calendar-plus text-cyan-600 text-xl mb-2"></i>
+                  <span className="text-xs font-semibold text-cyan-800 text-center">Feed Schedule</span>
+                </Link>
               </div>
             </div>
 

@@ -52,6 +52,8 @@ import NotificationList from '../pages/NotificationList';
 import Vaccinate from '../components/Forms/Vaccinate';
 import ScheduleVaccination from '../components/Forms/ScheduleVaccination';
 import FloatingChatbot from '../components/FloatingChatbot';
+import CreateFeedSchedule from '../components/Forms/CreateFeedSchedule';
+import FeedSchedules from '../pages/FeedSchedules';
 
 // User Management Pages
 import AllUsers from '../pages/Users/AllUsers';
@@ -335,6 +337,22 @@ const AppRoutes = () => {
                     <FarmProvider>
                         <Navigation />
                         <AnimalList />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+            <Route path="/farms/:farmId/feed-schedules" element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <FeedSchedules />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+            <Route path="/farms/:farmId/feed-schedule/create" element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <CreateFeedSchedule />
                     </FarmProvider>
                 </ProtectedRoutes>
             } />
