@@ -1,113 +1,150 @@
-Wanfam Comprehensive Livestock Care System
-Final Year Project Presentation
 
- Project Overview
-Wanfam is a web-based livestock management platform designed to modernize record-keeping and farm operations for small to medium-scale farmers in Kenya. It replaces manual, error-prone methods with a digital system that tracks animal health, feeding, vaccinations, and productivity in real time.
 
- Key Objectives
-Digitize livestock profiles and records
+WANFAM is a web-based livestock management platform designed to modernize record-keeping and farm operations for small to medium-scale farmers in Kenya. The system replaces manual, error-prone methods with a digital solution that tracks animal health, feeding, vaccinations, and productivity in real time.
 
-Provide real-time health and feeding alerts
+---
 
-Enable data-driven decision-making through analytics
+##  Project Overview
 
-Improve farm profitability and animal welfare
+Livestock farmers often rely on paper records and memory-based tracking, which leads to missed vaccinations, poor productivity monitoring, and reduced profitability.  
+WANFAM provides a centralized, easy-to-use digital platform that improves animal welfare, farm efficiency, and data-driven decision-making.
 
-Ensure accessibility for farmers with low digital literacy
+---
 
-🛠️ Technology Stack
-Component	Technology Used
-Frontend	React (with TypeScript)
-Backend	Node.js, Express.js
-Database	MongoDB Atlas
-Authentication	JWT, Bcrypt
-Notifications	In-app alerts
-Deployment	Vercel (Frontend), Render (Backend)
- Core Features
-✅ Livestock Profile Management – Register, view, and manage animal details
+##  Key Objectives
 
-✅ Health & Medical Tracking – Log treatments, vaccinations, and health history
+- Digitize livestock profiles and records  
+- Provide real-time health and feeding alerts  
+- Enable data-driven decision-making through analytics  
+- Improve farm profitability and animal welfare  
+- Ensure accessibility for farmers with low digital literacy  
 
-✅ Feeding & Milking Logs – Record daily yields and feed schedules
+---
 
-✅ Automated Alerts – Notifications for upcoming vaccinations, deworming, etc.
+##  Technology Stack
 
-✅ Analytics Dashboard – Visualize productivity, costs, and profitability
+| Component        | Technology Used |
+|------------------|-----------------|
+| Frontend         | React (TypeScript) |
+| Backend          | Node.js, Express.js |
+| Database         | MongoDB Atlas |
+| Authentication  | JWT, Bcrypt |
+| Notifications   | In-app alerts |
+| Deployment      | Vercel (Frontend), Render (Backend) |
 
-✅ Multi-Platform Access – Responsive web app for mobile and desktop
+---
 
-🧪 Testing & Validation
-Unit & Integration Testing – Jest, Supertest
+##  Core Features
 
-User Acceptance Testing (UAT) – Conducted with 15 farmers in Nyeri County
+- **Livestock Profile Management**  
+  Register, view, and manage detailed animal information.
 
-Usability Score (SUS) – 80/100 (Excellent)
+- **Health & Medical Tracking**  
+  Log treatments, vaccinations, and complete medical history.
 
-Task Success Rate – 90% for core functionalities
+- **Feeding & Milking Logs**  
+  Record daily feed schedules and milk production.
 
- Project Structure
-text
-Wanfam/
-├── frontend/          # React app (Vercel)
-├── backend/           # Node/Express API (Render)
-├── database/          # MongoDB models & schemas
-├── docs/              # Project documentation
-└── tests/             # Unit & integration tests
- How to Run Locally
-Clone the repository
+- **Automated Alerts**  
+  Notifications for upcoming vaccinations, deworming, and health checks.
 
-bash
+- **Analytics Dashboard**  
+  Visualize productivity, costs, and profitability trends.
+
+- **Multi-Platform Access**  
+  Responsive web application for both mobile and desktop devices.
+
+---
+
+##  Testing & Validation
+
+- **Unit & Integration Testing:** Jest, Supertest  
+- **User Acceptance Testing (UAT):** Conducted with 15 farmers in Nyeri County  
+
+### Results
+- **System Usability Scale (SUS):** 80 / 100 (Excellent)
+- **Task Success Rate:** 90% for core functionalities
+
+---
+
+##  How to Run Locally
+
+### 1️ Clone the Repository
+```bash
 git clone https://github.com/your-username/wanfam.git
-Install dependencies
+2️ Install Dependencies
+cd frontend
+npm install
 
-bash
-cd frontend && npm install
-cd ../backend && npm install
-Set up environment variables
+cd ../backend
+npm install
+3️ Set Up Environment Variables
+Create .env files in both the frontend and backend directories with the required configuration values:
 
-Create .env files in both frontend and backend with required keys (MongoDB URI, JWT secret, etc.)
+MongoDB URI
 
-Run the development servers
+JWT Secret
 
-bash
-# Backend
-cd backend && npm run dev
+Other necessary keys
 
-# Frontend
-cd frontend && npm start
-Access the app
+4️ Run the Development Servers
+Backend
 
+cd backend
+npm run dev
+Frontend
+
+cd frontend
+npm start
+5️ Access the Application
 Frontend: http://localhost:3000
 
 Backend API: http://localhost:5000
 
  Impact & Future Work
-Immediate Impact: Reduced manual errors, improved reminder systems, better data visibility
+Immediate Impact
+Reduced manual record-keeping errors
 
-Future Enhancements:
+Improved reminder and alert systems
 
-IoT sensor integration (low-cost health monitors)
+Better visibility of farm productivity data
 
-AI-based disease prediction
+Future Enhancements
+IoT sensor integration for low-cost health monitoring
 
-Blockchain for livestock traceability
+AI-based disease prediction models
 
-Regional adaptation across East Africa
+Blockchain-based livestock traceability
 
- Team & Supervision
-Developers: Brandon Isaac Datch, Alvin Kiptoo
+Regional expansion across East Africa
 
-Supervisor: Dr. Moso
+👥 Team & Supervision
+Developers
 
-Institution: Dedan Kimathi University of Technology
+Brandon Isaac Datch
 
-Year: 2026
+Alvin Kiptoo
 
-🔗 References & Appendices
-Full project documentation, survey instruments, interview protocols, consent forms, and architecture diagrams are available in the project report (Wanfam Documentation V2.docx).
+Supervisor
+
+Dr. Moso
+
+Institution
+
+Dedan Kimathi University of Technology
+
+Year
+
+2026
+
+ References & Appendices
+Full project documentation, survey instruments, interview protocols, consent forms, and architecture diagrams are available in:
+
+Wanfam Documentation V2.docx
 
  License
-This project is developed for academic purposes. All rights reserved by the authors.
+This project is developed for academic purposes only.
+All rights reserved by the authors.
 
-Thank you for your attention!
+ Thank You
 Empowering farmers through digital innovation.
