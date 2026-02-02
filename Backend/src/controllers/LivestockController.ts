@@ -175,7 +175,7 @@ const deleteFarmAnimal = asyncHandler(async (req: Request, res: Response) => {
 });
 
 const getAllAnimals = asyncHandler(async (req: Request, res: Response) => {
-    const animals = await Animal.find();
+    const animals = await Animal.find().populate('farmId', 'name location');
     res.json({ success: true, data: animals });
 });
 const getAnimalById = asyncHandler(async (req: Request, res: Response) => {

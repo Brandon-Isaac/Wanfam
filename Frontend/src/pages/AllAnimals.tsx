@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import api from '../utils/Api';
 
 interface Animal {
@@ -23,6 +24,7 @@ interface Animal {
 
 const AllAnimals = () => {
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   
   // Initialize filter from URL params immediately
   const initialFilter = searchParams.get('filter') || 'all';
@@ -53,8 +55,12 @@ const AllAnimals = () => {
     try {
       setLoading(true);
       
-      // Use the new backend endpoint that efficiently fetches all animals for the farmer
-      const response = await api.get('/livestock/farmer/all-animals', {
+      // Admin uses different endpoint
+      const endpoint = user?.role === 'admin' 
+        ? '/livestock/animals' 
+        : '/livestock/farmer/all-animals';
+      
+      const response = await api.get(endpoint, {
         params: {
           // Pass filters as query parameters - backend will handle them
           healthStatus: filterStatus !== 'all' ? filterStatus : undefined,

@@ -235,13 +235,13 @@ const generateAnimalReport = asyncHandler(async (req: Request, res: Response) =>
                     total: animalHealth.length,
                     records: animalHealth.map(hr => ({
                         recordType: hr.recordType || 'other',
-                        description: hr.description || 'No description',
+                        description: hr.diagnosis || hr.notes || 'No description',
                         diagnosis: hr.diagnosis || 'N/A',
-                        treatment: hr.treatment || 'N/A',
-                        medication: hr.medication || 'N/A',
-                        treatmentDate: hr.treatmentDate || null,
-                        recoveryDate: hr.recoveryDate || null,
-                        outcome: hr.outcome || 'N/A',
+                        treatment: hr.diagnosis || 'N/A',
+                        medication: hr.diagnosis || 'N/A',
+                        treatmentDate: hr.date || null,
+                        recoveryDate: hr.date || null,
+                        outcome: hr.healthStatus || 'N/A',
                         treatedBy: hr.treatedBy && typeof hr.treatedBy === 'object' ? 
                             `${(hr.treatedBy as any).firstName || ''} ${(hr.treatedBy as any).lastName || ''}`.trim() || 'Unknown' : 'N/A',
                         notes: hr.notes || ''

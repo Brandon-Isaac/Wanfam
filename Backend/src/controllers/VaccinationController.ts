@@ -1,5 +1,6 @@
 import { VaccinationRecord } from "../models/VaccinationRecord";
 import { VaccinationSchedule } from "../models/VaccinationSchedule";
+import { HealthRecord } from "../models/HealthRecord";
 import { Request, Response } from "express";
 import { Animal } from "../models/Animal";
 import { Farm } from "../models/Farm";
@@ -186,6 +187,19 @@ const executeVaccinationSchedule = async (req: Request, res: Response) => {
         });
         await record.save();
 
+        // Create corresponding health record
+        const healthRecord = new HealthRecord({
+            animalId: animalIdValue,
+            healthStatus: 'vaccination',
+            recordType: 'vaccination',
+            diagnosis: schedule.vaccineName,
+            date: schedule.scheduledDate,
+            notes: notes || schedule.notes,
+            treatedBy: schedule.veterinarianId,
+            recordedBy: schedule.veterinarianId
+        });
+        await healthRecord.save();
+
         // Update schedule status to completed
         schedule.status = 'completed';
         await schedule.save();
@@ -247,6 +261,19 @@ const createVaccinationRecord = async (req: Request, res: Response) => {
             notes
         });
         await newRecord.save();
+
+        // Create corresponding health record
+        const healthRecord = new HealthRecord({
+            animalId,
+            healthStatus: 'vaccination',
+            recordType: 'vaccination',
+            diagnosis: vaccineName,
+            date: scheduledDate || new Date(),
+            notes: notes,
+            treatedBy: veterinarianId,
+            recordedBy: veterinarianId
+        });
+        await healthRecord.save();
 
         // Notify farm owner about the vaccination record
         try {
@@ -328,6 +355,19 @@ const createVaccinationRecordForAnimal = async (req: Request, res: Response) => 
             notes
         });
         await newRecord.save();
+
+        // Create corresponding health record
+        const healthRecord = new HealthRecord({
+            animalId,
+            healthStatus: 'vaccination',
+            recordType: 'vaccination',
+            diagnosis: vaccineName,
+            date: scheduledDate || new Date(),
+            notes: notes,
+            treatedBy: veterinarianId || req.user?.id,
+            recordedBy: veterinarianId || req.user?.id
+        });
+        await healthRecord.save();
 
         // Update vet earnings if cost is provided and veterinarianId exists
         if (vaccination_cost && (veterinarianId || req.user?.id)) {

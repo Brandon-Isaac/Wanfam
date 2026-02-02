@@ -18,13 +18,19 @@ const getUserById = asyncHandler(async (req: Request, res: Response) => {
 
 const updateUser = asyncHandler(async (req: Request, res: Response) => {
     const userId = req.params.id;
-    const { username, role } = req.body;
+    const { username, role, isActive } = req.body;
 
-    if (!username || !role) {
-        return res.status(400).json({ message: 'Username and role are required' });
+    // Build update object with only provided fields
+    const updateData: any = {};
+    if (username !== undefined) updateData.username = username;
+    if (role !== undefined) updateData.role = role;
+    if (isActive !== undefined) updateData.isActive = isActive;
+
+    if (Object.keys(updateData).length === 0) {
+        return res.status(400).json({ message: 'No fields to update' });
     }
 
-    const user = await User.findByIdAndUpdate(userId, { username, role }, { new: true, runValidators: true });
+    const user = await User.findByIdAndUpdate(userId, updateData, { new: true, runValidators: true }).select('-password');
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
     }

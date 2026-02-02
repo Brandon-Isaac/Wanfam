@@ -1,5 +1,6 @@
 import { TreatmentSchedule } from "../models/TreatmentSchedule";
 import { TreatmentRecord } from "../models/TreatmentRecord";
+import { HealthRecord } from "../models/HealthRecord";
 import { Expense } from "../models/Expense";
 import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/AsyncHandler";
@@ -46,6 +47,19 @@ const recordTreatment = asyncHandler(async (req: Request, res: Response) => {
         ...(cost && { cost: parseFloat(cost) })
     });
     await newRecord.save();
+    
+    // Create corresponding health record
+    const healthRecord = new HealthRecord({
+        animalId,
+        healthStatus: healthStatus || 'treatment',
+        recordType: 'treatment',
+        diagnosis: treatmentGiven,
+        date: date || new Date(),
+        notes: notes,
+        treatedBy: administeredBy,
+        recordedBy: administeredBy
+    });
+    await healthRecord.save();
     
     if (scheduleId && status === 'treated') {
         await TreatmentSchedule.findByIdAndUpdate(scheduleId, { status: 'treated' });
@@ -99,9 +113,23 @@ const recordTreatment = asyncHandler(async (req: Request, res: Response) => {
 });
 
 const recordUnscheduledTreatment = asyncHandler(async (req: Request, res: Response) => {
-    const { animalId,  date, notes, administeredBy } = req.body;
-    const newRecord = new TreatmentRecord({ animalId,  treatmentDate:date, notes, administeredBy, isUnscheduled: true });
+    const { animalId, date, notes, administeredBy, treatmentGiven, healthStatus } = req.body;
+    const newRecord = new TreatmentRecord({ animalId, treatmentDate: date, notes, administeredBy, treatmentGiven, isUnscheduled: true });
     await newRecord.save();
+    
+    // Create corresponding health record
+    const healthRecord = new HealthRecord({
+        animalId,
+        healthStatus: healthStatus || 'treatment',
+        recordType: 'treatment',
+        diagnosis: treatmentGiven,
+        date: date || new Date(),
+        notes: notes,
+        treatedBy: administeredBy,
+        recordedBy: administeredBy
+    });
+    await healthRecord.save();
+    
     res.status(201).json({ success: true, data: newRecord });
 });
 

@@ -56,7 +56,7 @@ const Navigation = () => {
     const roleBasedItems = {
       admin: [
         {
-          name: 'User Management',
+          name: 'Users',
           path: '/users',
           icon: 'fas fa-users',
           subItems: [
@@ -66,13 +66,30 @@ const Navigation = () => {
           ]
         },
         {
-          name: 'System Settings',
-          path: '/settings',
-          icon: 'fas fa-cog',
+          name: 'Animals',
+          path: '/livestock/all',
+          icon: 'fas fa-paw',
           subItems: [
-            { name: 'General Settings', path: '/settings/general' },
-            { name: 'Security', path: '/settings/security' },
-            { name: 'Backup & Restore', path: '/settings/backup' }
+            { name: 'All Animals', path: '/livestock/all' },
+            { name: 'Health Records', path: '/health' },
+          ]
+        },
+        {
+          name: 'Farms',
+          path: '/farms',
+          icon: 'fas fa-barn',
+          subItems: [
+            { name: 'All Farms', path: '/farms' },
+            { name: 'System Analytics', path: '/farms/analytics' }
+          ]
+        },
+        {
+          name: 'System',
+          path: '/system',
+          icon: 'fas fa-server',
+          subItems: [
+            { name: 'System Health', path: '/dashboard' },
+            { name: 'Audit Logs', path: '/audit-logs' },
           ]
         }
       ],
@@ -83,6 +100,7 @@ const Navigation = () => {
       icon: 'fas fa-barn',
       subItems: farmId ? [
         { name: 'My Farms', path: '/farms' },
+        { name: 'Farm Analytics', path: `/farms/${farmId}/analytics` },
         { name: 'Add Farm', path: '/farms/add' },
         { name: 'Select Farm', path: '/select/farm' }
       ] : [

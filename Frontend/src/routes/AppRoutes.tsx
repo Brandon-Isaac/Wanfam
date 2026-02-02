@@ -53,6 +53,22 @@ import Vaccinate from '../components/Forms/Vaccinate';
 import ScheduleVaccination from '../components/Forms/ScheduleVaccination';
 import FloatingChatbot from '../components/FloatingChatbot';
 
+// User Management Pages
+import AllUsers from '../pages/Users/AllUsers';
+import AddUser from '../pages/Users/AddUser';
+import RolesPermissions from '../pages/Users/RolesPermissions';
+
+// Health Pages
+import HealthRecords from '../pages/Health/HealthRecords';
+import HealthRecordDetail from '../pages/Health/HealthRecordDetail';
+
+// Farm Analytics
+import FarmAnalytics from '../pages/Farms/FarmAnalytics';
+
+// System Pages
+import AuditLogs from '../pages/System/AuditLogs';
+import BackupRestore from '../pages/System/BackupRestore';
+
 const AppRoutes = () => {
     return (
         <AuthProvider>
@@ -381,9 +397,85 @@ const AppRoutes = () => {
                 </ProtectedRoutes>
             } />
 
-            {/*
-            <Route path="/profile" element={<ProtectedRoutes><Profile /></ProtectedRoutes>} />
-            <Route path="/settings" element={<ProtectedRoutes><Settings /></ProtectedRoutes>} /> */}
+            {/* User Management Routes */}
+            <Route path="/users" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <AllUsers />
+                    </>
+                </ProtectedRoutes>
+            } />
+            <Route path="/users/add" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <AddUser />
+                    </>
+                </ProtectedRoutes>
+            } />
+            <Route path="/users/roles" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <RolesPermissions />
+                    </>
+                </ProtectedRoutes>
+            } />
+
+            {/* Health & Treatment Routes */}
+            <Route path="/health" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <HealthRecords />
+                    </>
+                </ProtectedRoutes>
+            } />
+            <Route path="/health/:id" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <HealthRecordDetail />
+                    </>
+                </ProtectedRoutes>
+            } />
+            <Route path="/livestock/all" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <AllAnimals />
+                    </>
+                </ProtectedRoutes>
+            } />
+
+            {/* Farm Analytics Routes */}
+            <Route path="/farms/analytics" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <FarmAnalytics />
+                    </>
+                </ProtectedRoutes>
+            } />
+            <Route path="/farms/:farmId/analytics" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <FarmAnalytics />
+                    </>
+                </ProtectedRoutes>
+            } />
+
+            {/* System Routes */}
+            <Route path="/audit-logs" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <AuditLogs />
+                    </>
+                </ProtectedRoutes>
+            } />
 
             {/* Catch all invalid routes */}
             <Route path="*" element={<NotFound />} />
