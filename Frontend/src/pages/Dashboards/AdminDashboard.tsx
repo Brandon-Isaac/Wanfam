@@ -85,7 +85,7 @@ const AdminDashboard = () => {
                     endpoint = '/livestock/animals';
                     break;
                 case 'farms':
-                    endpoint = '/farms';
+                    endpoint = '/farms/all';
                     break;
                 case 'system':
                     endpoint = '/dashboard/system-info';
@@ -467,8 +467,14 @@ const AdminDashboard = () => {
                           {Array.isArray(detailData) && detailData.map((farm: any) => (
                             <tr key={farm._id || farm.id}>
                               <td className="px-4 py-3 text-sm text-gray-900">{farm.name}</td>
-                              <td className="px-4 py-3 text-sm text-gray-600">{farm.location || 'N/A'}</td>
-                              <td className="px-4 py-3 text-sm text-gray-600">{farm.size ? `${farm.size} acres` : 'N/A'}</td>
+                              <td className="px-4 py-3 text-sm text-gray-600">
+                                {farm.location?.county || farm.location?.subCounty 
+                                  ? `${farm.location.county || ''}${farm.location.county && farm.location.subCounty ? ', ' : ''}${farm.location.subCounty || ''}`
+                                  : typeof farm.location === 'string' ? farm.location : 'N/A'}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-600">
+                                {farm.size?.value ? `${farm.size.value} ${farm.size.unit || 'acres'}` : typeof farm.size === 'number' ? `${farm.size} acres` : 'N/A'}
+                              </td>
                               <td className="px-4 py-3 text-sm text-gray-600">
                                 {farm.owner?.firstName ? `${farm.owner.firstName} ${farm.owner.lastName}` : 'N/A'}
                               </td>

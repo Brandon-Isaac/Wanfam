@@ -6,7 +6,7 @@ import { Veterinarian } from '../models/Veterinarian';
 import { User } from '../models/User';
 import { Animal } from '../models/Animal';
 
-// Get all farms
+// Get farms
 const getFarms = asyncHandler(async (req: Request, res: Response) => {
     const farmerId = req.user?.id;
     
@@ -15,6 +15,20 @@ const getFarms = asyncHandler(async (req: Request, res: Response) => {
         .populate('assignedVeterinarians', 'firstName lastName email phone licenseNumber specialization')
         .sort({ createdAt: -1 });
 
+    res.json({
+        success: true,
+        count: farms.length,
+        data: farms
+    });
+});
+
+//Get All System Farms
+const getAllFarms = asyncHandler(async (req: Request, res: Response) => {
+    const farms = await Farm.find({ isActive: true })
+        .populate('owner', 'firstName lastName email phone')
+        .populate('workers', 'firstName lastName email phone')
+        .populate('assignedVeterinarians', 'firstName lastName email phone licenseNumber specialization')
+        .sort({ createdAt: -1 });
     res.json({
         success: true,
         count: farms.length,
@@ -328,6 +342,7 @@ const deleteFarm = asyncHandler(async (req: Request, res: Response) => {
 
 const farmController = {
     getFarms,
+    getAllFarms,
     getFarmById,
     createFarm,
     updateFarm,

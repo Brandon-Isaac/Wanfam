@@ -11,7 +11,8 @@ const router = express.Router();
 router.use(authenticate);
 
 // Farm management routes (only farmers can manage their farms, admins can view all)
-router.get('/', roleHandler([UserRole.FARMER, UserRole.ADMIN]), farmController.getFarms);
+router.get('/', roleHandler([UserRole.FARMER]), farmController.getFarms);
+router.get('/all', roleHandler([UserRole.ADMIN]), farmController.getAllFarms);
 router.get('/:farmId', roleHandler([UserRole.FARMER, UserRole.ADMIN]), farmController.getFarmById);
 router.post('/', auditMiddleware('CREATE', 'Farm'), roleHandler([UserRole.FARMER]), farmController.createFarm);
 router.put('/:farmId', auditMiddleware('UPDATE', 'Farm'), roleHandler([UserRole.FARMER]), farmController.updateFarm);
