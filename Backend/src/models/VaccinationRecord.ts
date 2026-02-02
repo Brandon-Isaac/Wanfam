@@ -5,15 +5,15 @@ export interface IVaccinationRecord extends Document {
     farmId: Schema.Types.ObjectId;
     animalId: Schema.Types.ObjectId;
     vaccineName: string;
-    vaccinationDates: Date[];
-    batchNumber?: string;
-    nextDueDate?: Date;
+    scheduledDate: Date;
     administeredBy?: Schema.Types.ObjectId;
     veterinarianName?: string;
     cost?: number;
     administrationSite: [{ type: string, enum: ['left front leg', 'right front leg', 'left hind leg', 'right hind leg', 'neck', 'other'] }];
     sideEffects?: string;
     notes?: string;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 const vaccinationRecordSchema = new Schema<IVaccinationRecord>({
@@ -21,14 +21,13 @@ const vaccinationRecordSchema = new Schema<IVaccinationRecord>({
     farmId: { type: Schema.Types.ObjectId, ref: 'Farm', required: true },
     animalId: { type: Schema.Types.ObjectId, ref: 'Animal', required: true },
     vaccineName: { type: String, required: true },
-    vaccinationDates: { type: [Date], required: true },
-    nextDueDate: { type: Date },
+    scheduledDate: { type: Date, required: true },
     administeredBy: { type: Schema.Types.ObjectId, ref: 'User' },
     veterinarianName: { type: String },
     cost: { type: Number, min: 0 },
     administrationSite: [{ type: String, enum: ['left front leg', 'right front leg', 'left hind leg', 'right hind leg', 'neck', 'other'] }],
     sideEffects: { type: String },
     notes: { type: String }
-});
+}, { timestamps: true });
 
 export const VaccinationRecord = model<IVaccinationRecord>('VaccinationRecord', vaccinationRecordSchema);

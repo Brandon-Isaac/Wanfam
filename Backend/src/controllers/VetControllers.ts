@@ -121,7 +121,7 @@ const getVetServiceRecords = asyncHandler(async (req: Request, res: Response) =>
     
     // Get vaccination records with cost
     const vaccinations = await VaccinationRecord.find({ 
-        veterinarianId: vetId,
+        administeredBy: vetId,
         cost: { $exists: true, $gt: 0 }
     })
     .populate('animalId', 'name tagId species breed')
@@ -134,7 +134,7 @@ const getVetServiceRecords = asyncHandler(async (req: Request, res: Response) =>
         cost: { $exists: true, $gt: 0 }
     })
     .populate('animalId', 'name tagId species breed')
-    .sort({ scheduledDate: -1 });
+    .sort({ createdAt: -1 });
     
     res.status(200).json({ 
         success: true, 
@@ -145,7 +145,9 @@ const getVetServiceRecords = asyncHandler(async (req: Request, res: Response) =>
                 vaccineName: v.vaccineName,
                 animal: v.animalId,
                 farm: v.farmId,
-                cost: v.cost
+                cost: v.cost,
+                date: v.scheduledDate,
+                createdAt: v.createdAt
             })),
             treatments: treatments.map(t => ({
                 id: t._id,
@@ -154,6 +156,7 @@ const getVetServiceRecords = asyncHandler(async (req: Request, res: Response) =>
                 animal: t.animalId,
                 cost: t.cost,
                 date: t.treatmentDate,
+                createdAt: t.createdAt,
                 healthStatus: t.healthStatus
             }))
         }

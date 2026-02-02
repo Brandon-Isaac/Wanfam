@@ -5,7 +5,6 @@ import { Animal } from "../models/Animal";
 import { Farm } from "../models/Farm";
 import { User } from "../models/User";
 import { Expense } from "../models/Expense";
-import { get } from "http";
 import * as notificationService from "../utils/notificationService";
 
 const createVaccinationSchedule = async (req: Request, res: Response) => {
@@ -88,7 +87,7 @@ const getAnimalVaccinationSchedules = async (req: Request, res: Response) => {
         if (status) {
             query.status = status;
         }
-        const schedules = await VaccinationSchedule.find(query);
+        const schedules = await VaccinationSchedule.find(query).populate('veterinarianId', 'firstName lastName');
         return res.status(200).json({ schedules });
     } catch (error) {
         console.error("Error fetching animal vaccination schedules:", error);
@@ -181,7 +180,7 @@ const executeVaccinationSchedule = async (req: Request, res: Response) => {
             farmId: schedule.farmId,
             animalId: animalIdValue,
             vaccineName: schedule.vaccineName,
-            veterinarianId: schedule.veterinarianId,
+            administeredBy: schedule.veterinarianId,
             scheduledDate: schedule.scheduledDate,
             notes: notes || schedule.notes
         });
@@ -238,7 +237,7 @@ const createVaccinationRecord = async (req: Request, res: Response) => {
         const newRecord = new VaccinationRecord({
             farmId,
             animalId,
-            ...(veterinarianId && { veterinarianId }),
+            ...(veterinarianId && { administeredBy: veterinarianId }),
             ...(veterinarianName && { veterinarianName }),
             vaccineName,
             dose,
@@ -319,7 +318,7 @@ const createVaccinationRecordForAnimal = async (req: Request, res: Response) => 
         const newRecord = new VaccinationRecord({
             farmId,
             animalId,
-            ...(veterinarianId && { veterinarianId }),
+            ...(veterinarianId && { administeredBy: veterinarianId }),
             ...(veterinarianName && { veterinarianName }),
             vaccineName,
             dose,

@@ -48,7 +48,6 @@ mongoose.connect(MONGO_URI, {
 }).catch((err) => {
     console.error("MongoDB connection error:", err);
     console.error("Make sure MongoDB is running and MONGO_URI is correct");
-    process.exit(1); // Exit if can't connect to database
 });
 
 // Handle connection errors after initial connection

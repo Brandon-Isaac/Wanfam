@@ -10,6 +10,8 @@ export interface ITreatmentRecord extends Document {
     cost?: number;
     notes?: string;
     status?: string;
+    createdAt: Date;
+    updatedAt: Date;
 }
 const TreatmentRecordSchema = new Schema<ITreatmentRecord>({
     animalId: { type: Schema.Types.ObjectId, ref: 'Animal', required: true },
