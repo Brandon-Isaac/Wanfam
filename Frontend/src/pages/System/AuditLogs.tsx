@@ -14,7 +14,6 @@ interface AuditLog {
   entityType: string;
   entityId?: string;
   details?: any;
-  ipAddress?: string;
   userAgent?: string;
   timestamp: string;
 }
@@ -233,9 +232,6 @@ const AuditLogs = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Entity
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  IP Address
-                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -275,9 +271,6 @@ const AuditLogs = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {log.entityType}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {log.ipAddress || 'N/A'}
                     </td>
                   </tr>
                 ))

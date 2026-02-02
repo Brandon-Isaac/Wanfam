@@ -50,9 +50,10 @@ const AllUsers = () => {
 
   const handleToggleStatus = async (userId: string, currentStatus: boolean) => {
     try {
-      await api.patch(`/users/${userId}/status`, { isActive: !currentStatus });
+      const newStatus = !currentStatus;
+      await api.put(`/users/${userId}`, { isActive: newStatus });
       setUsers(users.map(user => 
-        user._id === userId ? { ...user, isActive: !currentStatus } : user
+        user._id === userId ? { ...user, isActive: newStatus } : user
       ));
     } catch (error) {
       console.error('Error updating user status:', error);

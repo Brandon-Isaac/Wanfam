@@ -4,7 +4,10 @@ import { asyncHandler } from "../middleware/AsyncHandler";
 
 const getRecentAuditLogs = asyncHandler(async (req: Request, res: Response) => {
     const { limit = 10 } = req.query;
-    const logs = await AuditLog.find().sort({ timestamp: -1 }).limit(Number(limit));
+    const logs = await AuditLog.find()
+        .sort({ timestamp: -1 })
+        .limit(Number(limit))
+        .populate('userId', 'firstName lastName role');
     res.status(200).json(logs);
 });
 

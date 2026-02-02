@@ -67,7 +67,6 @@ import FarmAnalytics from '../pages/Farms/FarmAnalytics';
 
 // System Pages
 import AuditLogs from '../pages/System/AuditLogs';
-import Settings from '../pages/System/Settings';
 import BackupRestore from '../pages/System/BackupRestore';
 
 const AppRoutes = () => {
@@ -474,22 +473,6 @@ const AppRoutes = () => {
                     <>
                         <Navigation />
                         <AuditLogs />
-                    </>
-                </ProtectedRoutes>
-            } />
-            <Route path="/settings" element={
-                <ProtectedRoutes>
-                    <>
-                        <Navigation />
-                        <Settings />
-                    </>
-                </ProtectedRoutes>
-            } />
-            <Route path="/settings/backup" element={
-                <ProtectedRoutes>
-                    <>
-                        <Navigation />
-                        <BackupRestore />
                     </>
                 </ProtectedRoutes>
             } />
