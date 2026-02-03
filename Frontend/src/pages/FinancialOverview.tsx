@@ -7,6 +7,10 @@ const FinancialOverview = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterPeriod, setFilterPeriod] = useState('365');
+  const [generatingRecommendations, setGeneratingRecommendations] = useState(false);
+  const [recommendations, setRecommendations] = useState<string | null>(null);
+  const [showRecommendations, setShowRecommendations] = useState(false);
+  const [selectedFarmId, setSelectedFarmId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,6 +22,11 @@ const FinancialOverview = () => {
       setLoading(true);
       const farmsResponse = await api.get('/farms');
       const farms = farmsResponse.data.data || farmsResponse.data;
+
+      // Set the first farm as selected by default
+      if (farms.length > 0 && !selectedFarmId) {
+        setSelectedFarmId(farms[0]._id);
+      }
 
       let totalRevenue = 0;
       let totalExpenses = 0;
@@ -63,6 +72,37 @@ const FinancialOverview = () => {
       setError(err.response?.data?.message || 'Failed to fetch financial data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const generateRecommendations = async () => {
+    if (!selectedFarmId) {
+      alert('Please select a farm first');
+      return;
+    }
+
+    try {
+      setGeneratingRecommendations(true);
+      setError(null);
+      
+      const days = parseInt(filterPeriod);
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      const response = await api.post(`/revenue/${selectedFarmId}/recommendations`, {
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        additionalContext: `Analysis period: Last ${filterPeriod} days`
+      });
+
+      setRecommendations(response.data.data.recommendations);
+      setShowRecommendations(true);
+    } catch (err: any) {
+      console.error('Error generating recommendations:', err);
+      setError(err.response?.data?.message || 'Failed to generate recommendations');
+    } finally {
+      setGeneratingRecommendations(false);
     }
   };
 
@@ -172,7 +212,7 @@ const FinancialOverview = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link
@@ -208,6 +248,83 @@ const FinancialOverview = () => {
               </div>
             </Link>
           </div>
+        </div>
+
+        {/* AI Recommendations Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">AI-Powered Financial Recommendations</h2>
+              <p className="text-sm text-gray-600 mt-1">Get personalized insights to maximize profitability</p>
+            </div>
+            <button
+              onClick={generateRecommendations}
+              disabled={generatingRecommendations}
+              className="flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {generatingRecommendations ? (
+                <>
+                  <i className="fas fa-spinner fa-spin mr-2"></i>
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-magic mr-2"></i>
+                  Generate Recommendations
+                </>
+              )}
+            </button>
+          </div>
+
+          {showRecommendations && recommendations && (
+            <div className="mt-6 p-6 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <i className="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                  Your Personalized Recommendations
+                </h3>
+                <button
+                  onClick={() => setShowRecommendations(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
+              <div className="prose max-w-none">
+                <div 
+                  className="text-gray-800 whitespace-pre-wrap"
+                  dangerouslySetInnerHTML={{ __html: recommendations.replace(/\n/g, '<br/>') }}
+                />
+              </div>
+              <div className="mt-4 flex gap-3">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(recommendations);
+                    alert('Recommendations copied to clipboard!');
+                  }}
+                  className="px-4 py-2 bg-white text-purple-600 border border-purple-300 rounded-lg hover:bg-purple-50 transition-colors"
+                >
+                  <i className="fas fa-copy mr-2"></i>
+                  Copy to Clipboard
+                </button>
+                <button
+                  onClick={() => {
+                    const blob = new Blob([recommendations], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `financial-recommendations-${new Date().toISOString().split('T')[0]}.txt`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="px-4 py-2 bg-white text-purple-600 border border-purple-300 rounded-lg hover:bg-purple-50 transition-colors"
+                >
+                  <i className="fas fa-download mr-2"></i>
+                  Download Report
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
