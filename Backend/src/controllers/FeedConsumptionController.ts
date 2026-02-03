@@ -1,160 +1,232 @@
-import { FeedingSchedule } from "../models/FeedingSchedule";
 import {FeedingRecord} from "../models/FeedingRecord";
-import { Farm } from "../models/Farm";
+import {FeedingSchedule} from "../models/FeedingSchedule";
 import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/AsyncHandler";
+import { Notification } from "../models/Notification";
+import { Farm } from "../models/Farm";
 import { Animal } from "../models/Animal";
-import { ProductivityRecord } from "../models/ProductivityRecord";
-import { User } from "../models/User";
-
-const getFeedConsumptionByAnimal = asyncHandler(async (req: Request, res: Response) => {
-    const farmSlug = req.params.farmSlug;
-    const farm = await Farm.findOne({ slug: farmSlug });
-    if (!farm) {
-        return res.status(404).json({ message: "Farm not found" });
-    }
-    const animalSlug = req.params.animalSlug;
-    const animal = await Animal.findOne({ slug: animalSlug, farmId: farm._id });
-    if (!animal) {
-        return res.status(404).json({ message: "Animal not found" });
-    }
-    const records = await FeedingRecord.find({ animalId: animal._id });
-    const totalFeed = records.reduce((acc, record) => acc + (record.quantity || 0), 0);
-    res.json({ success: true, data: { totalFeed: { amount: totalFeed, unit: 'kg' } } });
-});
-
-const getConsumptionByFarm = asyncHandler(async (req: Request, res: Response) => {
-    const farmSlug = req.params.farmSlug;
-    const farm = await Farm.findOne({ slug: farmSlug });
-    if (!farm) {
-        return res.status(404).json({ message: "Farm not found" });
-    }
-    const records = await FeedingRecord.find({ farmId: farm._id });
-    const totalFeed = records.reduce((acc, record) => acc + (record.quantity || 0), 0);
-    res.json({ success: true, data: { totalFeed: { amount: totalFeed, unit: 'kg' } } });
-});
 
 const recordFeedConsumption = asyncHandler(async (req: Request, res: Response) => {
-    const farmSlug = req.params.farmSlug;
-    const farm = await Farm.findOne({ slug: farmSlug });
-    if (!farm) {
-        return res.status(404).json({ message: "Farm not found" });
+    const farmId = req.params.farmId;
+    const animalId = req.params.animalId;
+    const { date, feedingScheduleId, quantity, unit, feedingTime, notes } = req.body;
+    
+    if (!req.user || !req.user.id) {
+        return res.status(401).json({ message: "User not authenticated" });
     }
-    const animalSlug = req.params.animalSlug;
-    const animal = await Animal.findOne({ slug: animalSlug, farmId: farm._id });
-    if (!animal) {
-        return res.status(404).json({ message: "Animal not found" });
-    }
-    const userId = req.user?.id;
-    if (!userId) {
-        return res.status(401).json({ message: "Unauthorized" });
-    }
-    const user= await User.findOne({ _id: userId });
-    const { feedType, amount } = req.body;
-    const newRecord = new FeedingRecord({ farmId: farm._id, animalId: animal._id, feedType, amount, fedBy: user?.firstName, date: new Date() });
+    
+    // Generate current time string if not provided
+    const currentTime = new Date();
+    const currentTimeString = `${currentTime.getHours().toString().padStart(2, '0')}:${currentTime.getMinutes().toString().padStart(2, '0')}`;
+    
+    const newRecord = new FeedingRecord({ 
+        farmId, 
+        animalId, 
+        feedingScheduleId,
+        fedBy: req.user.id,
+        date: date ? new Date(date) : new Date(), 
+        quantity, 
+        unit,
+        feedingTime: feedingTime || currentTimeString,
+        notes 
+    });
     await newRecord.save();
     res.status(201).json({ success: true, data: newRecord });
 });
 
 const recordFeedConsumptionByMultipleAnimals = asyncHandler(async (req: Request, res: Response) => {
-    const farmSlug = req.params.farmSlug;
-    const farm = await Farm.findOne({ slug: farmSlug });
-    if (!farm) {
-        return res.status(404).json({ message: "Farm not found" });
+    const farmId = req.params.farmId;
+    const { animalIds, date, feedingScheduleId, quantity, unit, feedingTime, notes } = req.body;
+    
+    if (!req.user || !req.user.id) {
+        return res.status(401).json({ message: "User not authenticated" });
     }
-    const { animalIds, feedType, amount } = req.body;
-    const validAnimalIds = await Animal.find({ _id: { $in: animalIds }, farmId: farm._id }).select('_id');
-    if (validAnimalIds.length === 0) {
-        return res.status(400).json({ message: "No valid animals found for the provided IDs" });
+    
+    // Generate current time string if not provided
+    const currentTime = new Date();
+    const currentTimeString = `${currentTime.getHours().toString().padStart(2, '0')}:${currentTime.getMinutes().toString().padStart(2, '0')}`;
+    
+    const records = [];
+    for (const animalId of animalIds) {
+        const newRecord = new FeedingRecord({ 
+            farmId, 
+            animalId, 
+            feedingScheduleId,
+            fedBy: req.user.id,
+            date: date ? new Date(date) : new Date(), 
+            quantity, 
+            unit,
+            feedingTime: feedingTime || currentTimeString,
+            notes 
+        });
+        await newRecord.save();
+        records.push(newRecord);
     }
-
-    const userId = req.user?.id;
-    if (!userId) {
-        return res.status(401).json({ message: "Unauthorized" });
-    }
-    const user = await User.findOne({ _id: userId });
-
-    const feedingRecords = validAnimalIds.map(animalId => {
-        return new FeedingRecord({ farmId: farm._id, animalId: animalId._id, feedType, amount, fedBy: user?.firstName, date: new Date() });
-    });
-
-    await FeedingRecord.insertMany(feedingRecords);
-    res.status(201).json({ success: true, data: feedingRecords });
+    res.status(201).json({ success: true, data: records });
 });
 
-const recordFeedConsumptionScheduled = asyncHandler(async (req: Request, res: Response) => {
-    const farmSlug = req.params.farmSlug;
-    const farm = await Farm.findOne({ slug: farmSlug });
-    if (!farm) {
-        return res.status(404).json({ message: "Farm not found" });
-    }
-    const scheduleSlug = req.params.scheduleSlug;
-    const schedule = await FeedingSchedule.findOne({ slug: scheduleSlug, farmId: farm._id });
-    if (!schedule) {
-        return res.status(404).json({ message: "Feeding schedule not found" });
-    }
-    const userId = req.user?.id;
-    if (!userId) {
-        return res.status(401).json({ message: "Unauthorized" });
-    }
-    const user= await User.findOne({ _id: userId });
-    const { quantity, unit, feedingTime, feedCondition, animalResponse, weather, notes } = req.body;
-    const newRecord = new FeedingRecord({ farmId: farm._id, animalId: schedule.animalId, feedingScheduleId: schedule._id, fedBy: user?.firstName, quantity, unit, feedingTime, feedCondition, animalResponse, weather, notes });
-    await newRecord.save();
-    res.status(201).json({ success: true, data: newRecord });
+const getFeedConsumptionByAnimal = asyncHandler(async (req: Request, res: Response) => {
+    const farmId = req.params.farmId;
+    const animalId = req.params.animalId;
+    const records = await FeedingRecord.find({ farmId, animalId });
+    res.json({ success: true, data: records });
+});
+
+const getConsumptionByFarm = asyncHandler(async (req: Request, res: Response) => {
+    const farmId = req.params.farmId;
+    const records = await FeedingRecord.find({ farmId });
+    res.json({ success: true, data: records });
 });
 
 const updateFeedConsumption = asyncHandler(async (req: Request, res: Response) => {
-    const farmSlug = req.params.farmSlug;
-    const farm = await Farm.findOne({ slug: farmSlug });
-    if (!farm) {
-        return res.status(404).json({ message: "Farm not found" });
-    }
-    const animalSlug = req.params.animalSlug;
-    const animal = await Animal.findOne({ slug: animalSlug, farmId: farm._id });
-    if (!animal) {
-        return res.status(404).json({ message: "Animal not found" });
-    }
-    const recordSlug = req.params.recordSlug;
-    const record = await FeedingRecord.findOne({ slug: recordSlug, animalId: animal._id });
+    const farmId = req.params.farmId;
+    const animalId = req.params.animalId;
+    const recordId = req.params.recordId;
+    const updateData = req.body;
+    const record = await FeedingRecord.findOneAndUpdate({ _id: recordId, farmId, animalId }, updateData, { new: true, runValidators: true });
     if (!record) {
-        return res.status(404).json({ message: "Feeding record not found" });
-    }   
-    const { quantity, unit } = req.body;
-    if (quantity !== undefined) record.quantity = quantity;
-    if (unit !== undefined) record.unit = unit;
-    await record.save();
+        return res.status(404).json({ message: "Feeding Record not found" });
+    }
     res.json({ success: true, data: record });
 });
 
 const deleteFeedConsumption = asyncHandler(async (req: Request, res: Response) => {
-    const farmSlug = req.params.farmSlug;
-    const farm = await Farm.findOne
-({ slug: farmSlug });
-    if (!farm) {
-        return res.status(404).json({ message: "Farm not found" });
-    }
-    const animalSlug = req.params.animalSlug;
-    const animal = await Animal.findOne({ slug: animalSlug, farmId: farm._id });
-    if (!animal) {
-        return res.status(404).json({ message: "Animal not found" });
-    }
-    const recordSlug = req.params.recordSlug;
-    const record = await FeedingRecord.findOne({ slug: recordSlug, animalId: animal._id });
+    const farmId = req.params.farmId;
+    const animalId = req.params.animalId;
+    const recordId = req.params.recordId;
+    const record = await FeedingRecord.findOneAndDelete({ _id: recordId, farmId, animalId });
     if (!record) {
-        return res.status(404).json({ message: "Feeding record not found" });
+        return res.status(404).json({ message: "Feeding Record not found" });
     }
-    await record.deleteOne();
-    res.json({ success: true, message: "Feeding record deleted" });
+    res.json({ success: true, data: record });
 });
 
+const executeTodaysFeedSchedule = asyncHandler(async (req: Request, res: Response) => {
+    const farmId = req.params.farmId;
+    
+    if (!req.user || !req.user.id) {
+        return res.status(401).json({ message: "User not authenticated" });
+    }
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const schedules = await FeedingSchedule.find({ farmId });
+    const records = [];
+    const currentTime = new Date();
+    const currentHour = currentTime.getHours().toString().padStart(2, '0');
+    const currentMinute = currentTime.getMinutes().toString().padStart(2, '0');
+    const currentTimeString = `${currentHour}:${currentMinute}`;
+    
+    for (const schedule of schedules) {
+        for (const animalId of schedule.animalIds) {
+            const newRecord = new FeedingRecord({
+                farmId,
+                animalId,
+                feedingScheduleId: schedule._id,
+                fedBy: req.user.id,
+                date: today,
+                quantity: schedule.quantity,
+                unit: schedule.unit,
+                feedingTime: schedule.feedingTimes && schedule.feedingTimes.length > 0 ? schedule.feedingTimes[0] : currentTimeString,
+                notes: `Automated record from schedule: ${schedule.scheduleName}`
+            });
+            await newRecord.save();
+            records.push(newRecord);
+        }
+    }
+    const totalAmountFed = records.reduce((sum, record) => sum + record.quantity, 0);
+    console.log(`Total amount fed today for farm ${farmId}: ${totalAmountFed}`);
+    res.status(201).json({ success: true, data: records, totalAmountFed });
+});
 
-export const feedConsumptionController = {
-    getFeedConsumptionByAnimal,
+const executeFeedingSchedule = asyncHandler(async (req: Request, res: Response) => {
+    const scheduleId = req.params.scheduleId;
+    
+    if (!req.user || !req.user.id) {
+        return res.status(401).json({ message: "User not authenticated" });
+    }
+    
+    const schedule = await FeedingSchedule.findById(scheduleId);
+    if (!schedule) {
+        return res.status(404).json({ message: "Feeding Schedule not found" });
+    }
+    
+    // Check if schedule has already been executed today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const existingRecords = await FeedingRecord.findOne({
+        feedingScheduleId: scheduleId,
+        date: { $gte: today, $lt: tomorrow }
+    });
+    
+    if (existingRecords) {
+        return res.status(400).json({ 
+            message: "This feeding schedule has already been executed today. It can only be executed once per day.",
+            alreadyExecuted: true
+        });
+    }
+    
+    const currentTime = new Date();
+    const currentHour = currentTime.getHours().toString().padStart(2, '0');
+    const currentMinute = currentTime.getMinutes().toString().padStart(2, '0');
+    const currentTimeString = `${currentHour}:${currentMinute}`;
+    
+    const records = [];
+    for (const animalId of schedule.animalIds) {
+        const newRecord = new FeedingRecord({
+            farmId: schedule.farmId,
+            animalId,
+            feedingScheduleId: schedule._id,
+            fedBy: req.user.id,
+            date: new Date(),
+            quantity: schedule.quantity,
+            unit: schedule.unit,
+            feedingTime: schedule.feedingTimes && schedule.feedingTimes.length > 0 ? schedule.feedingTimes[0] : currentTimeString,
+            notes: `Automated record from schedule: ${schedule.scheduleName}`
+        });
+        await newRecord.save();
+        records.push(newRecord);
+    }
+    const totalAmountFed = records.reduce((sum, record) => sum + record.quantity, 0);
+    console.log(`Total amount fed for schedule ${scheduleId}: ${totalAmountFed} ${schedule.unit}`);
+    
+    // Create notification for the farmer
+    try {
+        // Get farm details to find the owner
+        const farm = await Farm.findById(schedule.farmId).populate('owner');
+        
+        // Get animal names
+        const animals = await Animal.find({ _id: { $in: schedule.animalIds } });
+        const animalNames = animals.map(a => a.name).join(', ');
+        
+        if (farm && farm.owner) {
+            const notification = new Notification({
+                userId: farm.owner,
+                message: `Feeding schedule "${schedule.scheduleName}" executed successfully! Animals ${animalNames} have been fed ${totalAmountFed} ${schedule.unit} of ${schedule.feedType}.`,
+                type: 'success',
+                relatedEntityId: schedule._id,
+                relatedEntityType: 'FeedingSchedule'
+            });
+            await notification.save();
+        }
+    } catch (notificationError) {
+        console.error('Failed to create notification:', notificationError);
+        // Don't fail the request if notification creation fails
+    }
+    
+    res.status(201).json({ success: true, data: records, totalAmountFed });
+});
+
+export const FeedConsumptionController = {
     recordFeedConsumption,
-    recordFeedConsumptionScheduled,
     recordFeedConsumptionByMultipleAnimals,
+    getFeedConsumptionByAnimal,
     getConsumptionByFarm,
     updateFeedConsumption,
-    deleteFeedConsumption
+    deleteFeedConsumption,
+    executeTodaysFeedSchedule,
+    executeFeedingSchedule
 };
