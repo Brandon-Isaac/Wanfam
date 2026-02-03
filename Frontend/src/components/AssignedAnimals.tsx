@@ -23,6 +23,7 @@ const AssignedAnimals = () => {
     const [weight, setWeight] = useState<{ [key: string]: number }>({});
     const [healthStatus, setHealthStatus] = useState<{ [key: string]: string }>({});
     const [milkProducedToday, setMilkProducedToday] = useState<{ [key: string]: number | null }>({});
+    const [revenueToday, setRevenueToday] = useState<{ [key: string]: number | null }>({});
 
        const fetchAssignedAnimals = async () => {
       try {
@@ -38,10 +39,13 @@ const AssignedAnimals = () => {
     const fetchMilkProducedToday = async (animalId: string) => {
         try {
             const response = await api.get(`/products/${animalId}/milk/today`);
-            return response.data.data?.totalMilk.amount || null;
+            return {
+                milk: response.data.data?.totalMilk?.amount || 0,
+                revenue: response.data.data?.totalRevenue?.amount || 0
+            };
         } catch (err) {
             console.error(`Failed to fetch milk produced today for animal ${animalId}:`, err);
-            return null;
+            return { milk: 0, revenue: 0 };
         }
     };
 
@@ -52,10 +56,14 @@ const AssignedAnimals = () => {
   useEffect(() => {
     const fetchMilkData = async () => {
       for (const animal of assignedAnimals) {
-        const milkAmount = await fetchMilkProducedToday(animal._id);
+        const milkData = await fetchMilkProducedToday(animal._id);
         setMilkProducedToday((prevState) => ({
           ...prevState,
-          [animal._id]: milkAmount,
+          [animal._id]: milkData.milk,
+        }));
+        setRevenueToday((prevState) => ({
+          ...prevState,
+          [animal._id]: milkData.revenue,
         }));
       }
     };
@@ -143,7 +151,13 @@ const AssignedAnimals = () => {
                     
                       {(animal.gender === 'female' && (animal.species.toLowerCase() === 'cattle' || animal.species.toLowerCase() === 'goat')) && (
                         <>
-                        <p>Milk Produced Today: {milkProducedToday[animal._id] ?? '0'} liters</p>
+                        <div className="mb-2 p-2 bg-green-50 rounded border border-green-200">
+                            <p className="text-sm font-medium text-gray-700">Today's Production:</p>
+                            <p className="text-lg font-bold text-green-700">{milkProducedToday[animal._id] ?? 0} liters</p>
+                            {revenueToday[animal._id] && revenueToday[animal._id]! > 0 && (
+                                <p className="text-sm text-green-600">Revenue: KES {revenueToday[animal._id]?.toFixed(2)}</p>
+                            )}
+                        </div>
                        <Link to ={`/${animal._id}/milk-production`}
                         className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mb-2 inline-block"
                        >

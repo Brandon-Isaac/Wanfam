@@ -15,15 +15,15 @@ router.get("/animals", roleHandler([UserRole.ADMIN]), LivestockController.getAll
 
 // More specific routes before generic ones
 router.get("/:farmId/sick-animals", roleHandler([UserRole.FARMER, UserRole.ADMIN]), LivestockController.getSickAnimalsByFarm);
+router.get("/:farmId/animals", roleHandler([UserRole.WORKER, UserRole.FARMER, UserRole.ADMIN]), LivestockController.getAnimalsByFarm);
 router.get("/:farmId/animals/:animalId", roleHandler([UserRole.FARMER, UserRole.ADMIN]), LivestockController.getFarmAnimalById);
 router.put("/:farmId/animals/:animalId",auditMiddleware('UPDATE', 'Animal'), roleHandler([UserRole.FARMER, UserRole.ADMIN]), LivestockController.updateAnimal);
 router.delete("/:farmId/animals/:animalId",auditMiddleware('DELETE', 'Animal'), roleHandler([UserRole.FARMER, UserRole.ADMIN]), LivestockController.deleteFarmAnimal);
 router.put("/:animalId/health-status",auditMiddleware('UPDATE', 'Animal'), roleHandler([UserRole.FARMER, UserRole.VETERINARY, UserRole.ADMIN]), LivestockController.updateHealthStatus);
 
 // Generic routes last
-router.get("/:farmId", roleHandler([UserRole.FARMER, UserRole.ADMIN]), LivestockController.getAnimalsByFarm);
 router.post("/:farmId",auditMiddleware('CREATE', 'Animal'), roleHandler([UserRole.FARMER, UserRole.ADMIN]), LivestockController.addAnimalToFarm);
-router.get("/:animalId", roleHandler([UserRole.WORKER, UserRole.ADMIN]), LivestockController.getAnimalById);
+router.get("/:animalId", roleHandler([UserRole.WORKER, UserRole.FARMER, UserRole.ADMIN]), LivestockController.getAnimalById);
 router.put("/:animalId",auditMiddleware('UPDATE', 'Animal'),  roleHandler([UserRole.WORKER]), LivestockController.updateAnimalByWorkerAssigned);
 router.delete("/:animalId",auditMiddleware('DELETE', 'Animal'), roleHandler([UserRole.ADMIN]), LivestockController.deleteAnimal);
 

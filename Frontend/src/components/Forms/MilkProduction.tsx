@@ -11,6 +11,8 @@ const MilkProduction = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [formData, setFormData] = useState<{ [key: string]: number }>({});
+    const [pricePerLiter, setPricePerLiter] = useState<number>(0);
+    const [timeOfDay, setTimeOfDay] = useState<'morning' | 'afternoon' | 'evening'>('morning');
     const navigate = useNavigate();
    
     useEffect(() => {
@@ -45,14 +47,21 @@ const MilkProduction = () => {
                 date: new Date().toISOString().split('T')[0],
                 amount: formData[animalId],
                 unit: 'liters',
-                timeOfDay: 'morning',
+                timeOfDay: timeOfDay,
+                pricePerLiter: pricePerLiter
             };
-            await api.post(`/products/${animalId}/milk`, milkEntry);
-            showToast("Milk production data submitted successfully.", "success");
+            const response = await api.post(`/products/${animalId}/milk`, milkEntry);
+            
+            const revenueInfo = response.data.revenueGenerated 
+                ? ` Revenue generated: KES ${response.data.revenueGenerated.amount.toFixed(2)}`
+                : '';
+            
+            showToast(`Milk production data submitted successfully.${revenueInfo}`, "success");
             setFormData((prevData) => ({
                 ...prevData,
                 [animalId]: 0,
             }));
+            setPricePerLiter(0);
         }
         catch (error) {
             console.error("Failed to submit milk production data:", error);
@@ -104,12 +113,35 @@ const MilkProduction = () => {
                         />
                     </div>
                     <div className="mb-4">
-                        <label className="block text-gray-700 font-bold mb-2" htmlFor="date">
+                        <label className="block text-gray-700 font-bold mb-2" htmlFor="pricePerLiter">
+                            Price per Liter (KES)
+                        </label>
+                        <input
+                            type="number"
+                            id="pricePerLiter"
+                            name="pricePerLiter"
+                            value={pricePerLiter || ''}
+                            onChange={(e) => setPricePerLiter(Number(e.target.value))}
+                            className="w-full border border-gray-300 rounded-md p-2"
+                            min="0"
+                            step="0.01"
+                            placeholder="Enter price per liter"
+                        />
+                        {pricePerLiter > 0 && formData[animalId!] > 0 && (
+                            <p className="text-sm text-green-600 mt-2">
+                                Estimated Revenue: KES {(pricePerLiter * formData[animalId!]).toFixed(2)}
+                            </p>
+                        )}
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700 font-bold mb-2" htmlFor="timeOfDay">
                             Time of Entry
                         </label>
                         <select
                             id="timeOfDay"
                             name="timeOfDay"
+                            value={timeOfDay}
+                            onChange={(e) => setTimeOfDay(e.target.value as 'morning' | 'afternoon' | 'evening')}
                             className="w-full border border-gray-300 rounded-md p-2"
                         >
                             <option value="morning">Morning</option>

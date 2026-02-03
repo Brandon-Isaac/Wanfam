@@ -3,7 +3,7 @@ import { asyncHandler } from '../middleware/AsyncHandler';
 import { Revenue } from '../models/Revenue';
 import { Farm } from '../models/Farm';
 import { notifyRevenueRecorded } from '../utils/notificationService';
-
+import { AIService } from '../services/AIService';
 // Create new revenue record
 export const createRevenue = asyncHandler(async (req: Request, res: Response) => {
     const { farmId, source, category, amount, currency, date, description, animalId, productType, quantity, unit, pricePerUnit, buyer, paymentMethod, paymentStatus, invoiceNumber, receiptNumber, notes } = req.body;
@@ -204,5 +204,126 @@ export const getRevenueSummary = asyncHandler(async (req: Request, res: Response
         revenueByCategory,
         revenueByMonth,
         pendingPayments
+    });
+});
+
+export const generateReccommendationsWithAi=asyncHandler(async (req: Request, res: Response) => {
+    const farmId = req.params.farmId;
+    const { startDate, endDate, additionalContext } = req.body;
+    
+    // Verify farm access
+    const farm = await Farm.findOne({ _id: farmId, owner: req.user.id });
+    if (!farm) {
+        return res.status(403).json({ message: 'Not authorized to view this farm' });
+    }
+
+    // Set default date range (last 90 days if not provided)
+    const end = endDate ? new Date(endDate) : new Date();
+    const start = startDate ? new Date(startDate) : new Date(end.getTime() - 90 * 24 * 60 * 60 * 1000);
+
+    const dateFilter = { farmId, date: { $gte: start, $lte: end } };
+
+    // Gather comprehensive financial data
+    const [revenues, expenses] = await Promise.all([
+        Revenue.find(dateFilter).populate('animalId', 'tagId name species breed'),
+        require('../models/Expense').Expense.find(dateFilter).populate('animalId', 'tagId name species')
+    ]);
+
+    // Calculate revenue analytics
+    const totalRevenue = revenues.reduce((sum, r) => sum + r.amount, 0);
+    const revenueBySource = revenues.reduce((acc: any, r) => {
+        acc[r.source] = (acc[r.source] || 0) + r.amount;
+        return acc;
+    }, {});
+    const revenueByCategory = revenues.reduce((acc: any, r) => {
+        acc[r.category] = (acc[r.category] || 0) + r.amount;
+        return acc;
+    }, {});
+
+    // Calculate expense analytics
+    const totalExpenses = expenses.reduce((sum: number, e: any) => sum + e.amount, 0);
+    const expensesByCategory = expenses.reduce((acc: any, e: any) => {
+        acc[e.category] = (acc[e.category] || 0) + e.amount;
+        return acc;
+    }, {});
+
+    // Calculate profitability
+    const netProfit = totalRevenue - totalExpenses;
+    const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+
+    // Identify trends
+    const monthlyData = revenues.reduce((acc: any, r) => {
+        const month = new Date(r.date).toISOString().slice(0, 7);
+        if (!acc[month]) acc[month] = { revenue: 0, count: 0 };
+        acc[month].revenue += r.amount;
+        acc[month].count += 1;
+        return acc;
+    }, {});
+
+    const monthlyExpenses = expenses.reduce((acc: any, e: any) => {
+        const month = new Date(e.date).toISOString().slice(0, 7);
+        if (!acc[month]) acc[month] = 0;
+        acc[month] += e.amount;
+        return acc;
+    }, {});
+
+    // Get top performers
+    const topRevenueSources = Object.entries(revenueBySource)
+        .sort(([, a]: any, [, b]: any) => b - a)
+        .slice(0, 5);
+    
+    const topExpenseCategories = Object.entries(expensesByCategory)
+        .sort(([, a]: any, [, b]: any) => b - a)
+        .slice(0, 5);
+
+    // Prepare comprehensive context
+    const comprehensiveContext = {
+        farmInfo: {
+            name: farm.name,
+            size: farm.size,
+            currency: 'KES'
+        },
+        analysisperiod: {
+            startDate: start.toISOString().split('T')[0],
+            endDate: end.toISOString().split('T')[0],
+            daysAnalyzed: Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+        },
+        financialSummary: {
+            totalRevenue,
+            totalExpenses,
+            netProfit,
+            profitMargin: profitMargin.toFixed(2) + '%',
+            revenueCount: revenues.length,
+            expenseCount: expenses.length
+        },
+        revenueAnalysis: {
+            totalRevenue,
+            bySource: revenueBySource,
+            byCategory: revenueByCategory,
+            topSources: topRevenueSources,
+            averageRevenuePerTransaction: revenues.length > 0 ? (totalRevenue / revenues.length).toFixed(2) : 0
+        },
+        expenseAnalysis: {
+            totalExpenses,
+            byCategory: expensesByCategory,
+            topCategories: topExpenseCategories,
+            averageExpensePerTransaction: expenses.length > 0 ? (totalExpenses / expenses.length).toFixed(2) : 0
+        },
+        trends: {
+            monthlyRevenue: monthlyData,
+            monthlyExpenses: monthlyExpenses
+        },
+        additionalContext: additionalContext || 'No additional context provided'
+    };
+
+    const aiService = new AIService();
+    const recommendations = await aiService.getRevenueRecommendations(comprehensiveContext);
+    
+    res.json({ 
+        success: true, 
+        data: {
+            recommendations,
+            context: comprehensiveContext
+        }
     });
 });

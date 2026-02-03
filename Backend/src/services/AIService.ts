@@ -293,4 +293,133 @@ export class AIService {
             generationConfig: this.defaultConfig
         });
     }
+    /**
+     * Generate comprehensive farm financial recommendations
+     * @param farmData - Comprehensive farm financial data
+     * @returns Detailed recommendations and insights
+     */
+    async getRevenueRecommendations(farmData: any): Promise<string> {
+        const prompt = `You are an expert agricultural financial advisor. Analyze the following farm financial data and provide exactly 3 concise, actionable recommendations to improve profitability.
+
+## FARM FINANCIAL DATA
+${JSON.stringify(farmData, null, 2)}
+
+## YOUR TASK
+Provide exactly 3 specific, actionable recommendations. Each recommendation should be 1-2 sentences maximum.
+
+Format:
+1. [First recommendation]
+2. [Second recommendation]
+3. [Third recommendation]
+
+Focus on the most impactful actions the farmer can take immediately.`;
+        
+        /* DETAILED PROMPT (COMMENTED OUT FOR SHORTER RESPONSES)
+        const prompt = `You are an expert agricultural financial advisor specializing in livestock farm management. Analyze the following farm financial data and provide comprehensive, actionable recommendations.
+
+## FARM FINANCIAL DATA
+${JSON.stringify(farmData, null, 2)}
+
+## YOUR TASK
+Provide detailed recommendations in the following structure:
+
+### 1. FINANCIAL HEALTH ASSESSMENT
+- Overall financial performance evaluation
+- Key financial metrics analysis (profit margin, revenue-to-expense ratio)
+- Comparison to industry benchmarks where applicable
+
+### 2. REVENUE OPTIMIZATION OPPORTUNITIES
+- Identify underperforming revenue streams
+- Suggest ways to maximize high-performing revenue sources
+- Recommend new revenue opportunities based on current operations
+- Pricing strategy recommendations
+- Product diversification suggestions
+
+### 3. COST REDUCTION STRATEGIES
+- Identify excessive expense categories
+- Suggest cost-cutting measures without compromising quality
+- Recommend more efficient resource allocation
+- Highlight potential waste areas
+
+### 4. PROFITABILITY IMPROVEMENTS
+- Short-term actions (next 30 days)
+- Medium-term strategies (3-6 months)
+- Long-term growth plans (1 year+)
+
+### 5. CASH FLOW MANAGEMENT
+- Payment collection recommendations
+- Expense timing optimization
+- Emergency fund suggestions
+
+### 6. RISK MITIGATION
+- Identify financial risks
+- Diversification recommendations
+- Insurance and protection strategies
+
+### 7. SPECIFIC ACTION ITEMS
+Provide 5-10 concrete, prioritized action items the farmer can implement immediately.
+
+### 8. KEY PERFORMANCE INDICATORS (KPIs)
+Recommend specific KPIs to track for measuring improvement.
+
+## IMPORTANT GUIDELINES
+- Be specific and actionable
+- Use the actual numbers from the data provided
+- Consider the farm type and size
+- Be realistic and practical for small to medium farms
+- Prioritize recommendations by potential impact
+- Consider seasonal variations in agriculture
+- Account for the local context (Kenya/East Africa)
+
+Provide your analysis and recommendations in a clear, well-organized format using markdown.`;
+        */
+        
+        return this.generateText(prompt);
+    }
+
+    /**
+     * Generate expense reduction recommendations
+     * @param expenseData - Detailed expense data
+     * @returns Cost-cutting recommendations
+     */
+    async getExpenseOptimizationRecommendations(expenseData: any): Promise<string> {
+        const prompt = `As an agricultural cost management expert, analyze the following farm expense data and provide specific cost reduction strategies:
+
+${JSON.stringify(expenseData, null, 2)}
+
+Provide:
+1. Expense categories with highest optimization potential
+2. Specific cost-cutting measures for each category
+3. Alternative suppliers or methods to reduce costs
+4. Efficiency improvements that reduce expenses
+5. ROI analysis for any recommended investments
+
+Format your response in markdown with clear sections.`;
+        
+        return this.generateText(prompt);
+    }
+
+    /**
+     * Generate revenue growth strategies
+     * @param revenueData - Detailed revenue data
+     * @returns Revenue growth recommendations
+     */
+    async getRevenueGrowthStrategies(revenueData: any): Promise<string> {
+        const prompt = `As an agricultural revenue growth consultant, analyze the following farm revenue data and provide strategies to increase income:
+
+${JSON.stringify(revenueData, null, 2)}
+
+Provide:
+1. High-potential revenue streams to expand
+2. New product or service opportunities
+3. Market expansion possibilities
+4. Value-added product suggestions
+5. Pricing optimization strategies
+6. Marketing and sales recommendations
+
+Format your response in markdown with actionable steps.`;
+        
+        return this.generateText(prompt);
+    }
 }
+
