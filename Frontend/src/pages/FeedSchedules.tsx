@@ -22,7 +22,9 @@ const FeedSchedules = () => {
   const [schedules, setSchedules] = useState<FeedSchedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<string | null>(null);
+  const [editingSchedule, setEditingSchedule] = useState<FeedSchedule | null>(null);
   const [executingSchedules, setExecutingSchedules] = useState<Set<string>>(new Set());
   const [executedToday, setExecutedToday] = useState<Set<string>>(new Set());
 
@@ -109,6 +111,68 @@ const FeedSchedules = () => {
   const openDeleteModal = (scheduleId: string) => {
     setSelectedSchedule(scheduleId);
     setShowDeleteModal(true);
+  };
+
+  const openEditModal = (schedule: FeedSchedule) => {
+    setEditingSchedule({ ...schedule });
+    setShowEditModal(true);
+  };
+
+  const handleEditSubmit = async () => {
+    if (!editingSchedule) return;
+
+    try {
+      await api.put(`/feed-schedule/${editingSchedule._id}`, {
+        scheduleName: editingSchedule.scheduleName,
+        feedType: editingSchedule.feedType,
+        feedingTimes: editingSchedule.feedingTimes,
+        quantity: editingSchedule.quantity,
+        unit: editingSchedule.unit,
+        notes: editingSchedule.notes
+      });
+
+      // Update the schedule in the list
+      setSchedules(schedules.map(s => 
+        s._id === editingSchedule._id ? editingSchedule : s
+      ));
+
+      showToast('Feed schedule updated successfully', 'success');
+      setShowEditModal(false);
+      setEditingSchedule(null);
+    } catch (error: any) {
+      showToast('Failed to update feed schedule', 'error');
+      console.error('Error updating schedule:', error);
+    }
+  };
+
+  const handleEditFieldChange = (field: keyof FeedSchedule, value: any) => {
+    if (editingSchedule) {
+      setEditingSchedule({ ...editingSchedule, [field]: value });
+    }
+  };
+
+  const handleFeedingTimeChange = (index: number, value: string) => {
+    if (editingSchedule) {
+      const newTimes = [...editingSchedule.feedingTimes];
+      newTimes[index] = value;
+      setEditingSchedule({ ...editingSchedule, feedingTimes: newTimes });
+    }
+  };
+
+  const addFeedingTime = () => {
+    if (editingSchedule) {
+      setEditingSchedule({
+        ...editingSchedule,
+        feedingTimes: [...editingSchedule.feedingTimes, '']
+      });
+    }
+  };
+
+  const removeFeedingTime = (index: number) => {
+    if (editingSchedule && editingSchedule.feedingTimes.length > 1) {
+      const newTimes = editingSchedule.feedingTimes.filter((_, i) => i !== index);
+      setEditingSchedule({ ...editingSchedule, feedingTimes: newTimes });
+    }
   };
 
   if (loading) {
@@ -224,12 +288,20 @@ const FeedSchedules = () => {
                         {schedule.feedType}
                       </p>
                     </div>
-                    <button
-                      onClick={() => openDeleteModal(schedule._id)}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                      <i className="fas fa-trash"></i>
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => openEditModal(schedule)}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      >
+                        <i className="fas fa-edit"></i>
+                      </button>
+                      <button
+                        onClick={() => openDeleteModal(schedule._id)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <i className="fas fa-trash"></i>
+                      </button>
+                    </div>
                   </div>
 
                   <div className="space-y-3 mb-4">
@@ -363,6 +435,153 @@ const FeedSchedules = () => {
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Schedule Modal */}
+      {showEditModal && editingSchedule && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 my-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-gray-900">
+                Edit Feed Schedule
+              </h3>
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingSchedule(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <i className="fas fa-times text-xl"></i>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Schedule Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Schedule Name
+                </label>
+                <input
+                  type="text"
+                  value={editingSchedule.scheduleName}
+                  onChange={(e) => handleEditFieldChange('scheduleName', e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="e.g., Morning Feed"
+                />
+              </div>
+
+              {/* Feed Type */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Feed Type
+                </label>
+                <input
+                  type="text"
+                  value={editingSchedule.feedType}
+                  onChange={(e) => handleEditFieldChange('feedType', e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="e.g., Hay, Pellets"
+                />
+              </div>
+
+              {/* Feeding Times */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Feeding Times
+                </label>
+                <div className="space-y-2">
+                  {editingSchedule.feedingTimes.map((time, index) => (
+                    <div key={index} className="flex gap-2">
+                      <input
+                        type="time"
+                        value={time}
+                        onChange={(e) => handleFeedingTimeChange(index, e.target.value)}
+                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                      {editingSchedule.feedingTimes.length > 1 && (
+                        <button
+                          onClick={() => removeFeedingTime(index)}
+                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <i className="fas fa-trash"></i>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    onClick={addFeedingTime}
+                    className="text-sm text-green-600 hover:text-green-700 font-medium"
+                  >
+                    <i className="fas fa-plus mr-1"></i>
+                    Add Another Time
+                  </button>
+                </div>
+              </div>
+
+              {/* Quantity and Unit */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Quantity per Feeding
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={editingSchedule.quantity}
+                    onChange={(e) => handleEditFieldChange('quantity', parseFloat(e.target.value))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Unit
+                  </label>
+                  <select
+                    value={editingSchedule.unit}
+                    onChange={(e) => handleEditFieldChange('unit', e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  >
+                    <option value="kg">kg</option>
+                    <option value="liters">liters</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Notes (Optional)
+                </label>
+                <textarea
+                  value={editingSchedule.notes || ''}
+                  onChange={(e) => handleEditFieldChange('notes', e.target.value)}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="Any additional notes..."
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingSchedule(null);
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleEditSubmit}
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+              >
+                Save Changes
               </button>
             </div>
           </div>

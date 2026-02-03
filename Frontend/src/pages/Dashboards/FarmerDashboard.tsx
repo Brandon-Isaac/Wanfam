@@ -6,6 +6,7 @@ const FarmerDashboard = () => {
   const [stats, setStats] = useState<any>({});
   const [farmWorkers, setFarmWorkers] = useState<any[]>([]);
   const [farms, setFarms] = useState<any[]>([]);
+  const [pendingSchedulesCount, setPendingSchedulesCount] = useState(0);
   
   const fetchStats = async () => {
     try {
@@ -32,9 +33,21 @@ const FarmerDashboard = () => {
         // Fetch workers from the first farm
         const workersResponse = await api.get(`/workers/${farmsData[0]._id}`);
         setFarmWorkers(workersResponse.data.data || []);
+        
+        // Fetch pending schedules count
+        await fetchPendingSchedules(farmsData[0]._id);
       }
     } catch (error) {
       console.error('Error fetching farm workers:', error);
+    }
+  };
+
+  const fetchPendingSchedules = async (farmId: string) => {
+    try {
+      const response = await api.get(`/feed-schedule/${farmId}`);
+      setPendingSchedulesCount(response.data.data?.length || 0);
+    } catch (error) {
+      console.error('Error fetching pending schedules:', error);
     }
   };
 
@@ -52,7 +65,7 @@ const FarmerDashboard = () => {
         </div>
 
         {/* Top Metrics Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
           {/* Large Metric Cards */}
           <Link 
             to="/select/farm"
@@ -108,6 +121,25 @@ const FarmerDashboard = () => {
               </div>
               <div className="p-3 bg-green-50 rounded-lg">
                 <i className="fas fa-cow text-2xl text-green-600"></i>
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            to={farms.length > 0 ? `/farms/${farms[0]._id}/feed-schedules` : "/select/farm"}
+            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all hover:border-orange-400 cursor-pointer"
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500 mb-2">Pending Feeds</p>
+                <p className="text-4xl font-bold text-gray-900">{pendingSchedulesCount}</p>
+                <p className="text-sm text-orange-600 mt-2 flex items-center">
+                  <i className="fas fa-calendar-check mr-1"></i>
+                  for today
+                </p>
+              </div>
+              <div className="p-3 bg-orange-50 rounded-lg">
+                <i className="fas fa-utensils text-2xl text-orange-600"></i>
               </div>
             </div>
           </Link>
