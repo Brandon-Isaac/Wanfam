@@ -25,7 +25,14 @@ const NotificationBell = () => {
     // Poll for new notifications every 30 seconds
     const interval = setInterval(fetchNotifications, 30000);
     
-    return () => clearInterval(interval);
+    // Listen for custom refresh events
+    const handleRefresh = () => fetchNotifications();
+    window.addEventListener('refreshNotifications', handleRefresh);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('refreshNotifications', handleRefresh);
+    };
   }, []);
 
   // Close dropdown when clicking outside

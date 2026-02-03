@@ -6,9 +6,9 @@ import { UserRole } from "../models/UserRole";
 
 const router = Router();
 
-router.post("/:farmId/generate-schedule", authenticate, roleHandler([ UserRole.FARMER, UserRole.WORKER]), FeedScheduleController.generateFeedingScheduleWithAI);
-router.post("/:farmId/:animalId", authenticate, roleHandler([UserRole.FARMER]), FeedScheduleController.createFeedConsumptionSchedule);
-router.post("/:farmId", authenticate, roleHandler([UserRole.FARMER]), FeedScheduleController.createFeedConsumptionScheduleForMultipleAnimals);
+router.post("/:farmId/generate-schedule", authenticate, roleHandler([UserRole.FARMER, UserRole.WORKER]), FeedScheduleController.generateFeedingScheduleWithAI);
+router.post("/:farmId/:animalId", authenticate, roleHandler([UserRole.FARMER]), FeedScheduleController.createFeedSchedule);
+router.post("/:farmId", authenticate, roleHandler([UserRole.FARMER]), FeedScheduleController.createFeedScheduleForMultipleAnimals);
 router.get("/:farmId", authenticate, roleHandler([UserRole.FARMER, UserRole.WORKER]), FeedScheduleController.getFeedingSchedulesForFarm);
 router.get("/animal/:animalId", authenticate, roleHandler([UserRole.FARMER, UserRole.WORKER]), FeedScheduleController.getFeedingSchedulesForAnimal);
 router.put("/:scheduleId", authenticate, roleHandler([UserRole.FARMER, UserRole.WORKER]), FeedScheduleController.updateFeedingSchedule);

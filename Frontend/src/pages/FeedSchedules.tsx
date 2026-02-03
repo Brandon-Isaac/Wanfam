@@ -26,7 +26,6 @@ const FeedSchedules = () => {
   const [selectedSchedule, setSelectedSchedule] = useState<string | null>(null);
   const [editingSchedule, setEditingSchedule] = useState<FeedSchedule | null>(null);
   const [executingSchedules, setExecutingSchedules] = useState<Set<string>>(new Set());
-  const [executedToday, setExecutedToday] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (farmId) {
@@ -65,18 +64,17 @@ const FeedSchedules = () => {
         'success'
       );
       
-      // Mark as executed today
-      setExecutedToday(prev => new Set(prev).add(schedule._id));
-      
       // Remove from displayed schedules
       setSchedules(prevSchedules => 
         prevSchedules.filter(s => s._id !== schedule._id)
       );
+      
+      // Trigger notification refresh by dispatching custom event
+      window.dispatchEvent(new Event('refreshNotifications'));
     } catch (error: any) {
       console.error('Error executing schedule:', error);
       if (error.response?.data?.alreadyExecuted) {
         showToast('This schedule has already been executed today', 'warning');
-        setExecutedToday(prev => new Set(prev).add(schedule._id));
         // Remove from displayed schedules
         setSchedules(prevSchedules => 
           prevSchedules.filter(s => s._id !== schedule._id)

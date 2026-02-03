@@ -439,7 +439,7 @@ const CreateFeedSchedule = () => {
                     value={formData.quantity}
                     onChange={handleInputChange}
                     step="0.1"
-                    min="0"
+                    min="0.1"
                     placeholder="e.g., 5"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
@@ -457,7 +457,7 @@ const CreateFeedSchedule = () => {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="kg">Kilograms (kg)</option>
-                    <option value="l">Liters (liters)</option>
+                    <option value="liters">Liters (liters)</option>
                   </select>
                 </div>
               </div>

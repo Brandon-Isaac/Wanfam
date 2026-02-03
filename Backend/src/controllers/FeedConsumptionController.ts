@@ -2,6 +2,9 @@ import {FeedingRecord} from "../models/FeedingRecord";
 import {FeedingSchedule} from "../models/FeedingSchedule";
 import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/AsyncHandler";
+import { Notification } from "../models/Notification";
+import { Farm } from "../models/Farm";
+import { Animal } from "../models/Animal";
 
 const recordFeedConsumption = asyncHandler(async (req: Request, res: Response) => {
     const farmId = req.params.farmId;
@@ -12,6 +15,10 @@ const recordFeedConsumption = asyncHandler(async (req: Request, res: Response) =
         return res.status(401).json({ message: "User not authenticated" });
     }
     
+    // Generate current time string if not provided
+    const currentTime = new Date();
+    const currentTimeString = `${currentTime.getHours().toString().padStart(2, '0')}:${currentTime.getMinutes().toString().padStart(2, '0')}`;
+    
     const newRecord = new FeedingRecord({ 
         farmId, 
         animalId, 
@@ -20,7 +27,7 @@ const recordFeedConsumption = asyncHandler(async (req: Request, res: Response) =
         date: date ? new Date(date) : new Date(), 
         quantity, 
         unit,
-        feedingTime: feedingTime ? new Date(feedingTime) : new Date(),
+        feedingTime: feedingTime || currentTimeString,
         notes 
     });
     await newRecord.save();
@@ -35,6 +42,10 @@ const recordFeedConsumptionByMultipleAnimals = asyncHandler(async (req: Request,
         return res.status(401).json({ message: "User not authenticated" });
     }
     
+    // Generate current time string if not provided
+    const currentTime = new Date();
+    const currentTimeString = `${currentTime.getHours().toString().padStart(2, '0')}:${currentTime.getMinutes().toString().padStart(2, '0')}`;
+    
     const records = [];
     for (const animalId of animalIds) {
         const newRecord = new FeedingRecord({ 
@@ -45,7 +56,7 @@ const recordFeedConsumptionByMultipleAnimals = asyncHandler(async (req: Request,
             date: date ? new Date(date) : new Date(), 
             quantity, 
             unit,
-            feedingTime: feedingTime ? new Date(feedingTime) : new Date(),
+            feedingTime: feedingTime || currentTimeString,
             notes 
         });
         await newRecord.save();
@@ -92,6 +103,11 @@ const deleteFeedConsumption = asyncHandler(async (req: Request, res: Response) =
 
 const executeTodaysFeedSchedule = asyncHandler(async (req: Request, res: Response) => {
     const farmId = req.params.farmId;
+    
+    if (!req.user || !req.user.id) {
+        return res.status(401).json({ message: "User not authenticated" });
+    }
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const schedules = await FeedingSchedule.find({ farmId });
@@ -125,6 +141,11 @@ const executeTodaysFeedSchedule = asyncHandler(async (req: Request, res: Respons
 
 const executeFeedingSchedule = asyncHandler(async (req: Request, res: Response) => {
     const scheduleId = req.params.scheduleId;
+    
+    if (!req.user || !req.user.id) {
+        return res.status(401).json({ message: "User not authenticated" });
+    }
+    
     const schedule = await FeedingSchedule.findById(scheduleId);
     if (!schedule) {
         return res.status(404).json({ message: "Feeding Schedule not found" });
@@ -171,6 +192,30 @@ const executeFeedingSchedule = asyncHandler(async (req: Request, res: Response) 
     }
     const totalAmountFed = records.reduce((sum, record) => sum + record.quantity, 0);
     console.log(`Total amount fed for schedule ${scheduleId}: ${totalAmountFed} ${schedule.unit}`);
+    
+    // Create notification for the farmer
+    try {
+        // Get farm details to find the owner
+        const farm = await Farm.findById(schedule.farmId).populate('owner');
+        
+        // Get animal names
+        const animals = await Animal.find({ _id: { $in: schedule.animalIds } });
+        const animalNames = animals.map(a => a.name).join(', ');
+        
+        if (farm && farm.owner) {
+            const notification = new Notification({
+                userId: farm.owner,
+                message: `Feeding schedule "${schedule.scheduleName}" executed successfully! Animals ${animalNames} have been fed ${totalAmountFed} ${schedule.unit} of ${schedule.feedType}.`,
+                type: 'success',
+                relatedEntityId: schedule._id,
+                relatedEntityType: 'FeedingSchedule'
+            });
+            await notification.save();
+        }
+    } catch (notificationError) {
+        console.error('Failed to create notification:', notificationError);
+        // Don't fail the request if notification creation fails
+    }
     
     res.status(201).json({ success: true, data: records, totalAmountFed });
 });

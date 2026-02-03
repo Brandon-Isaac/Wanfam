@@ -6,27 +6,77 @@ import { Animal } from "../models/Animal";
 import { AIService } from "../services/AIService";
 import { FeedingRecord } from "../models/FeedingRecord";
 
-const createFeedConsumptionScheduleForMultipleAnimals = asyncHandler(async (req: Request, res: Response) => {
+const createFeedScheduleForMultipleAnimals = asyncHandler(async (req: Request, res: Response) => {
     const farmId = req.params.farmId;
     if (!farmId) {
         return res.status(400).json({ message: "Farm ID is required" });
     }
+    
     const { animalIds, scheduleName, feedingTimes, feedType, quantity, unit, notes } = req.body;
+    
+    if (!animalIds || !Array.isArray(animalIds) || animalIds.length === 0) {
+        return res.status(400).json({ message: "At least one animal ID is required" });
+    }
+    
+    // Verify farm exists
+    const farm = await Farm.findById(farmId);
+    if (!farm) {
+        return res.status(404).json({ message: "Farm not found" });
+    }
+    
+    // Verify all animals exist and belong to the farm
+    const animals = await Animal.find({ _id: { $in: animalIds }, farmId });
+    if (animals.length === 0) {
+        return res.status(404).json({ message: "No animals found for the given IDs" });
+    }
+    if (animals.length !== animalIds.length) {
+        return res.status(404).json({ 
+            message: "Some animals not found or do not belong to this farm",
+            found: animals.length,
+            requested: animalIds.length
+        });
+    }
+    
     const newSchedule = new FeedingSchedule({ farmId, animalIds, scheduleName, feedingTimes, feedType, quantity, unit, notes });
     await newSchedule.save();
-    res.status(201).json({ success: true, data: newSchedule });
+    
+    // Populate the schedule with animal and farm details
+    const populatedSchedule = await FeedingSchedule.findById(newSchedule._id)
+        .populate('animalIds', 'name species breed')
+        .populate('farmId', 'name');
+    
+    res.status(201).json({ success: true, data: populatedSchedule });
 });
 
-const createFeedConsumptionSchedule = asyncHandler(async (req: Request, res: Response) => {
+const createFeedSchedule = asyncHandler(async (req: Request, res: Response) => {
     const farmId = req.params.farmId;
     const animalId = req.params.animalId;
     if (!farmId || !animalId) {
         return res.status(400).json({ message: "Farm ID and Animal ID are required" });
     }
+    
+    // Verify farm exists
+    const farm = await Farm.findById(farmId);
+    if (!farm) {
+        return res.status(404).json({ message: "Farm not found" });
+    }
+    
+    // Verify animal exists and belongs to the farm
+    const animal = await Animal.findOne({ _id: animalId, farmId });
+    if (!animal) {
+        return res.status(404).json({ message: "Animal not found or does not belong to this farm" });
+    }
+    
     const { scheduleName, feedingTimes, feedType, quantity, unit, notes } = req.body;
     const newSchedule = new FeedingSchedule({ farmId, animalIds: [animalId], scheduleName, feedingTimes, feedType, quantity, unit, notes });
     await newSchedule.save();
-    res.status(201).json({ success: true, data: newSchedule });
+    
+    // Populate the schedule with animal and farm details
+    const populatedSchedule = await FeedingSchedule.findById(newSchedule._id)
+        .populate('animalIds', 'name species breed')
+        .populate('farmId', 'name');
+    
+    res.status(201).json({ success: true, data: populatedSchedule });
 });
 
 const getFeedingSchedulesForFarm = asyncHandler(async (req: Request, res: Response) => {
@@ -121,7 +171,7 @@ const generateFeedingScheduleWithAI = asyncHandler(async (req: Request, res: Res
     // Construct AI prompt - KEEP IT SHORT to avoid truncation
     const prompt = `Generate a feeding schedule JSON for:
 Animals: ${animalData.map(a => `${a.name} (${a.species})`).join(', ')}
-${feedType ? `Feed: ${feedType}` : ''}
+${feedType ? `Feed: ${feedType}` : ''} ${customInstructions ? `Instructions: ${customInstructions}` : ''}
 
 RETURN ONLY THIS JSON FORMAT (no markdown, no extra text):
 {
@@ -178,8 +228,7 @@ Be concise. JSON only.`;
             console.error('Failed to parse AI response:', aiResponse);
             return res.status(500).json({ 
                 message: "Failed to parse AI-generated schedule. The AI response may be incomplete or invalid.", 
-                error: parseError instanceof Error ? parseError.message : 'Unknown error',
-                rawResponse: aiResponse.substring(0, 500)
+                error: parseError instanceof Error ? parseError.message : 'Unknown error'
             });
         }
 
@@ -228,8 +277,8 @@ Be concise. JSON only.`;
 });
 
 export const FeedScheduleController = {
-    createFeedConsumptionSchedule,
-    createFeedConsumptionScheduleForMultipleAnimals,
+    createFeedSchedule,
+    createFeedScheduleForMultipleAnimals,
     getFeedingSchedulesForFarm,
     getFeedingSchedulesForAnimal,
     updateFeedingSchedule,

@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import api from '../../utils/Api';
+import { useToast } from '../../contexts/ToastContext';
 
 const FarmerDashboard = () => {
+  const { showToast } = useToast();
   const [stats, setStats] = useState<any>({});
   const [farmWorkers, setFarmWorkers] = useState<any[]>([]);
   const [farms, setFarms] = useState<any[]>([]);
@@ -350,7 +352,7 @@ const FarmerDashboard = () => {
                   onClick={(e) => {
                     if (!farms?.[0]?._id) {
                       e.preventDefault();
-                      alert('Please select a farm first');
+                      showToast('Please select a farm first', 'warning');
                     }
                   }}
                 >
