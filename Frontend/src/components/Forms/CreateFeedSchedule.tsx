@@ -134,8 +134,16 @@ const CreateFeedSchedule = () => {
         customInstructions: formData.customInstructions || undefined
       });
 
-      showToast('Feeding schedule generated successfully!', 'success');
-      navigate(`/farms/${farmId}/dashboard`);
+      const schedule = response.data.data;
+      const animalNames = schedule.animalIds
+        .map((animal: any) => animal.name)
+        .join(', ');
+      
+      showToast(
+        `AI-generated feeding schedule created successfully for ${animalNames}!`,
+        'success'
+      );
+      navigate(`/farms/${farmId}/feed-schedules`);
     } catch (error: any) {
       showToast(
         error.response?.data?.message || 'Failed to generate schedule with AI',
@@ -178,7 +186,7 @@ const CreateFeedSchedule = () => {
       });
 
       showToast('Feeding schedule created successfully!', 'success');
-      navigate(`/farms/${farmId}/dashboard`);
+      navigate(`/farms/${farmId}/feed-schedules`);
     } catch (error: any) {
       showToast(
         error.response?.data?.message || 'Failed to create feeding schedule',
@@ -449,9 +457,7 @@ const CreateFeedSchedule = () => {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="kg">Kilograms (kg)</option>
-                    <option value="lbs">Pounds (lbs)</option>
-                    <option value="bales">Bales</option>
-                    <option value="bags">Bags</option>
+                    <option value="l">Liters (liters)</option>
                   </select>
                 </div>
               </div>

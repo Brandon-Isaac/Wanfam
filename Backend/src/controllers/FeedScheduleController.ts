@@ -4,6 +4,7 @@ import { Request, Response } from "express";
 import { Farm } from "../models/Farm";
 import { Animal } from "../models/Animal";
 import { AIService } from "../services/AIService";
+import { FeedingRecord } from "../models/FeedingRecord";
 
 const createFeedConsumptionScheduleForMultipleAnimals = asyncHandler(async (req: Request, res: Response) => {
     const farmId = req.params.farmId;
@@ -30,12 +31,36 @@ const createFeedConsumptionSchedule = asyncHandler(async (req: Request, res: Res
 
 const getFeedingSchedulesForFarm = asyncHandler(async (req: Request, res: Response) => {
     const farmId = req.params.farmId;
-    const schedules = await FeedingSchedule.find({ farmId });
-    res.json({ success: true, data: schedules });
+    
+    // Get all schedules for this farm
+    const schedules = await FeedingSchedule.find({ farmId })
+        .populate('animalIds', 'name species breed')
+        .populate('farmId', 'name');
+    
+    // Get today's date range
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    // Find all schedule IDs that have been executed today
+    const executedToday = await FeedingRecord.find({
+        farmId,
+        date: { $gte: today, $lt: tomorrow }
+    }).distinct('feedingScheduleId');
+    
+    // Filter out schedules that have been executed today
+    const pendingSchedules = schedules.filter(schedule => 
+        !executedToday.some(executedId => executedId.toString() === schedule._id.toString())
+    );
+    
+    res.json({ success: true, data: pendingSchedules });
 });
 const getFeedingSchedulesForAnimal = asyncHandler(async (req: Request, res: Response) => {
     const animalId = req.params.animalId;
-    const schedules = await FeedingSchedule.find({ animalIds: animalId });
+    const schedules = await FeedingSchedule.find({ animalIds: animalId })
+        .populate('animalIds', 'name species breed')
+        .populate('farmId', 'name');
     res.json({ success: true, data: schedules });
 });
 
@@ -93,33 +118,22 @@ const generateFeedingScheduleWithAI = asyncHandler(async (req: Request, res: Res
         gender: animal.gender
     }));
 
-    // Construct AI prompt
-    const prompt = `You are an expert livestock nutritionist. Generate a detailed feeding schedule for the following animals:
+    // Construct AI prompt - KEEP IT SHORT to avoid truncation
+    const prompt = `Generate a feeding schedule JSON for:
+Animals: ${animalData.map(a => `${a.name} (${a.species})`).join(', ')}
+${feedType ? `Feed: ${feedType}` : ''}
 
-Farm: ${farm.name}
-Animals:
-${animalData.map((a, i) => `${i + 1}. ${a.name} (${a.species}, ${a.breed}, ${a.age || 'age unknown'} years old, ${a.weight || 'weight unknown'} kg, ${a.gender}, health: ${a.healthStatus})`).join('\n')}
-
-${feedType ? `Preferred feed type: ${feedType}` : ''}
-${customInstructions ? `Additional instructions: ${customInstructions}` : ''}
-
-Provide a concise feeding schedule with:
-1. Schedule name
-2. Feeding times in 24-hour format (e.g., ["06:00", "18:00"])
-3. Feed type
-4. Quantity per feeding
-5. Unit (kg or liters)
-6. Brief notes (MAX 50 words)
-
-Return ONLY this JSON (no markdown, no extra text):
+RETURN ONLY THIS JSON FORMAT (no markdown, no extra text):
 {
-    "scheduleName": "string",
-    "feedingTimes": ["time1", "time2"],
-    "feedType": "string",
-    "quantity": number,
+    "scheduleName": "Farm Feeding Schedule",
+    "feedingTimes": ["06:00", "18:00"],
+    "feedType": "feed name",
+    "quantity": 1.5,
     "unit": "kg",
-    "notes": "brief recommendations in 50 words or less"
-}`;
+    "notes": "Keep under 20 words"
+}
+
+Be concise. JSON only.`;
 
     try {
         // Call Gemini AI service
@@ -135,12 +149,22 @@ Return ONLY this JSON (no markdown, no extra text):
             cleanedResponse = cleanedResponse.replace(/^```\s*/i, '');
             cleanedResponse = cleanedResponse.replace(/\s*```$/i, '');
             
-            // Check if response appears truncated (missing closing brace)
-            if (!cleanedResponse.includes('}')) {
-                console.log('Attempting to repair truncated response...');
-                // Try to repair by closing the string and adding closing brace
-                cleanedResponse = cleanedResponse.replace(/"notes"\s*:\s*"[^"]*$/, '"notes": "Feed details available upon request"');
-                cleanedResponse += '"}';
+            // Check if response appears truncated
+            const hasMissingClosingBrace = !cleanedResponse.includes('}');
+            const hasUnterminatedString = cleanedResponse.match(/"notes"\s*:\s*"[^"]*$/);
+            
+            if (hasMissingClosingBrace || hasUnterminatedString) {
+                console.log('Repairing truncated AI response...');
+                
+                // Close any unterminated string in notes field
+                if (hasUnterminatedString) {
+                    cleanedResponse = cleanedResponse.replace(/"notes"\s*:\s*"[^"]*$/, '"notes": "See schedule details"');
+                }
+                
+                // Add missing closing brace
+                if (!cleanedResponse.includes('}')) {
+                    cleanedResponse += '\n}';
+                }
             }
             
             // Extract JSON from response (in case AI adds extra text)
@@ -182,9 +206,14 @@ Return ONLY this JSON (no markdown, no extra text):
 
         await newSchedule.save();
 
+        // Populate the schedule with animal names
+        const populatedSchedule = await FeedingSchedule.findById(newSchedule._id)
+            .populate('animalIds', 'name species breed')
+            .populate('farmId', 'name');
+
         res.status(201).json({ 
             success: true, 
-            data: newSchedule,
+            data: populatedSchedule,
             aiGenerated: true,
             animalsIncluded: animals.length
         });

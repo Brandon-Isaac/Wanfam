@@ -6,12 +6,12 @@ import { UserRole } from "../models/UserRole";
 
 const router = Router();
 
-router.post("/:farmId/generate-schedule", authenticate, roleHandler([UserRole.ADMIN, UserRole.FARMER]), FeedScheduleController.generateFeedingScheduleWithAI);
-router.post("/:farmId/:animalId", authenticate, roleHandler([UserRole.ADMIN, UserRole.FARMER]), FeedScheduleController.createFeedConsumptionSchedule);
-router.post("/:farmId", authenticate, roleHandler([UserRole.ADMIN, UserRole.FARMER]), FeedScheduleController.createFeedConsumptionScheduleForMultipleAnimals);
-router.get("/:farmId", authenticate, roleHandler([UserRole.ADMIN, UserRole.FARMER]), FeedScheduleController.getFeedingSchedulesForFarm);
-router.get("/animal/:animalId", authenticate, roleHandler([UserRole.ADMIN, UserRole.FARMER]), FeedScheduleController.getFeedingSchedulesForAnimal);
-router.put("/:scheduleId", authenticate, roleHandler([UserRole.ADMIN]), FeedScheduleController.updateFeedingSchedule);
-router.delete("/:scheduleId", authenticate, roleHandler([UserRole.ADMIN]), FeedScheduleController.deleteFeedingSchedule);
+router.post("/:farmId/generate-schedule", authenticate, roleHandler([ UserRole.FARMER, UserRole.WORKER]), FeedScheduleController.generateFeedingScheduleWithAI);
+router.post("/:farmId/:animalId", authenticate, roleHandler([UserRole.FARMER]), FeedScheduleController.createFeedConsumptionSchedule);
+router.post("/:farmId", authenticate, roleHandler([UserRole.FARMER]), FeedScheduleController.createFeedConsumptionScheduleForMultipleAnimals);
+router.get("/:farmId", authenticate, roleHandler([UserRole.FARMER, UserRole.WORKER]), FeedScheduleController.getFeedingSchedulesForFarm);
+router.get("/animal/:animalId", authenticate, roleHandler([UserRole.FARMER, UserRole.WORKER]), FeedScheduleController.getFeedingSchedulesForAnimal);
+router.put("/:scheduleId", authenticate, roleHandler([UserRole.FARMER, UserRole.WORKER]), FeedScheduleController.updateFeedingSchedule);
+router.delete("/:scheduleId", authenticate, roleHandler([UserRole.FARMER]), FeedScheduleController.deleteFeedingSchedule);
 
 export default router;

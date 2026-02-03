@@ -23,6 +23,8 @@ const FeedSchedules = () => {
   const [loading, setLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<string | null>(null);
+  const [executingSchedules, setExecutingSchedules] = useState<Set<string>>(new Set());
+  const [executedToday, setExecutedToday] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (farmId) {
@@ -40,6 +42,52 @@ const FeedSchedules = () => {
       showToast('Failed to load feed schedules', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExecuteSchedule = async (schedule: FeedSchedule) => {
+    setExecutingSchedules(prev => new Set(prev).add(schedule._id));
+    
+    try {
+      const response = await api.post(`/feed-consumption/${schedule._id}/`);
+      
+      // Get animal names for notification
+      const animalNames = schedule.animalIds
+        .map((animal: any) => animal.name || 'Unknown')
+        .join(', ');
+      
+      const totalFed = response.data.totalAmountFed || (schedule.quantity * schedule.animalIds.length);
+      
+      showToast(
+        `Animals ${animalNames} have been fed successfully! Total: ${totalFed} ${schedule.unit}`,
+        'success'
+      );
+      
+      // Mark as executed today
+      setExecutedToday(prev => new Set(prev).add(schedule._id));
+      
+      // Remove from displayed schedules
+      setSchedules(prevSchedules => 
+        prevSchedules.filter(s => s._id !== schedule._id)
+      );
+    } catch (error: any) {
+      console.error('Error executing schedule:', error);
+      if (error.response?.data?.alreadyExecuted) {
+        showToast('This schedule has already been executed today', 'warning');
+        setExecutedToday(prev => new Set(prev).add(schedule._id));
+        // Remove from displayed schedules
+        setSchedules(prevSchedules => 
+          prevSchedules.filter(s => s._id !== schedule._id)
+        );
+      } else {
+        showToast(error.response?.data?.message || 'Failed to execute feeding schedule', 'error');
+      }
+    } finally {
+      setExecutingSchedules(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(schedule._id);
+        return newSet;
+      });
     }
   };
 
@@ -99,8 +147,9 @@ const FeedSchedules = () => {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500 mb-1">Total Schedules</p>
+                <p className="text-sm font-medium text-gray-500 mb-1">Pending Schedules</p>
                 <p className="text-3xl font-bold text-gray-900">{schedules.length}</p>
+                <p className="text-xs text-gray-500 mt-1">for today</p>
               </div>
               <div className="p-3 bg-blue-50 rounded-lg">
                 <i className="fas fa-calendar-alt text-2xl text-blue-600"></i>
@@ -141,19 +190,19 @@ const FeedSchedules = () => {
         {schedules.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
             <div className="max-w-md mx-auto">
-              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-calendar-plus text-4xl text-gray-400"></i>
+              <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i className="fas fa-check-circle text-4xl text-green-600"></i>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No Feed Schedules Yet</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">All Schedules Executed!</h3>
               <p className="text-gray-600 mb-6">
-                Get started by creating your first feeding schedule. You can create schedules manually or use AI to generate optimized schedules based on your animals' needs.
+                Great job! All feeding schedules for today have been completed. New schedules will be available tomorrow, or you can create a new schedule now.
               </p>
               <Link
                 to={`/farms/${farmId}/feed-schedule/create`}
                 className="inline-flex items-center px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
               >
                 <i className="fas fa-plus mr-2"></i>
-                Create Your First Schedule
+                Create New Schedule
               </Link>
             </div>
           </div>
@@ -222,12 +271,53 @@ const FeedSchedules = () => {
                     </div>
                   </div>
 
+                  {/* Animals */}
+                  {schedule.animalIds && schedule.animalIds.length > 0 && (
+                    <div className="mb-4">
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                        Animals
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {schedule.animalIds.map((animal: any, index: number) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center px-3 py-1 bg-green-50 text-green-700 text-xs font-medium rounded-full"
+                          >
+                            <i className="fas fa-paw mr-1"></i>
+                            {animal.name || `Animal ${index + 1}`}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Notes */}
                   {schedule.notes && (
                     <div className="pt-4 border-t border-gray-200">
                       <p className="text-xs text-gray-600 line-clamp-2">{schedule.notes}</p>
                     </div>
                   )}
+
+                  {/* Execute Button */}
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <button
+                      onClick={() => handleExecuteSchedule(schedule)}
+                      disabled={executingSchedules.has(schedule._id)}
+                      className="w-full inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                      {executingSchedules.has(schedule._id) ? (
+                        <>
+                          <i className="fas fa-spinner fa-spin mr-2"></i>
+                          Executing...
+                        </>
+                      ) : (
+                        <>
+                          <i className="fas fa-check-circle mr-2"></i>
+                          Execute Feeding
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">

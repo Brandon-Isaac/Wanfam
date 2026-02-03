@@ -5,10 +5,11 @@ export interface IFeedingRecord extends Document {
     animalId: Schema.Types.ObjectId;
     feedingScheduleId: Schema.Types.ObjectId;
     fedBy: Schema.Types.ObjectId;
+    date: Date;
     quantity: number;
     unit: ('kg' | 'liters');
     cost?: number;
-    feedingTime: Date;
+    feedingTime: string;
     notes?: string;
 }
 
@@ -19,7 +20,9 @@ const feedingRecordSchema = new Schema<IFeedingRecord>({
     feedingScheduleId: { type: Schema.Types.ObjectId, ref: 'FeedingSchedule', required: true },
     quantity: { type: Number, required: true },
     cost: { type: Number, min: 0 },
-    feedingTime: { type: Date, required: true },
+    date: { type: Date, required: true },
+    unit: { type: String, enum: ['kg', 'liters'], required: true },
+    feedingTime: { type: String, required: true },
     notes: { type: String }
 }, { timestamps: true });
 
