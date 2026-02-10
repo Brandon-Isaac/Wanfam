@@ -6,7 +6,8 @@ import {
     getRevenue,
     updateRevenue,
     deleteRevenue,
-    getRevenueSummary
+    getRevenueSummary,
+    generateReccommendationsWithAi
 } from '../controllers/RevenueController';
 
 const router = Router();
@@ -18,6 +19,7 @@ router.use(authenticate);
 router.post('/', createRevenue);
 router.get('/farm/:farmId', getFarmRevenues);
 router.get('/farm/:farmId/summary', getRevenueSummary);
+router.post('/:farmId/recommendations', generateReccommendationsWithAi);
 router.get('/:id', getRevenue);
 router.put('/:id', updateRevenue);
 router.delete('/:id', deleteRevenue);

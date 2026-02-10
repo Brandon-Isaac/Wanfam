@@ -8,6 +8,8 @@ export interface IProductivityRecord extends Document {
         amount: number;
         unit: 'liters' | 'gallons';
         timeOfDay: 'morning' | 'afternoon' | 'evening';
+        pricePerUnit?: number;
+        revenueGenerated?: number;
     }
     totalMilk?: {
         amount: number;
@@ -27,7 +29,9 @@ const productivityRecordSchema = new Schema<IProductivityRecord>({
     milkYield: {
         amount: { type: Number },
         unit: { type: String, enum: ['liters', 'gallons'], default: 'liters' },
-        timeOfDay: { type: String, enum: ['morning', 'afternoon', 'evening'] ,default: 'morning' }
+        timeOfDay: { type: String, enum: ['morning', 'afternoon', 'evening'] ,default: 'morning' },
+        pricePerUnit: { type: Number, min: 0 },
+        revenueGenerated: { type: Number, min: 0 }
     },
     totalMilk: {
         amount: { type: Number },

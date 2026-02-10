@@ -52,17 +52,53 @@ const FeedSchedules = () => {
     try {
       const response = await api.post(`/feed-consumption/${schedule._id}/`);
       
-      // Get animal names for notification
-      const animalNames = schedule.animalIds
-        .map((animal: any) => animal.name || 'Unknown')
-        .join(', ');
-      
-      const totalFed = response.data.totalAmountFed || (schedule.quantity * schedule.animalIds.length);
-      
-      showToast(
-        `Animals ${animalNames} have been fed successfully! Total: ${totalFed} ${schedule.unit}`,
-        'success'
-      );
+      // Check if response contains task creation data (new workflow)
+      if (response.data.tasksCreated !== undefined) {
+        const tasksCreated = response.data.tasksCreated;
+        const notifications = response.data.notifications || [];
+        const unassignedAnimals = response.data.unassignedAnimals || [];
+        
+        // Build success message for task assignments
+        if (tasksCreated > 0) {
+          const taskSummary = notifications
+            .map((n: any) => `${n.animal} → ${n.worker}`)
+            .join(', ');
+          
+          let message = `✅ ${tasksCreated} feeding task${tasksCreated > 1 ? 's' : ''} assigned successfully!`;
+          if (taskSummary) {
+            message += ` (${taskSummary})`;
+          }
+          
+          showToast(message, 'success');
+          
+          // Show warning for unassigned animals
+          if (unassignedAnimals.length > 0) {
+            setTimeout(() => {
+              showToast(
+                `⚠️ Warning: ${unassignedAnimals.join(', ')} have no assigned worker`,
+                'warning'
+              );
+            }, 1500);
+          }
+        } else if (unassignedAnimals.length > 0) {
+          showToast(
+            `⚠️ No tasks created. Animals ${unassignedAnimals.join(', ')} have no assigned workers`,
+            'warning'
+          );
+        }
+      } else {
+        // Fallback for old response format (direct feeding)
+        const animalNames = schedule.animalIds
+          .map((animal: any) => animal.name || 'Unknown')
+          .join(', ');
+        
+        const totalFed = response.data.totalAmountFed || (schedule.quantity * schedule.animalIds.length);
+        
+        showToast(
+          `Animals ${animalNames} have been fed successfully! Total: ${totalFed} ${schedule.unit}`,
+          'success'
+        );
+      }
       
       // Remove from displayed schedules
       setSchedules(prevSchedules => 
@@ -74,7 +110,7 @@ const FeedSchedules = () => {
     } catch (error: any) {
       console.error('Error executing schedule:', error);
       if (error.response?.data?.alreadyExecuted) {
-        showToast('This schedule has already been executed today', 'warning');
+        showToast('Feeding tasks for this schedule have already been created today', 'warning');
         // Remove from displayed schedules
         setSchedules(prevSchedules => 
           prevSchedules.filter(s => s._id !== schedule._id)

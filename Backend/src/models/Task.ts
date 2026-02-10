@@ -12,6 +12,14 @@ export interface ITask extends Document {
     createdBy: Schema.Types.ObjectId;
     createdAt: Date;
     updatedAt: Date;
+    animalId?: Schema.Types.ObjectId;
+    feedingScheduleId?: Schema.Types.ObjectId;
+    feedingDetails?: {
+        feedType?: string;
+        quantity?: number;
+        unit?: string;
+        feedingTime?: string;
+    };
 }
 
 const taskSchema = new Schema<ITask>({
@@ -24,6 +32,14 @@ const taskSchema = new Schema<ITask>({
     status: { type: String, enum: ['Pending', 'In Progress', 'Completed', 'Overdue'], required: true },
     priority: { type: String, enum: ['Low', 'Medium', 'High', 'Urgent'], required: true },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    animalId: { type: Schema.Types.ObjectId, ref: 'Animal' },
+    feedingScheduleId: { type: Schema.Types.ObjectId, ref: 'FeedingSchedule' },
+    feedingDetails: {
+        feedType: { type: String },
+        quantity: { type: Number },
+        unit: { type: String },
+        feedingTime: { type: String }
+    },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 });
