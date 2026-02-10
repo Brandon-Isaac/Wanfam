@@ -298,9 +298,14 @@ const FinancialOverview = () => {
               </div>
               <div className="mt-4 flex gap-3">
                 <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(recommendations);
-                    alert('Recommendations copied to clipboard!');
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(recommendations);
+                      alert('Recommendations copied to clipboard!');
+                    } catch (err) {
+                      console.error('Failed to copy to clipboard:', err);
+                      alert('Failed to copy to clipboard. Please try again or check browser permissions.');
+                    }
                   }}
                   className="px-4 py-2 bg-white text-purple-600 border border-purple-300 rounded-lg hover:bg-purple-50 transition-colors"
                 >
@@ -309,13 +314,18 @@ const FinancialOverview = () => {
                 </button>
                 <button
                   onClick={() => {
-                    const blob = new Blob([recommendations], { type: 'text/plain' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `financial-recommendations-${new Date().toISOString().split('T')[0]}.txt`;
-                    a.click();
-                    URL.revokeObjectURL(url);
+                    try {
+                      const blob = new Blob([recommendations], { type: 'text/plain' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `financial-recommendations-${new Date().toISOString().split('T')[0]}.txt`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    } catch (err) {
+                      console.error('Failed to download report:', err);
+                      alert('Failed to download report. Please try again.');
+                    }
                   }}
                   className="px-4 py-2 bg-white text-purple-600 border border-purple-300 rounded-lg hover:bg-purple-50 transition-colors"
                 >

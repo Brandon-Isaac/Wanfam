@@ -5,6 +5,7 @@ import { Farm } from "../models/Farm";
 import { Animal } from "../models/Animal";
 import { AIService } from "../services/AIService";
 import { FeedingRecord } from "../models/FeedingRecord";
+import { Task } from "../models/Task";
 
 const createFeedScheduleForMultipleAnimals = asyncHandler(async (req: Request, res: Response) => {
     const farmId = req.params.farmId;
@@ -93,15 +94,29 @@ const getFeedingSchedulesForFarm = asyncHandler(async (req: Request, res: Respon
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     
-    // Find all schedule IDs that have been executed today
+    // Find all schedule IDs that have tasks created today (new workflow)
+    const schedulesWithTasks = await Task.find({
+        farmId,
+        taskCategory: 'Feeding',
+        feedingScheduleId: { $ne: null },
+        createdAt: { $gte: today, $lt: tomorrow }
+    }).distinct('feedingScheduleId');
+    
+    // Also check for old feeding records (backward compatibility)
     const executedToday = await FeedingRecord.find({
         farmId,
         date: { $gte: today, $lt: tomorrow }
     }).distinct('feedingScheduleId');
     
+    // Combine both lists
+    const allExecutedSchedules = [...new Set([
+        ...schedulesWithTasks.map(id => id.toString()),
+        ...executedToday.map(id => id.toString())
+    ])];
+    
     // Filter out schedules that have been executed today
     const pendingSchedules = schedules.filter(schedule => 
-        !executedToday.some(executedId => executedId.toString() === schedule._id.toString())
+        !allExecutedSchedules.includes(schedule._id.toString())
     );
     
     res.json({ success: true, data: pendingSchedules });

@@ -7,6 +7,7 @@ const router = Router();
 
 router.post("/:farmId/execute", authenticate, roleHandler([UserRole.FARMER, UserRole.WORKER]), FeedConsumptionController.executeTodaysFeedSchedule);
 router.post("/:scheduleId/", authenticate, roleHandler([UserRole.WORKER, UserRole.FARMER]), FeedConsumptionController.executeFeedingSchedule);
+router.post("/task/:taskId/complete", authenticate, roleHandler([UserRole.WORKER, UserRole.FARMER]), FeedConsumptionController.completeFeedingTask);
 router.post("/:farmId/:animalId", authenticate, roleHandler([UserRole.WORKER, UserRole.FARMER]), FeedConsumptionController.recordFeedConsumption);
 router.post("/:farmId", authenticate, roleHandler([UserRole.WORKER, UserRole.FARMER]), FeedConsumptionController.recordFeedConsumptionByMultipleAnimals);
 router.get("/:farmId/:animalId", authenticate, roleHandler([UserRole.WORKER, UserRole.FARMER]), FeedConsumptionController.getFeedConsumptionByAnimal);
