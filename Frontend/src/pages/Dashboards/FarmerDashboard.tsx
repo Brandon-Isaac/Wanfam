@@ -1,10 +1,17 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import api from '../../utils/Api';
+import { useToast } from '../../contexts/ToastContext';
+import LoanRequestForm from '../../components/Forms/LoanRequestForm';
 
 const FarmerDashboard = () => {
+  const { showToast } = useToast();
   const [stats, setStats] = useState<any>({});
   const [farmWorkers, setFarmWorkers] = useState<any[]>([]);
+  const [farms, setFarms] = useState<any[]>([]);
+  const [pendingSchedulesCount, setPendingSchedulesCount] = useState(0);
+  const [showLoanForm, setShowLoanForm] = useState(false);
+  const [selectedFarmForLoan, setSelectedFarmForLoan] = useState<string | null>(null);
   
   const fetchStats = async () => {
     try {
@@ -24,15 +31,28 @@ const FarmerDashboard = () => {
     try {
       // Get all farms first
       const farmsResponse = await api.get('/farms');
-      const farms = farmsResponse.data.data || farmsResponse.data;
+      const farmsData = farmsResponse.data.data || farmsResponse.data;
+      setFarms(farmsData);
       
-      if (farms.length > 0) {
+      if (farmsData.length > 0) {
         // Fetch workers from the first farm
-        const workersResponse = await api.get(`/workers/${farms[0]._id}`);
+        const workersResponse = await api.get(`/workers/${farmsData[0]._id}`);
         setFarmWorkers(workersResponse.data.data || []);
+        
+        // Fetch pending schedules count
+        await fetchPendingSchedules(farmsData[0]._id);
       }
     } catch (error) {
       console.error('Error fetching farm workers:', error);
+    }
+  };
+
+  const fetchPendingSchedules = async (farmId: string) => {
+    try {
+      const response = await api.get(`/feed-schedule/${farmId}`);
+      setPendingSchedulesCount(response.data.data?.length || 0);
+    } catch (error) {
+      console.error('Error fetching pending schedules:', error);
     }
   };
 
@@ -50,7 +70,7 @@ const FarmerDashboard = () => {
         </div>
 
         {/* Top Metrics Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
           {/* Large Metric Cards */}
           <Link 
             to="/select/farm"
@@ -106,6 +126,25 @@ const FarmerDashboard = () => {
               </div>
               <div className="p-3 bg-green-50 rounded-lg">
                 <i className="fas fa-cow text-2xl text-green-600"></i>
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            to={farms.length > 0 ? `/farms/${farms[0]._id}/feed-schedules` : "/select/farm"}
+            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all hover:border-orange-400 cursor-pointer"
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500 mb-2">Pending Feeds</p>
+                <p className="text-4xl font-bold text-gray-900">{pendingSchedulesCount}</p>
+                <p className="text-sm text-orange-600 mt-2 flex items-center">
+                  <i className="fas fa-calendar-check mr-1"></i>
+                  for today
+                </p>
+              </div>
+              <div className="p-3 bg-orange-50 rounded-lg">
+                <i className="fas fa-utensils text-2xl text-orange-600"></i>
               </div>
             </div>
           </Link>
@@ -310,6 +349,40 @@ const FarmerDashboard = () => {
                   <i className="fas fa-user text-red-600 text-xl mb-2"></i>
                   <span className="text-xs font-semibold text-red-800 text-center">Profile</span>
                 </Link>
+                <Link
+                  to={farms?.[0]?._id ? `/farms/${farms[0]._id}/feed-schedules` : '/select/farm'}
+                  className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg hover:shadow-md transition-all border border-blue-200"
+                  onClick={(e) => {
+                    if (!farms?.[0]?._id) {
+                      e.preventDefault();
+                      showToast('Please select a farm first', 'warning');
+                    }
+                  }}
+                >
+                  <i className="fas fa-calendar-plus text-blue-600 text-xl mb-2"></i>
+                  <span className="text-xs font-semibold text-blue-800 text-center">Feed Schedule</span>
+                </Link>
+                <Link
+                  to="/tasks"
+                  className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg hover:shadow-md transition-all border border-purple-200"
+                >
+                  <i className="fas fa-tasks text-purple-600 text-xl mb-2"></i>
+                  <span className="text-xs font-semibold text-purple-800 text-center">My Tasks</span>
+                </Link>
+                <button
+                  onClick={() => {
+                    if (farms?.[0]?._id) {
+                      setSelectedFarmForLoan(farms[0]._id);
+                      setShowLoanForm(true);
+                    } else {
+                      showToast('Please add a farm first to apply for a loan', 'warning');
+                    }
+                  }}
+                  className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg hover:shadow-md transition-all border border-emerald-200 cursor-pointer"
+                >
+                  <i className="fas fa-hand-holding-usd text-emerald-600 text-xl mb-2"></i>
+                  <span className="text-xs font-semibold text-emerald-800 text-center">Apply Loan</span>
+                </button>
               </div>
             </div>
 
@@ -376,6 +449,20 @@ const FarmerDashboard = () => {
             )}
           </div>
         </div>
+
+        {/* Loan Request Form Modal */}
+        {showLoanForm && selectedFarmForLoan && (
+          <LoanRequestForm
+            farmId={selectedFarmForLoan}
+            onClose={() => {
+              setShowLoanForm(false);
+              setSelectedFarmForLoan(null);
+            }}
+            onSuccess={() => {
+              fetchStats(); // Refresh stats after loan is submitted
+            }}
+          />
+        )}
     </div>
   );
 };

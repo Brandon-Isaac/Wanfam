@@ -2,7 +2,6 @@ import {Schema, model, Document} from 'mongoose';
 
 export interface ILoanOfficer extends Document {
     userId: Schema.Types.ObjectId;
-    officerSlug: string;
     firstName: string;
     lastName: string;
     email: string;
@@ -17,7 +16,6 @@ export interface ILoanOfficer extends Document {
 
 const LoanOfficerSchema = new Schema<ILoanOfficer>({
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    officerSlug: { type: String, required: true },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     email: { type: String, required: true },

@@ -2,11 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../utils/Api';
 import { FinancialOverview } from '../../types/financial';
+import LoanRequestForm from '../../components/Forms/LoanRequestForm';
 
 const FinancialOverviewPage: React.FC = () => {
     const { farmId } = useParams<{ farmId: string }>();
     const [overview, setOverview] = useState<FinancialOverview | null>(null);
     const [loading, setLoading] = useState(true);
+    const [showLoanForm, setShowLoanForm] = useState(false);
     const [dateRange, setDateRange] = useState({
         startDate: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
         endDate: new Date().toISOString().split('T')[0]
@@ -61,6 +63,13 @@ const FinancialOverviewPage: React.FC = () => {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-900">Financial Overview</h1>
                 <div className="flex gap-3">
+                    <button
+                        onClick={() => setShowLoanForm(true)}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        <i className="fas fa-hand-holding-usd mr-2"></i>
+                        Apply for Loan
+                    </button>
                     <Link
                         to={`/farms/${farmId}/revenues`}
                         className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
@@ -298,6 +307,17 @@ const FinancialOverviewPage: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Loan Request Form Modal */}
+            {showLoanForm && farmId && (
+                <LoanRequestForm
+                    farmId={farmId}
+                    onClose={() => setShowLoanForm(false)}
+                    onSuccess={() => {
+                        fetchOverview(); // Refresh the overview after loan is submitted
+                    }}
+                />
+            )}
         </div>
     );
 };

@@ -52,6 +52,13 @@ import NotificationList from '../pages/NotificationList';
 import Vaccinate from '../components/Forms/Vaccinate';
 import ScheduleVaccination from '../components/Forms/ScheduleVaccination';
 import FloatingChatbot from '../components/FloatingChatbot';
+import CreateFeedSchedule from '../components/Forms/CreateFeedSchedule';
+import FeedSchedules from '../pages/FeedSchedules';
+
+// Loan Pages
+import LoanApplications from '../pages/Loans/LoanApplications';
+import ApprovedLoans from '../pages/Loans/ApprovedLoans';
+import LoanReports from '../pages/Loans/LoanReports';
 
 // User Management Pages
 import AllUsers from '../pages/Users/AllUsers';
@@ -338,6 +345,22 @@ const AppRoutes = () => {
                     </FarmProvider>
                 </ProtectedRoutes>
             } />
+            <Route path="/farms/:farmId/feed-schedules" element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <FeedSchedules />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
+            <Route path="/farms/:farmId/feed-schedule/create" element={
+                <ProtectedRoutes>
+                    <FarmProvider>
+                        <Navigation />
+                        <CreateFeedSchedule />
+                    </FarmProvider>
+                </ProtectedRoutes>
+            } />
             <Route path="/farms/:farmId/workers/employ" element={
                 <ProtectedRoutes>
                     <FarmProvider>                   
@@ -473,6 +496,32 @@ const AppRoutes = () => {
                     <>
                         <Navigation />
                         <AuditLogs />
+                    </>
+                </ProtectedRoutes>
+            } />
+
+            {/* Loan Routes */}
+            <Route path="/loan-applications" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <LoanApplications />
+                    </>
+                </ProtectedRoutes>
+            } />
+            <Route path="/approved-loans" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <ApprovedLoans />
+                    </>
+                </ProtectedRoutes>
+            } />
+            <Route path="/reports" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <LoanReports />
                     </>
                 </ProtectedRoutes>
             } />
