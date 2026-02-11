@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import api from "../../utils/Api";
+import { useToast } from "../../contexts/ToastContext";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface LoanApplication {
   _id: string;
@@ -12,13 +14,16 @@ interface LoanApplication {
   amount: number;
   purpose: string;
   status: string;
-  collateral: string;
+  collateralDetails: string;
   createdAt: string;
 }
 
 const LoanApplications = () => {
+  const { showToast } = useToast();
+  const { user } = useAuth();
   const [applications, setApplications] = useState<LoanApplication[]>([]);
   const [loading, setLoading] = useState(true);
+  const [processingId, setProcessingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
 
   useEffect(() => {
@@ -58,6 +63,76 @@ const LoanApplications = () => {
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
+  };
+
+  const handleApprove = async (application: LoanApplication) => {
+    if (!user?._id) {
+      showToast('User not authenticated', 'error');
+      return;
+    }
+
+    // Prompt for approval details
+    const approvedAmount = prompt(`Enter approved amount (Requested: KSh ${application.amount.toLocaleString()}):`, application.amount.toString());
+    if (!approvedAmount) return;
+
+    const interestRate = prompt('Enter interest rate (%):', '5');
+    if (!interestRate) return;
+
+    const repaymentSchedule = prompt('Enter repayment schedule (e.g., "12 months", "24 months"):', '12 months');
+    if (!repaymentSchedule) return;
+
+    try {
+      setProcessingId(application._id);
+      
+      const payload = {
+        loanRequestId: application._id,
+        approvedBy: user._id,
+        approvedAmount: parseFloat(approvedAmount),
+        interestRate: parseFloat(interestRate),
+        repaymentSchedule
+      };
+
+      await api.post('/loans/approve', payload);
+      
+      showToast('Loan approved successfully!', 'success');
+      fetchApplications(); // Refresh the list
+    } catch (error: any) {
+      console.error('Error approving loan:', error);
+      showToast(error.response?.data?.message || 'Failed to approve loan', 'error');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleReject = async (application: LoanApplication) => {
+    if (!user?._id) {
+      showToast('User not authenticated', 'error');
+      return;
+    }
+
+    const reason = prompt('Enter rejection reason:');
+    if (!reason) return;
+
+    const confirmReject = window.confirm(`Are you sure you want to reject this loan application from ${application.farmerId.firstName} ${application.farmerId.lastName}?`);
+    if (!confirmReject) return;
+
+    try {
+      setProcessingId(application._id);
+      
+      await api.post('/loans/reject', {
+        loanRequestId: application._id,
+        rejectedBy: user._id,
+        rejectionReason: reason
+      });
+      
+      showToast('Loan rejected successfully', 'success');
+      fetchApplications(); // Refresh the list
+    } catch (error: any) {
+      console.error('Error rejecting loan:', error);
+      showToast(error.response?.data?.message || 'Failed to reject loan', 'error');
+    } finally {
+      setProcessingId(null);
+    }
   };
 
   if (loading) {
@@ -179,7 +254,7 @@ const LoanApplications = () => {
                         <span className="text-xs text-gray-500 font-medium">Collateral</span>
                       </div>
                       <p className="text-sm font-semibold text-gray-900">
-                        {application.collateral || 'Not specified'}
+                        {application.collateralDetails || 'Not specified'}
                       </p>
                     </div>
 
@@ -212,13 +287,39 @@ const LoanApplications = () => {
 
                   {application.status === 'pending' && (
                     <div className="flex space-x-3 pt-4 border-t border-gray-200">
-                      <button className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">
-                        <i className="fas fa-check mr-2"></i>
-                        Approve
+                      <button 
+                        onClick={() => handleApprove(application)}
+                        disabled={processingId === application._id}
+                        className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {processingId === application._id ? (
+                          <>
+                            <i className="fas fa-spinner fa-spin mr-2"></i>
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <i className="fas fa-check mr-2"></i>
+                            Approve
+                          </>
+                        )}
                       </button>
-                      <button className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors">
-                        <i className="fas fa-times mr-2"></i>
-                        Reject
+                      <button 
+                        onClick={() => handleReject(application)}
+                        disabled={processingId === application._id}
+                        className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {processingId === application._id ? (
+                          <>
+                            <i className="fas fa-spinner fa-spin mr-2"></i>
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <i className="fas fa-times mr-2"></i>
+                            Reject
+                          </>
+                        )}
                       </button>
                       <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors">
                         <i className="fas fa-eye"></i>

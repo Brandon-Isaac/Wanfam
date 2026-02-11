@@ -158,11 +158,8 @@ const getLoanRequests = asyncHandler(async (req: Request, res: Response) => {
 
 //get loan officers
 const getLoanOfficers = asyncHandler(async (req: Request, res: Response) => {
-    // Get all loan officers with populated user details
-    const loanOfficers = await LoanOfficer.find({ status: 'active' }).populate({
-        path: 'userId',
-        select: 'firstName lastName email'
-    });
+    // Get all users with loan_officer role
+    const loanOfficers = await User.find({ role: 'loan_officer' }).select('firstName lastName email phoneNumber');
     
     res.status(200).json({ loanOfficers });
 });
@@ -191,12 +188,54 @@ const getApprovedLoansByFarmer = asyncHandler(async (req: Request, res: Response
     res.status(200).json({ approvedLoans: loanRequests });
 });
 
+// Reject Loan Request
+const rejectLoanRequest = asyncHandler(async (req: Request, res: Response) => {
+    const { loanRequestId, rejectedBy, rejectionReason } = req.body;
+    
+    if (!loanRequestId || !rejectedBy || !rejectionReason) {
+        return res.status(400).json({ message: "All fields are required" });
+    }
+    
+    const loanRequest = await LoanRequest.findById(loanRequestId);
+    if (!loanRequest) {
+        return res.status(404).json({ message: "Loan request not found" });
+    }
+    
+    if (loanRequest.status !== 'pending') {
+        return res.status(400).json({ message: "Only pending loan requests can be rejected" });
+    }
+    
+    const loanOfficer = await User.findById(rejectedBy);
+    if (!loanOfficer || loanOfficer.role !== 'loan_officer') {
+        return res.status(400).json({ message: "Rejector must be a valid loan officer" });
+    }
+    
+    // Update loan request status
+    loanRequest.status = 'rejected';
+    await loanRequest.save();
+    
+    // Send notification to farmer about loan rejection
+    await Notification.create({
+        userId: loanRequest.farmerId,
+        message: `Your loan request for ${loanRequest.amount} KES has been rejected. Reason: ${rejectionReason}`,
+        type: 'loan_rejection',
+        relatedEntityId: loanRequest._id,
+        relatedEntityType: 'LoanRequest'
+    });
+    
+    res.status(200).json({ 
+        message: "Loan request rejected successfully", 
+        loanRequest
+    });
+});
+
 
 
 export const LoanController = {
     updateLoanOfficerDetails,
     createLoanRequest,
     approveLoanRequest,
+    rejectLoanRequest,
     getLoanRequests,
     getLoanOfficers,
     getApprovedLoansByOfficer,

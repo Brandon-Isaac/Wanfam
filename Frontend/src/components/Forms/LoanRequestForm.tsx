@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/Api';
 import { useToast } from '../../contexts/ToastContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface LoanRequestFormProps {
   farmId: string;
@@ -10,6 +11,7 @@ interface LoanRequestFormProps {
 
 const LoanRequestForm: React.FC<LoanRequestFormProps> = ({ farmId, onClose, onSuccess }) => {
   const { showToast } = useToast();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [loanOfficers, setLoanOfficers] = useState<any[]>([]);
   const [formData, setFormData] = useState({
@@ -66,12 +68,14 @@ const LoanRequestForm: React.FC<LoanRequestFormProps> = ({ farmId, onClose, onSu
     try {
       setLoading(true);
       
-      // Get current user ID
-      const userResponse = await api.get('/auth/current-user');
-      const userId = userResponse.data.user._id;
+      // Use user from auth context
+      if (!user?._id) {
+        showToast('User not authenticated', 'error');
+        return;
+      }
 
       const payload = {
-        userId,
+        userId: user._id,
         farmId,
         amountRequested: parseFloat(formData.amount),
         purpose: formData.purpose,
@@ -229,12 +233,22 @@ const LoanRequestForm: React.FC<LoanRequestFormProps> = ({ farmId, onClose, onSu
               required
             >
               <option value="">-- Select a loan officer --</option>
-              {loanOfficers.map((officer: any) => (
-                <option key={officer._id} value={officer.userId?._id || officer._id}>
-                  {officer.userId?.firstName || officer.firstName} {officer.userId?.lastName || officer.lastName} 
-                  {officer.bankName && ` - ${officer.bankName}`}
-                </option>
-              ))}
+              {loanOfficers.map((officer: any) => {
+                // Officers are now directly from User model
+                const officerId = officer._id;
+                const firstName = officer.firstName || 'Unknown';
+                const lastName = officer.lastName || '';
+                const email = officer.email || '';
+                const phone = officer.phoneNumber || '';
+                
+                return (
+                  <option key={officer._id} value={officerId}>
+                    {firstName} {lastName}
+                    {email ? ` (${email})` : ''}
+                    {phone ? ` - ${phone}` : ''}
+                  </option>
+                );
+              })}
             </select>
             {loanOfficers.length === 0 && (
               <p className="text-sm text-amber-600 mt-1">

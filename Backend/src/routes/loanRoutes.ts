@@ -37,6 +37,13 @@ router.post(
     LoanController.approveLoanRequest
 );
 
+// Reject loan request - Loan officers only
+router.post(
+    '/reject', 
+    roleHandler([UserRole.LOAN_OFFICER]), 
+    LoanController.rejectLoanRequest
+);
+
 // Get approved loans for a specific officer
 router.get(
     '/officer/:officerId/approved', 

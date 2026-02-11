@@ -35,17 +35,17 @@ const LoanReports = () => {
   const fetchOverdueLoans = async () => {
     try {
       setLoading(true);
-      // Fetch all loan requests and filter for approved/disbursed ones
+      // Fetch all loan requests and filter for approved ones (approved = disbursed)
       const response = await api.get('/loans/requests');
       
-      // Filter for disbursed loans
-      const disbursedLoans = (response.data.loanRequests || []).filter((loan: OverdueLoan) => 
-        loan.status === 'approved' || loan.status === 'disbursed'
+      // Filter for approved loans (in this system, approved means disbursed)
+      const approvedLoans = (response.data.loanRequests || []).filter((loan: OverdueLoan) => 
+        loan.status === 'approved'
       );
 
       // Add mock overdue calculation
-      const loansWithOverdueInfo = disbursedLoans.map((loan: OverdueLoan) => {
-        const disbursementDate = new Date(loan.disbursementDate);
+      const loansWithOverdueInfo = approvedLoans.map((loan: OverdueLoan) => {
+        const disbursementDate = new Date(loan.disbursementDate || loan.approvalDate);
         const dueDate = new Date(disbursementDate);
         dueDate.setDate(dueDate.getDate() + 90); // Assume 90-day repayment period
         

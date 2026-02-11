@@ -248,23 +248,23 @@ const LoanOfficerDashboard = () => {
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
                   <div className="flex items-center">
-                    <i className="fas fa-handshake text-blue-600 mr-3"></i>
-                    <span className="text-sm font-medium text-gray-900">Disbursed Loans</span>
+                    <i className="fas fa-times-circle text-red-600 mr-3"></i>
+                    <span className="text-sm font-medium text-gray-900">Rejected Loans</span>
                   </div>
-                  <span className="text-sm font-bold text-blue-600">
-                    {stats.disbursedLoans || 0}
+                  <span className="text-sm font-bold text-red-600">
+                    {stats.rejectedLoans || 0}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
                   <div className="flex items-center">
-                    <i className="fas fa-lock text-gray-600 mr-3"></i>
-                    <span className="text-sm font-medium text-gray-900">Closed Loans</span>
+                    <i className="fas fa-hourglass-half text-orange-600 mr-3"></i>
+                    <span className="text-sm font-medium text-gray-900">Pending Review</span>
                   </div>
-                  <span className="text-sm font-bold text-gray-600">
-                    {stats.closedLoans || 0}
+                  <span className="text-sm font-bold text-orange-600">
+                    {stats.pendingApplications || 0}
                   </span>
                 </div>
               </div>

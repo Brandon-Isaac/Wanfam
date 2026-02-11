@@ -273,52 +273,58 @@ const workerDashboard = asyncHandler(async (req: Request, res: Response) => {
 
 const loanOfficerDashboard = asyncHandler(async (req: Request, res: Response) => {
     const officerId = req.user.id;
-    const totalLoanRequests = await LoanRequest.countDocuments({ loanOfficerId: officerId });
-    const totalLoanApprovals = await LoanApproval.countDocuments({ approvedBy: officerId });
     
+    // Get all loan requests assigned to this officer
+    const totalLoanRequests = await LoanRequest.countDocuments({ loanOfficerId: officerId });
+    
+    // Count loans by status (pending, approved, rejected)
     const pendingApplications = await LoanRequest.countDocuments({ loanOfficerId: officerId, status: 'pending' });
     const approvedLoans = await LoanRequest.countDocuments({ loanOfficerId: officerId, status: 'approved' });
-    const disbursedLoans = await LoanApproval.countDocuments({ approvedBy: officerId, status: 'disbursed' });
-    const closedLoans = await LoanRequest.countDocuments({ loanOfficerId: officerId, status: 'closed' });
+    const rejectedLoans = await LoanRequest.countDocuments({ loanOfficerId: officerId, status: 'rejected' });
     
+    // Get recent pending applications
     const pendingApplicationsList = await LoanRequest.find({ loanOfficerId: officerId, status: 'pending' })
         .populate('farmerId', 'firstName lastName email')
         .limit(5)
         .sort({ createdAt: -1 });
     
-    const approvedThisMonth = await LoanApproval.countDocuments({ 
-        approvedBy: officerId,
-        createdAt: {
-            $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-            $lt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1)
+    // Count approvals/rejections this month
+    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const endOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1);
+    
+    const approvedThisMonth = await LoanRequest.countDocuments({ 
+        loanOfficerId: officerId,
+        status: 'approved',
+        updatedAt: {
+            $gte: startOfMonth,
+            $lt: endOfMonth
         }
     });
     
     const rejectedThisMonth = await LoanRequest.countDocuments({ 
         loanOfficerId: officerId,
         status: 'rejected',
-        createdAt: {
-            $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-            $lt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1)
+        updatedAt: {
+            $gte: startOfMonth,
+            $lt: endOfMonth
         }
     });
 
-    const totalLoanValue = await LoanApproval.aggregate([
-        { $match: { approvedBy: officerId } },
+    // Calculate total value of all approved loans
+    const totalLoanValueResult = await LoanApproval.aggregate([
+        { $match: { approvedBy: new mongoose.Types.ObjectId(officerId) } },
         { $group: { _id: null, totalAmount: { $sum: "$approvedAmount" } } }
     ]);
 
     res.json({
         totalLoanRequests,
-        totalLoanApprovals,
         pendingApplications,
         approvedLoans,
-        disbursedLoans,
-        closedLoans,
+        rejectedLoans,
         pendingApplicationsList,
         approvedThisMonth,
         rejectedThisMonth,
-        totalLoanValue: totalLoanValue[0]?.totalAmount || 0
+        totalLoanValue: totalLoanValueResult[0]?.totalAmount || 0
     });
 });
 
