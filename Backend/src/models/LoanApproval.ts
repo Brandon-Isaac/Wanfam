@@ -7,7 +7,6 @@ export interface ILoanApproval extends Document {
     approvedAmount: number;
     interestRate: number; // as a percentage
     repaymentSchedule: string; // e.g., "monthly", "quarterly"
-    status: 'approved' | 'disbursed' | 'closed';
     createdAt: Date;
     updatedAt: Date;
 }
@@ -18,7 +17,6 @@ const LoanApprovalSchema = new Schema<ILoanApproval>({
     approvedAmount: { type: Number, required: true },
     interestRate: { type: Number, required: true },
     repaymentSchedule: { type: String, required: true },
-    status: { type: String, enum: ['approved', 'disbursed', 'closed'], default: 'approved' },
 }, { timestamps: true });
 
 LoanApprovalSchema.pre<ILoanApproval>('save', function(next) {
