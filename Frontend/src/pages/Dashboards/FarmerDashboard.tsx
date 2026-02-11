@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import api from '../../utils/Api';
 import { useToast } from '../../contexts/ToastContext';
+import LoanRequestForm from '../../components/Forms/LoanRequestForm';
 
 const FarmerDashboard = () => {
   const { showToast } = useToast();
@@ -9,6 +10,8 @@ const FarmerDashboard = () => {
   const [farmWorkers, setFarmWorkers] = useState<any[]>([]);
   const [farms, setFarms] = useState<any[]>([]);
   const [pendingSchedulesCount, setPendingSchedulesCount] = useState(0);
+  const [showLoanForm, setShowLoanForm] = useState(false);
+  const [selectedFarmForLoan, setSelectedFarmForLoan] = useState<string | null>(null);
   
   const fetchStats = async () => {
     try {
@@ -366,6 +369,20 @@ const FarmerDashboard = () => {
                   <i className="fas fa-tasks text-purple-600 text-xl mb-2"></i>
                   <span className="text-xs font-semibold text-purple-800 text-center">My Tasks</span>
                 </Link>
+                <button
+                  onClick={() => {
+                    if (farms?.[0]?._id) {
+                      setSelectedFarmForLoan(farms[0]._id);
+                      setShowLoanForm(true);
+                    } else {
+                      showToast('Please add a farm first to apply for a loan', 'warning');
+                    }
+                  }}
+                  className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg hover:shadow-md transition-all border border-emerald-200 cursor-pointer"
+                >
+                  <i className="fas fa-hand-holding-usd text-emerald-600 text-xl mb-2"></i>
+                  <span className="text-xs font-semibold text-emerald-800 text-center">Apply Loan</span>
+                </button>
               </div>
             </div>
 
@@ -432,6 +449,20 @@ const FarmerDashboard = () => {
             )}
           </div>
         </div>
+
+        {/* Loan Request Form Modal */}
+        {showLoanForm && selectedFarmForLoan && (
+          <LoanRequestForm
+            farmId={selectedFarmForLoan}
+            onClose={() => {
+              setShowLoanForm(false);
+              setSelectedFarmForLoan(null);
+            }}
+            onSuccess={() => {
+              fetchStats(); // Refresh stats after loan is submitted
+            }}
+          />
+        )}
     </div>
   );
 };

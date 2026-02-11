@@ -2,8 +2,8 @@ import {Schema, model, Document} from 'mongoose';
 
 export interface IRevenue extends Document {
     farmId: Schema.Types.ObjectId;
-    source: 'livestock_sale' | 'milk_sale' | 'egg_sale' | 'wool_sale' | 'meat_sale' | 'breeding_fee' | 'service_income' | 'grant' | 'subsidy' | 'other';
-    category: 'product_sale' | 'service' | 'investment_return' | 'grant' | 'other';
+    source: 'livestock_sale' | 'milk_sale' | 'egg_sale' | 'wool_sale' | 'meat_sale' | 'breeding_fee' | 'service_income' | 'grant' | 'subsidy' | 'loan' | 'other';
+    category: 'product_sale' | 'service' | 'investment_return' | 'grant' | 'loan_disbursement' | 'other';
     amount: number;
     currency: 'USD' | 'KES' | 'EUR' | 'GBP' | 'TZS' | 'UGX' | 'RWF' | 'ZAR' | string;
     date: Date;
@@ -33,12 +33,12 @@ const revenueSchema = new Schema<IRevenue>({
     farmId: { type: Schema.Types.ObjectId, ref: 'Farm', required: true },
     source: { 
         type: String, 
-        enum: ['livestock_sale', 'milk_sale', 'egg_sale', 'wool_sale', 'meat_sale', 'breeding_fee', 'service_income', 'grant', 'subsidy', 'other'],
+        enum: ['livestock_sale', 'milk_sale', 'egg_sale', 'wool_sale', 'meat_sale', 'breeding_fee', 'service_income', 'grant', 'subsidy', 'loan', 'other'],
         required: true 
     },
     category: {
         type: String,
-        enum: ['product_sale', 'service', 'investment_return', 'grant', 'other'],
+        enum: ['product_sale', 'service', 'investment_return', 'grant', 'loan_disbursement', 'other'],
         required: true
     },
     amount: { type: Number, required: true, min: 0 },

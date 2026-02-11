@@ -31,6 +31,8 @@ import chatRoutes from "./routes/chatRoutes";
 import revenueRoutes from "./routes/revenueRoutes";
 import expenseRoutes from "./routes/expenseRoutes";
 import vaccinationRoutes from "./routes/vaccinationRoutes";
+import loanRoutes from "./routes/loanRoutes";
+import financialRoutes from "./routes/financialRoutes";
 import { startScheduledJobs } from "./utils/scheduledJobs";
 
 const app = Express();
@@ -92,6 +94,8 @@ app.use("/api/v1/chat", chatRoutes);
 app.use("/api/v1/revenue", revenueRoutes);
 app.use("/api/v1/expenses", expenseRoutes);
 app.use("/api/v1/vaccination", vaccinationRoutes);
+app.use("/api/v1/loans", loanRoutes);
+app.use("/api/v1/financial", financialRoutes);
 app.use('/api/v1/breeds', require('./routes/breedRoutes').default);
 
 app.listen(PORT, () => {

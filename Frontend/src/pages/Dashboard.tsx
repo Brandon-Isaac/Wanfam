@@ -55,6 +55,8 @@ const Dashboard = () => {
       let statsResponse;
       if (userData.user.role === 'farmer') {
         statsResponse = await api.get(`/dashboard/farmer-dashboard/`);
+      } else if (userData.user.role === 'loan_officer') {
+        statsResponse = await api.get(`/dashboard/officer-dashboard`);
       } else {
         statsResponse = await api.get(`/dashboard/${userData.user.role}-dashboard/`);
       }
@@ -75,7 +77,7 @@ const Dashboard = () => {
         return <VeterinaryDashboard />;
       case 'worker':
         return <WorkerDashboard/>;
-      case 'loanOfficer':
+      case 'loan_officer':
         return <LoanOfficerDashboard />;
       case 'admin':
         return <AdminDashboard/>;

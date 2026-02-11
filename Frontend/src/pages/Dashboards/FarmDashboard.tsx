@@ -2,12 +2,14 @@ import { Link, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import api from '../../utils/Api';
 import FarmBanner from '../../components/FarmBanner';
+import LoanRequestForm from '../../components/Forms/LoanRequestForm';
 
 const FarmDashboard = () => {
   const { farmId } = useParams();
   const [stats, setStats] = useState({} as any);
   const [farmWorkers, setFarmWorkers] = useState<any[]>([]);
   const [pendingSchedulesCount, setPendingSchedulesCount] = useState(0);
+  const [showLoanForm, setShowLoanForm] = useState(false);
 
   const fetchFarmWorkers = async () => {
     try {
@@ -345,6 +347,13 @@ const FarmDashboard = () => {
                   <i className="fas fa-chart-pie text-teal-600 text-xl mb-2"></i>
                   <span className="text-xs font-semibold text-teal-800 text-center">Financial</span>
                 </Link>
+                <button
+                  onClick={() => setShowLoanForm(true)}
+                  className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg hover:shadow-md transition-all border border-emerald-200 cursor-pointer"
+                >
+                  <i className="fas fa-hand-holding-usd text-emerald-600 text-xl mb-2"></i>
+                  <span className="text-xs font-semibold text-emerald-800 text-center">Apply Loan</span>
+                </button>
                 <Link
                   to={`/farms/${farmId}/feed-schedules`}
                   className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg hover:shadow-md transition-all border border-cyan-200"
@@ -419,6 +428,17 @@ const FarmDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Loan Request Form Modal */}
+      {showLoanForm && farmId && (
+        <LoanRequestForm
+          farmId={farmId}
+          onClose={() => setShowLoanForm(false)}
+          onSuccess={() => {
+            // Optionally refresh stats or show a success message
+          }}
+        />
+      )}
     </div>
   );
 };

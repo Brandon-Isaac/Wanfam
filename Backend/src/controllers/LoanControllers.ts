@@ -4,13 +4,15 @@ import { LoanRequest } from "../models/LoanRequest";
 import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/AsyncHandler";
 import { User } from "../models/User";
+import { Revenue } from "../models/Revenue";
+import { Notification } from "../models/Notification";
 
 // Update Loan Officer Details
 const updateLoanOfficerDetails = asyncHandler(async (req: Request, res: Response) => {
-   const officerSlug = req.params.officerSlug;
+   const officerId = req.params.officerId;
    const { bankName, ratePerAnnum } = req.body;
 
-   const loanOfficer = await LoanOfficer.findOne({ officerSlug });
+   const loanOfficer = await LoanOfficer.findOne({ _id: officerId });
    if (!loanOfficer) {
        return res.status(404).json({ message: "Loan officer not found" });
    }
@@ -25,21 +27,45 @@ const updateLoanOfficerDetails = asyncHandler(async (req: Request, res: Response
 
 //Create Loan Request
 const createLoanRequest = asyncHandler(async (req: Request, res: Response) => {
-    const { userId, amountRequested, purpose, repaymentPeriod } = req.body;
-    if (!userId || !amountRequested || !purpose || !repaymentPeriod) {
+    const { userId, farmId, amountRequested, purpose, repaymentPeriod, employmentStatus, collateralDetails, businessPlan, loanOfficerId } = req.body;
+    
+    if (!userId || !farmId || !amountRequested || !purpose || !repaymentPeriod || !employmentStatus || !collateralDetails || !businessPlan || !loanOfficerId) {
         return res.status(400).json({ message: "All fields are required" });
     }
+    
     const user = await User.findById(userId);
     if (!user || user.role !== 'farmer') {
         return res.status(400).json({ message: "Loan requests can only be made by farmers" });
     }
+    
+    const loanOfficer = await User.findById(loanOfficerId);
+    if (!loanOfficer || loanOfficer.role !== 'loan_officer') {
+        return res.status(400).json({ message: "Invalid loan officer" });
+    }
+    
     const loanRequest = new LoanRequest({
-        userId,
-        amountRequested,
+        farmerId: userId,
+        farmId,
+        loanOfficerId,
+        amount: amountRequested,
         purpose,
-        repaymentPeriod
+        repaymentTerm: repaymentPeriod,
+        employmentStatus,
+        collateralDetails,
+        businessPlan
     });
+    
     await loanRequest.save();
+    
+    // Send notification to loan officer
+    await Notification.create({
+        userId: loanOfficerId,
+        message: `New loan request of ${amountRequested} KES from ${user.firstName} ${user.lastName} for ${purpose}. Request ID: ${loanRequest._id}`,
+        type: 'loan_request',
+        relatedEntityId: loanRequest._id,
+        relatedEntityType: 'LoanRequest'
+    });
+    
     res.status(201).json({ message: "Loan request created successfully", loanRequest });
 });
 
@@ -60,6 +86,8 @@ const approveLoanRequest = asyncHandler(async (req: Request, res: Response) => {
     if (!loanOfficer || loanOfficer.role !== 'loan_officer') {
         return res.status(400).json({ message: "Approver must be a valid loan officer" });
     }
+    
+    // Create loan approval record
     const loanApproval = new LoanApproval({
         loanRequestId,
         approvedBy,
@@ -68,15 +96,58 @@ const approveLoanRequest = asyncHandler(async (req: Request, res: Response) => {
         repaymentSchedule
     });
     await loanApproval.save();
+    
+    // Update loan request status
     loanRequest.status = 'approved';
     await loanRequest.save();
+    
+    // Create revenue record for the approved loan
+    const revenue = new Revenue({
+        farmId: loanRequest.farmId,
+        source: 'loan',
+        category: 'loan_disbursement',
+        amount: approvedAmount,
+        currency: 'KES', // Default currency, can be made dynamic
+        date: new Date(),
+        description: `Loan disbursement - ${loanRequest.purpose}`,
+        paymentMethod: 'bank_transfer',
+        paymentStatus: 'completed',
+        receiptNumber: loanApproval.loanSlug,
+        recordedBy: approvedBy,
+        notes: `Approved loan with ${interestRate}% interest rate, ${repaymentSchedule} repayment schedule`
+    });
+    await revenue.save();
+    
     // Assign the approved loan to the loan officer
     const officerRecord = await LoanOfficer.findOne({ userId: approvedBy });
     if (officerRecord) {
         officerRecord.approvedLoans.push(loanApproval.loanRequestId);
         await officerRecord.save();
     }
-    res.status(201).json({ message: "Loan request approved successfully", loanApproval });
+    
+    // Send notification to farmer about loan approval and revenue addition
+    await Notification.create({
+        userId: loanRequest.farmerId,
+        message: `Your loan request for ${approvedAmount} KES has been approved and added to your farm revenue. Loan ID: ${loanApproval.loanSlug}`,
+        type: 'loan_approval',
+        relatedEntityId: loanApproval._id,
+        relatedEntityType: 'LoanApproval'
+    });
+    
+    // Send notification about revenue addition
+    await Notification.create({
+        userId: loanRequest.farmerId,
+        message: `Revenue of ${approvedAmount} KES from loan disbursement has been added to your farm records.`,
+        type: 'revenue',
+        relatedEntityId: revenue._id,
+        relatedEntityType: 'Revenue'
+    });
+    
+    res.status(201).json({ 
+        message: "Loan request approved successfully and revenue recorded", 
+        loanApproval,
+        revenue 
+    });
 });
 
 //get Loan Requests
@@ -87,14 +158,19 @@ const getLoanRequests = asyncHandler(async (req: Request, res: Response) => {
 
 //get loan officers
 const getLoanOfficers = asyncHandler(async (req: Request, res: Response) => {
-    const loanOfficers = await LoanOfficer.find().populate('userId', 'name email bankName branch');
+    // Get all loan officers with populated user details
+    const loanOfficers = await LoanOfficer.find({ status: 'active' }).populate({
+        path: 'userId',
+        select: 'firstName lastName email'
+    });
+    
     res.status(200).json({ loanOfficers });
 });
 
 //get Approved Loans by Officer
 const getApprovedLoansByOfficer = asyncHandler(async (req: Request, res: Response) => {
-    const officerSlug = req.params.officerSlug;
-    const loanOfficer = await LoanOfficer.findOne({ officerSlug }).populate({
+    const officerId = req.params.officerId;
+    const loanOfficer = await LoanOfficer.findOne({ _id: officerId }).populate({
         path: 'approvedLoans',
         populate: { path: 'loanRequestId', populate: { path: 'userId', select: 'name email' } }
     });

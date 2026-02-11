@@ -274,49 +274,52 @@ const workerDashboard = asyncHandler(async (req: Request, res: Response) => {
 const loanOfficerDashboard = asyncHandler(async (req: Request, res: Response) => {
     const officerId = req.user.id;
     const totalLoanRequests = await LoanRequest.countDocuments({ loanOfficerId: officerId });
-   const totalLoanApprovals = await LoanApproval.countDocuments({ approvedBy: officerId });
-   const pendingApplicationsList = await LoanRequest.find({ loanOfficerId: officerId, status: 'pending' }).limit(5).sort({ createdAt: -1 });
-   const pendingApplications = await LoanRequest.countDocuments({ loanOfficerId: officerId, status: 'pending' });
-   const approvedLoans = await LoanApproval.countDocuments({ approvedBy: officerId, status: 'approved' });
-   const disbursedLoans = await LoanApproval.countDocuments({ approvedBy: officerId, status: 'disbursed' });
-   const closedLoans = await LoanApproval.countDocuments({ approvedBy: officerId, status: 'closed' });
-   const approvedThisMonth = await LoanApproval.countDocuments({ 
-       approvedBy: officerId,
-       createdAt: {
-           $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-           $lt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1)
-       }
-   });
-   
-   
-   const rejectedThisMonth = await LoanRequest.countDocuments({ 
-       loanOfficerId: officerId,
-       status: 'rejected',
-       createdAt: {
-           $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-           $lt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1)
-       }
-   });
-   
-   
+    const totalLoanApprovals = await LoanApproval.countDocuments({ approvedBy: officerId });
+    
+    const pendingApplications = await LoanRequest.countDocuments({ loanOfficerId: officerId, status: 'pending' });
+    const approvedLoans = await LoanRequest.countDocuments({ loanOfficerId: officerId, status: 'approved' });
+    const disbursedLoans = await LoanApproval.countDocuments({ approvedBy: officerId, status: 'disbursed' });
+    const closedLoans = await LoanRequest.countDocuments({ loanOfficerId: officerId, status: 'closed' });
+    
+    const pendingApplicationsList = await LoanRequest.find({ loanOfficerId: officerId, status: 'pending' })
+        .populate('farmerId', 'firstName lastName email')
+        .limit(5)
+        .sort({ createdAt: -1 });
+    
+    const approvedThisMonth = await LoanApproval.countDocuments({ 
+        approvedBy: officerId,
+        createdAt: {
+            $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+            $lt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1)
+        }
+    });
+    
+    const rejectedThisMonth = await LoanRequest.countDocuments({ 
+        loanOfficerId: officerId,
+        status: 'rejected',
+        createdAt: {
+            $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+            $lt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1)
+        }
+    });
 
-   const totalLoanValue= await LoanApproval.aggregate([
-       { $match: { approvedBy: officerId } },
-       { $group: { _id: null, totalAmount: { $sum: "$approvedAmount" } } }
-   ]);
+    const totalLoanValue = await LoanApproval.aggregate([
+        { $match: { approvedBy: officerId } },
+        { $group: { _id: null, totalAmount: { $sum: "$approvedAmount" } } }
+    ]);
 
-   res.json({
-       totalLoanRequests,
-       totalLoanApprovals,
-       pendingApplications,
-       approvedLoans,
-       disbursedLoans,
-       closedLoans,
-       pendingApplicationsList,
-       approvedThisMonth,
-       rejectedThisMonth,
-       totalLoanValue: totalLoanValue[0]?.totalAmount || 0
-   });
+    res.json({
+        totalLoanRequests,
+        totalLoanApprovals,
+        pendingApplications,
+        approvedLoans,
+        disbursedLoans,
+        closedLoans,
+        pendingApplicationsList,
+        approvedThisMonth,
+        rejectedThisMonth,
+        totalLoanValue: totalLoanValue[0]?.totalAmount || 0
+    });
 });
 
 const adminDashboard = asyncHandler(async (req: Request, res: Response) => {

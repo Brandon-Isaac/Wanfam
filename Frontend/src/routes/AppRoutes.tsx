@@ -55,6 +55,11 @@ import FloatingChatbot from '../components/FloatingChatbot';
 import CreateFeedSchedule from '../components/Forms/CreateFeedSchedule';
 import FeedSchedules from '../pages/FeedSchedules';
 
+// Loan Pages
+import LoanApplications from '../pages/Loans/LoanApplications';
+import ApprovedLoans from '../pages/Loans/ApprovedLoans';
+import LoanReports from '../pages/Loans/LoanReports';
+
 // User Management Pages
 import AllUsers from '../pages/Users/AllUsers';
 import AddUser from '../pages/Users/AddUser';
@@ -491,6 +496,32 @@ const AppRoutes = () => {
                     <>
                         <Navigation />
                         <AuditLogs />
+                    </>
+                </ProtectedRoutes>
+            } />
+
+            {/* Loan Routes */}
+            <Route path="/loan-applications" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <LoanApplications />
+                    </>
+                </ProtectedRoutes>
+            } />
+            <Route path="/approved-loans" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <ApprovedLoans />
+                    </>
+                </ProtectedRoutes>
+            } />
+            <Route path="/reports" element={
+                <ProtectedRoutes>
+                    <>
+                        <Navigation />
+                        <LoanReports />
                     </>
                 </ProtectedRoutes>
             } />
